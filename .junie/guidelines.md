@@ -78,56 +78,6 @@ migrate -path ./migrations -database "mysql://user:pass@tcp(localhost:3306)/dbna
 
 ---
 
-## ディレクトリ構成 (予定)
-```
-├── cmd/
-│   └── app/                 # エントリポイント（main関数など）、WireによるDI設定もここ
-│       └── main.go
-├── internal/                # アプリケーション内部のパッケージ（※外部からimportされない想定）
-│   ├── product/             # 集約単位ごとにまとめる（例：product）
-│   │   ├── domain/          # ドメイン層（エンティティ、値オブジェクト、リポジトリインターフェース）
-│   │   │   ├── entity.go
-│   │   │   ├── valueobject.go # enityに書いてもいい
-│   │   │   └── repository.go
-│   │   ├── usecase/         # ユースケース層（ビジネスロジック）
-│   │   │   ├── interactor.go
-│   │   │   └── dto.go
-│   │   ├── infra/           # インフラ層（DB接続、リポジトリ実装）
-│   │   │   ├── mysql_repository.go
-│   │   │   └── db.go
-│   │   └── handler/         # インターフェース層（HTTPハンドラ）
-│   │       ├── controller.go
-│   │       └── presenter.go
-│   │── shared/             
-│   │   ├── domain/          # ドメイン層（エンティティ、値オブジェクト、リポジトリインターフェース）
-│   │   │   ├── entity.go
-│   │   │   ├── valueobject.go # enityに書いてもいい
-│   │   │   └── repository.go
-│   │   ├── usecase/         # ユースケース層（ビジネスロジック）
-│   │   │   ├── interactor.go
-│   │   │   └── dto.go
-│   │   ├── infra/           # インフラ層（DB接続、リポジトリ実装）
-│   │   │   ├── mysql_repository.go
-│   │   └── handler/         # インターフェース層（HTTPハンドラ）
-│   │       ├── controller.go
-│   │       └── presenter.go
-│   ├── logger/              # ロガー（Zapラッパーなど）
-│   │   └── logger.go
-│   ├── config/              # コンフィグ管理（Viperを利用）
-│   │   └── config.go
-│   └── router/              # ルーティング設定（Echoルート管理）
-│       └── router.go
-├── db/
-│   ├── migrations/          # マイグレーションSQL
-│   ├── model/               # ORM定義（GORMの構造体など）
-│   └── schema/              # （必要なら）テーブル定義をコードで表現したもの
-├── scripts/                 # スクリプト（DBマイグレーションや初期データ投入など）
-├── pkg/                     # 外部公開可能な汎用パッケージ（必要なら）
-├── go.mod, go.sum           # Goモジュール定義（依存関係）
-```
-
----
-
 ## デプロイ戦略
 
 ### Vercel (メイン)
