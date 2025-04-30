@@ -3,11 +3,11 @@ package usecase
 import "github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
 
 type CreateProductUseCase struct {
-	productRepository domain.ProductRepository
+	ProductRepository domain.ProductRepository
 }
 
 func NewCreateProductUseCase(productRepository domain.ProductRepository) *CreateProductUseCase {
-	return &CreateProductUseCase{productRepository: productRepository}
+	return &CreateProductUseCase{ProductRepository: productRepository}
 }
 
 type CreateProductInput struct {
@@ -32,5 +32,5 @@ func (uc *CreateProductUseCase) Execute(input CreateProductInput) (*domain.Produ
 		input.Description,
 		productPrice,
 	)
-	return uc.productRepository.Create(nil, product)
+	return uc.ProductRepository.Create(nil, product)
 }

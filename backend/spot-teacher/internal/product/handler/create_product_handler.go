@@ -51,6 +51,7 @@ func (h *CreateProductHandler) HandleCreateProduct(c echo.Context) error {
 		Price:       domain.ProductPrice(req.Price),
 	})
 	if err != nil {
+		//TODO カスタムエラーの追加をする
 		return sh.ErrorJSON(c, http.StatusInternalServerError, "Internal Server Error", err.Error())
 	}
 
