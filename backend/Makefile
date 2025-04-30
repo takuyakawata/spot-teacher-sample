@@ -40,7 +40,7 @@ db-drop: ## データベースを削除 (注意して実行！)
 
 ent-generate: ## ent/schema/*.go の定義から Go コードを生成します
 	@echo "Generating ent code..."
-	@go generate ./backend/db/ent/schema # ※ ent ディレクトリのパスを確認・修正してください (通常は ./ent)
+	@go generate ./db/ent/schema # ※ ent ディレクトリのパスを確認・修正してください (通常は ./ent)
 	@echo "ent code generated."
 
 
@@ -98,3 +98,60 @@ migrate-hash: ## atalas.sumの更新
 #	@echo "Running GORM Gen..."
 #	@go run ${GORM_GEN_TOOL}
 #	@echo "GORM Gen finished."
+
+
+# === Docker Commands ===
+docker-up: ## Dockerコンテナをバックグラウンドで起動します (docker-compose up -d)
+	@echo "Starting Docker containers..."
+	@docker-compose up -d
+	@echo "Docker containers started."
+
+docker-down: ## Dockerコンテナを停止し、削除します (docker-compose down)
+	@echo "Stopping and removing Docker containers..."
+	@docker-compose down
+	@echo "Docker containers stopped and removed."
+
+docker-logs: ## Dockerコンテナのログを表示します (Ctrl+C で停止)
+	@echo "Following Docker logs (Ctrl+C to stop)..."
+	@docker-compose logs -f db # 'db' は docker-compose.yml 内のサービス名に合わせてください
+
+docker-rebuild: ## Dockerコンテナを再ビルドして起動します
+	@echo "Rebuilding and restarting Docker containers..."
+	@docker-compose down
+	@docker-compose up -d --build
+	@echo "Docker containers rebuilt and started."
+
+
+# === Go Application Commands ===
+run: run-a ## (デフォルト) APIサーバーA を実行します (go run)
+run-a:
+	@echo "Running API server A..."
+	@go run ${CMD_PATH_A}
+
+run-b: ## APIサーバーB を実行します (go run)
+	@echo "Running API server B..."
+	@go run ${CMD_PATH_B}
+
+build: build-a build-b ## 全てのAPIサーバーのバイナリをビルドします
+	@echo "All application binaries built in ${OUTPUT_DIR}/"
+
+build-a: tidy ent-generate ## APIサーバーA のバイナリをビルドします
+	@echo "Building ${APP_NAME_A}..."
+	@mkdir -p ${OUTPUT_DIR}
+	@go build -o ${OUTPUT_DIR}/${APP_NAME_A} ${CMD_PATH_A}
+	@echo "Built: ${OUTPUT_DIR}/${APP_NAME_A}"
+
+build-b: tidy ent-generate ## APIサーバーB のバイナリをビルドします
+	@echo "Building ${APP_NAME_B}..."
+	@mkdir -p ${OUTPUT_DIR}
+	@go build -o ${OUTPUT_DIR}/${APP_NAME_B} ${CMD_PATH_B}
+	@echo "Built: ${OUTPUT_DIR}/${APP_NAME_B}"
+
+test: ## Go のテストを実行します (./... は全パッケージ対象)
+	@echo "Running Go tests..."
+	@go test ./... -v
+
+tidy: ## go.mod と go.sum ファイルを整理します
+	@echo "Running go mod tidy..."
+	@go mod tidy
+	@echo "go mod tidy finished."
