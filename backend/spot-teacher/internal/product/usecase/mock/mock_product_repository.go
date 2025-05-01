@@ -49,3 +49,18 @@ func (mr *MockProductRepositoryMockRecorder) Create(arg0, arg1 interface{}) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProductRepository)(nil).Create), arg0, arg1)
 }
+
+// FindByID mocks base method.
+func (m *MockProductRepository) FindByID(arg0 context.Context, arg1 domain.ProductID) (*domain.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", arg0, arg1)
+	ret0, _ := ret[0].(*domain.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockProductRepositoryMockRecorder) FindByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockProductRepository)(nil).FindByID), arg0, arg1)
+}
