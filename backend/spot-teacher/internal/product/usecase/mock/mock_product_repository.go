@@ -50,6 +50,35 @@ func (mr *MockProductRepositoryMockRecorder) Create(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProductRepository)(nil).Create), arg0, arg1)
 }
 
+// Delete mocks base method.
+func (m *MockProductRepository) Delete(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockProductRepositoryMockRecorder) Delete(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockProductRepository)(nil).Delete), arg0, arg1)
+}
+
+// FindAll mocks base method.
+func (m *MockProductRepository) FindAll(arg0 context.Context) ([]*domain.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindAll", arg0)
+	ret0, _ := ret[0].([]*domain.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindAll indicates an expected call of FindAll.
+func (mr *MockProductRepositoryMockRecorder) FindAll(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAll", reflect.TypeOf((*MockProductRepository)(nil).FindAll), arg0)
+}
+
 // FindByID mocks base method.
 func (m *MockProductRepository) FindByID(arg0 context.Context, arg1 domain.ProductID) (*domain.Product, error) {
 	m.ctrl.T.Helper()
@@ -63,4 +92,19 @@ func (m *MockProductRepository) FindByID(arg0 context.Context, arg1 domain.Produ
 func (mr *MockProductRepositoryMockRecorder) FindByID(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockProductRepository)(nil).FindByID), arg0, arg1)
+}
+
+// Update mocks base method.
+func (m *MockProductRepository) Update(arg0 context.Context, arg1 *domain.Product) (*domain.Product, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0, arg1)
+	ret0, _ := ret[0].(*domain.Product)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockProductRepositoryMockRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockProductRepository)(nil).Update), arg0, arg1)
 }

@@ -37,7 +37,7 @@ func init() {
 	// productDescPrice is the schema descriptor for price field.
 	productDescPrice := productFields[1].Descriptor()
 	// product.PriceValidator is a validator for the "price" field. It is called by the builders before save.
-	product.PriceValidator = productDescPrice.Validators[0].(func(float64) error)
+	product.PriceValidator = productDescPrice.Validators[0].(func(int) error)
 	// productDescDescription is the schema descriptor for description field.
 	productDescDescription := productFields[2].Descriptor()
 	// product.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.

@@ -27,8 +27,8 @@ func (pc *ProductCreate) SetName(s string) *ProductCreate {
 }
 
 // SetPrice sets the "price" field.
-func (pc *ProductCreate) SetPrice(f float64) *ProductCreate {
-	pc.mutation.SetPrice(f)
+func (pc *ProductCreate) SetPrice(i int) *ProductCreate {
+	pc.mutation.SetPrice(i)
 	return pc
 }
 
@@ -179,7 +179,7 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_node.Name = value
 	}
 	if value, ok := pc.mutation.Price(); ok {
-		_spec.SetField(product.FieldPrice, field.TypeFloat64, value)
+		_spec.SetField(product.FieldPrice, field.TypeInt, value)
 		_node.Price = value
 	}
 	if value, ok := pc.mutation.Description(); ok {

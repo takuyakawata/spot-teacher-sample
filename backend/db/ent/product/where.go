@@ -60,7 +60,7 @@ func Name(v string) predicate.Product {
 }
 
 // Price applies equality check predicate on the "price" field. It's identical to PriceEQ.
-func Price(v float64) predicate.Product {
+func Price(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPrice, v))
 }
 
@@ -145,42 +145,42 @@ func NameContainsFold(v string) predicate.Product {
 }
 
 // PriceEQ applies the EQ predicate on the "price" field.
-func PriceEQ(v float64) predicate.Product {
+func PriceEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldEQ(FieldPrice, v))
 }
 
 // PriceNEQ applies the NEQ predicate on the "price" field.
-func PriceNEQ(v float64) predicate.Product {
+func PriceNEQ(v int) predicate.Product {
 	return predicate.Product(sql.FieldNEQ(FieldPrice, v))
 }
 
 // PriceIn applies the In predicate on the "price" field.
-func PriceIn(vs ...float64) predicate.Product {
+func PriceIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldIn(FieldPrice, vs...))
 }
 
 // PriceNotIn applies the NotIn predicate on the "price" field.
-func PriceNotIn(vs ...float64) predicate.Product {
+func PriceNotIn(vs ...int) predicate.Product {
 	return predicate.Product(sql.FieldNotIn(FieldPrice, vs...))
 }
 
 // PriceGT applies the GT predicate on the "price" field.
-func PriceGT(v float64) predicate.Product {
+func PriceGT(v int) predicate.Product {
 	return predicate.Product(sql.FieldGT(FieldPrice, v))
 }
 
 // PriceGTE applies the GTE predicate on the "price" field.
-func PriceGTE(v float64) predicate.Product {
+func PriceGTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldGTE(FieldPrice, v))
 }
 
 // PriceLT applies the LT predicate on the "price" field.
-func PriceLT(v float64) predicate.Product {
+func PriceLT(v int) predicate.Product {
 	return predicate.Product(sql.FieldLT(FieldPrice, v))
 }
 
 // PriceLTE applies the LTE predicate on the "price" field.
-func PriceLTE(v float64) predicate.Product {
+func PriceLTE(v int) predicate.Product {
 	return predicate.Product(sql.FieldLTE(FieldPrice, v))
 }
 

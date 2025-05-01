@@ -51,7 +51,7 @@ var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// PriceValidator is a validator for the "price" field. It is called by the builders before save.
-	PriceValidator func(float64) error
+	PriceValidator func(int) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	DescriptionValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

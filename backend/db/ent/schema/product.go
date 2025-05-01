@@ -13,7 +13,7 @@ func (Product) Fields() []ent.Field {
 		field.String("name").
 			NotEmpty().
 			MaxLen(100),
-		field.Float("price").
+		field.Int("price").
 			Positive(),
 		field.String("description").
 			Optional().

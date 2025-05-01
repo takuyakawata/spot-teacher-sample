@@ -36,8 +36,8 @@ type ProductMutation struct {
 	typ           string
 	id            *int
 	name          *string
-	price         *float64
-	addprice      *float64
+	price         *int
+	addprice      *int
 	description   *string
 	created_at    *time.Time
 	updated_at    *time.Time
@@ -182,13 +182,13 @@ func (m *ProductMutation) ResetName() {
 }
 
 // SetPrice sets the "price" field.
-func (m *ProductMutation) SetPrice(f float64) {
-	m.price = &f
+func (m *ProductMutation) SetPrice(i int) {
+	m.price = &i
 	m.addprice = nil
 }
 
 // Price returns the value of the "price" field in the mutation.
-func (m *ProductMutation) Price() (r float64, exists bool) {
+func (m *ProductMutation) Price() (r int, exists bool) {
 	v := m.price
 	if v == nil {
 		return
@@ -199,7 +199,7 @@ func (m *ProductMutation) Price() (r float64, exists bool) {
 // OldPrice returns the old "price" field's value of the Product entity.
 // If the Product object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProductMutation) OldPrice(ctx context.Context) (v float64, err error) {
+func (m *ProductMutation) OldPrice(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPrice is only allowed on UpdateOne operations")
 	}
@@ -213,17 +213,17 @@ func (m *ProductMutation) OldPrice(ctx context.Context) (v float64, err error) {
 	return oldValue.Price, nil
 }
 
-// AddPrice adds f to the "price" field.
-func (m *ProductMutation) AddPrice(f float64) {
+// AddPrice adds i to the "price" field.
+func (m *ProductMutation) AddPrice(i int) {
 	if m.addprice != nil {
-		*m.addprice += f
+		*m.addprice += i
 	} else {
-		m.addprice = &f
+		m.addprice = &i
 	}
 }
 
 // AddedPrice returns the value that was added to the "price" field in this mutation.
-func (m *ProductMutation) AddedPrice() (r float64, exists bool) {
+func (m *ProductMutation) AddedPrice() (r int, exists bool) {
 	v := m.addprice
 	if v == nil {
 		return
@@ -462,7 +462,7 @@ func (m *ProductMutation) SetField(name string, value ent.Value) error {
 		m.SetName(v)
 		return nil
 	case product.FieldPrice:
-		v, ok := value.(float64)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -520,7 +520,7 @@ func (m *ProductMutation) AddedField(name string) (ent.Value, bool) {
 func (m *ProductMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case product.FieldPrice:
-		v, ok := value.(float64)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

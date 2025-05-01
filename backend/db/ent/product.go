@@ -20,7 +20,7 @@ type Product struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Price holds the value of the "price" field.
-	Price float64 `json:"price,omitempty"`
+	Price int `json:"price,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -35,9 +35,7 @@ func (*Product) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case product.FieldPrice:
-			values[i] = new(sql.NullFloat64)
-		case product.FieldID:
+		case product.FieldID, product.FieldPrice:
 			values[i] = new(sql.NullInt64)
 		case product.FieldName, product.FieldDescription:
 			values[i] = new(sql.NullString)
@@ -71,10 +69,10 @@ func (pr *Product) assignValues(columns []string, values []any) error {
 				pr.Name = value.String
 			}
 		case product.FieldPrice:
-			if value, ok := values[i].(*sql.NullFloat64); !ok {
+			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field price", values[i])
 			} else if value.Valid {
-				pr.Price = value.Float64
+				pr.Price = int(value.Int64)
 			}
 		case product.FieldDescription:
 			if value, ok := values[i].(*sql.NullString); !ok {

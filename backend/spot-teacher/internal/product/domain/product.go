@@ -60,14 +60,14 @@ func (p ProductName) Value() string {
 	return string(p)
 }
 
-type ProductPrice float64
+type ProductPrice int
 
-func NewProductPrice(value float64) (ProductPrice, error) {
+func NewProductPrice(value int) (ProductPrice, error) {
 	if value < 0 {
 		return 0, errors.New("product price must be non-negative")
 	}
 	return ProductPrice(value), nil
 }
-func (p ProductPrice) Value() float64 {
-	return float64(p)
+func (p ProductPrice) Value() int {
+	return int(p)
 }

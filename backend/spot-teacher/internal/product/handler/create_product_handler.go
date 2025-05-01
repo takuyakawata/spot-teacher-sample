@@ -12,7 +12,7 @@ import (
 type CreateProductRequest struct {
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
-	Price       float64 `json:"price"`
+	Price       int64   `json:"price"`
 }
 
 // CreateProductResponse は商品作成APIの成功レスポンスを表す DTO
@@ -20,7 +20,7 @@ type CreateProductResponse struct {
 	ID          int64   `json:"id"`
 	Name        string  `json:"name"`
 	Description *string `json:"description"`
-	Price       float64 `json:"price"`
+	Price       int64   `json:"price"`
 }
 
 type CreateProductHandler struct {

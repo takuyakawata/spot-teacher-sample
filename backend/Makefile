@@ -38,14 +38,8 @@ db-drop: ## データベースを削除 (注意して実行！)
 	@echo "Database dropped."
 
 
-ent-generate: ## ent/schema/*.go の定義から Go コードを生成します
-	@echo "Generating ent code..."
-	@go generate ./db/ent/schema # ※ ent ディレクトリのパスを確認・修正してください (通常は ./ent)
-	@echo "ent code generated."
-
-
 migrate-diff: ## ent スキーマと DB の差分から SQL マイグレーションファイルを生成します (例: make migrate-diff MIGRATION_NAME=create_users)
-	@if [ -z "${MIGRATION_NAME}" ] || [ "${MIGRATION_NAME}" = "migration" ]; then \
+	@if [ -z "${MIG}" ] || [ "${MIG}" = "migration" ]; then \
 		echo "エラー: MIGRATION_NAME を指定してください (例: make migrate-diff MIGRATION_NAME=my_migration)"; \
 		exit 1; \
 	fi
@@ -58,6 +52,12 @@ migrate-apply: ## 保留中のマイグレーションをデータベースに�
 	@echo "Applying migrations to ${DB_NAME}..."
 	@atlas migrate apply --url ${DATABASE_URL} --dir ${ATLAS_MIGR_DIR}
 	@echo "Migrations applied."
+
+
+ent-generate: ## ent/schema/*.go の定義から Go コードを生成します
+	@echo "Generating ent code..."
+	@go generate ./db/ent
+	@echo "ent code generated."
 
 
 ent-describe: ## ent スキーマ定義の内容をテキストで表示します
@@ -101,12 +101,12 @@ migrate-hash: ## atalas.sumの更新
 
 
 # === Docker Commands ===
-docker-up: ## Dockerコンテナをバックグラウンドで起動します (docker-compose up -d)
+up: ## Dockerコンテナをバックグラウンドで起動します (docker-compose up -d)
 	@echo "Starting Docker containers..."
 	@docker-compose up -d
 	@echo "Docker containers started."
 
-docker-down: ## Dockerコンテナを停止し、削除します (docker-compose down)
+down: ## Dockerコンテナを停止し、削除します (docker-compose down)
 	@echo "Stopping and removing Docker containers..."
 	@docker-compose down
 	@echo "Docker containers stopped and removed."

@@ -12,7 +12,7 @@ var (
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Size: 100},
-		{Name: "price", Type: field.TypeFloat64},
+		{Name: "price", Type: field.TypeInt},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
