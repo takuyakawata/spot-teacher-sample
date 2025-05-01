@@ -3,6 +3,8 @@ package main
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/inject"
+	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/router"
 	"net/http"
 )
 
@@ -44,12 +46,16 @@ func main() {
 		return c.String(http.StatusOK, message)
 	})
 
+	/* DI で各ハンドラセットを生成 routing */
+	prodH := inject.InitializeProductHandler()
+	router.RegisterAll(e, prodH)
+
 	// --- 4. サーバーの起動 ---
 	// 作成した Echo インスタンスに、指定したポート番号で HTTP リクエストの待機を開始させます。
 	// ":1323" はポート番号 1323 でリクエストを待つことを意味します。
 	// ポート番号は、他のプログラムが使用していなければ基本的に自由ですが、1024未満は特別な権限が必要な場合があります。
 	// 1323 は Echo のドキュメントでよく使われる例です。
-	port := ":1323"
+	port := ":8080"
 	e.Logger.Infof("Starting server on port %s", port) // 起動ポートをログに出力 (オプション)
 
 	// e.Start(ポート番号) でサーバーが起動します。

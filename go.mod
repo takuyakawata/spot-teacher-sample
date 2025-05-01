@@ -5,6 +5,7 @@ go 1.23.2
 require (
 	entgo.io/ent v0.14.4
 	github.com/golang/mock v1.6.0
+	github.com/google/wire v0.6.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/stretchr/testify v1.10.0
