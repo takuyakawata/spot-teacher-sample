@@ -30,6 +30,14 @@ func (r *productRepository) Create(ctx context.Context, product *domain.Product)
 	return mapEntProductToDomain(createdEntProduct)
 }
 
+func (r *productRepository) FindByID(ctx context.Context, id domain.ProductID) (*domain.Product, error) {
+	entProduct, err := r.client.Product.Get(ctx, int(id.Value()))
+	if err != nil {
+		return nil, fmt.Errorf("infra.ent: failed to find product by id %d: %w", id, err)
+	}
+	return mapEntProductToDomain(entProduct)
+}
+
 func mapEntProductToDomain(entP *ent.Product) (*domain.Product, error) {
 	if entP == nil {
 		// nil ポインタが渡された場合のエラー処理

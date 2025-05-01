@@ -9,8 +9,8 @@ type ProductRepository interface {
 	Create(ctx context.Context, product *Product) (*Product, error)
 
 	// FindByID は ID を元に Product を取得します。見つからない場合はエラーを返します。
-	//FindByID(ctx context.Context, id int64) (*Product, error)
-	//
+	FindByID(ctx context.Context, id ProductID) (*Product, error)
+
 	//// Update は既存の Product を更新します。
 	//Update(ctx context.Context, product *Product) (*Product, error)
 	//

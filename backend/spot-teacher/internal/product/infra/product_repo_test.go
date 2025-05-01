@@ -24,7 +24,7 @@ func setupInMemoryClient(t *testing.T) *ent.Client {
 	return c
 }
 
-func TestProductRepository_CreateAndMap(t *testing.T) {
+func TestProductRepository_Create(t *testing.T) {
 	entClient := setupInMemoryClient(t)
 	repo := infra.NewProductRepository(entClient)
 
@@ -53,4 +53,30 @@ func TestProductRepository_CreateAndMap(t *testing.T) {
 	assert.Equal(t, name, entRec.Name)
 	assert.Equal(t, price, entRec.Price)
 	assert.Equal(t, desc, entRec.Description)
+}
+
+func TestProductRepository_FindByID(t *testing.T) {
+	entClient := setupInMemoryClient(t)
+	repo := infra.NewProductRepository(entClient)
+
+	// テスト用のデータを作成
+	name := "Notebook"
+	desc := "250 pages"
+	price := 99
+	entProduct, err := entClient.Product.Create().
+		SetName(name).
+		SetDescription(desc).
+		SetPrice(float64(price)).
+		Save(context.Background())
+	require.NoError(t, err)
+
+	// FindByID 実行
+	domainID, err := domain.NewProductID(int64(entProduct.ID))
+	require.NoError(t, err)
+	p, err := repo.FindByID(context.Background(), domainID)
+	require.NoError(t, err)
+	assert.NotNil(t, p)
+	assert.Equal(t, name, p.Name.Value())
+	assert.Equal(t, price, float64(p.Price))
+	assert.Equal(t, desc, *p.Description)
 }
