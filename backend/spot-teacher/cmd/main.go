@@ -5,7 +5,6 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/inject"
 	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/router"
-	"net/http"
 )
 
 // main 関数は Go プログラムの開始地点です。
@@ -35,16 +34,16 @@ func main() {
 	// e.GET("/", ...) は、
 	// HTTP の GET メソッドで、ルートパス ("/") にアクセスがあった場合に、
 	// 後ろに続く関数 (ハンドラー関数) を実行するように Echo に指示します。
-	e.GET("/", func(c echo.Context) error {
-		// この関数が、実際のリクエストを処理するハンドラーです。
-		// 引数の 'c' (echo.Context) は、リクエスト情報へのアクセスや、
-		// レスポンスをクライアントに送信するためのメソッドを提供します。
-
-		// c.String(ステータスコード, 返す文字列) を使ってレスポンスを返します。
-		// http.StatusOK は、HTTPステータスコード 200 (成功) を表す定数です。
-		message := "Hello, World!" // 返すメッセージを変数に入れてみました
-		return c.String(http.StatusOK, message)
-	})
+	//e.GET("/", func(c echo.Context) error {
+	//	// この関数が、実際のリクエストを処理するハンドラーです。
+	//	// 引数の 'c' (echo.Context) は、リクエスト情報へのアクセスや、
+	//	// レスポンスをクライアントに送信するためのメソッドを提供します。
+	//
+	//	// c.String(ステータスコード, 返す文字列) を使ってレスポンスを返します。
+	//	// http.StatusOK は、HTTPステータスコード 200 (成功) を表す定数です。
+	//	message := "Hello, World!" // 返すメッセージを変数に入れてみました
+	//	return c.String(http.StatusOK, message)
+	//})
 
 	/* DI で各ハンドラセットを生成 routing */
 	prodH := inject.InitializeProductHandler()
