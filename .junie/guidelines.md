@@ -2,29 +2,41 @@
 
 ディレクトリ構成
 ```
-├── cmd/
-│   └── app/                 エントリポイント（main関数など）、WireによるDI設定もここ
-│       └── main.go
-├── internal/                アプリケーション内部のパッケージ（※外部からimportされない想定）
-│   ├── domain/              ドメイン層：エンティティやリポジトリインターフェース等&#8203;:contentReference[oaicite:48]{index=48}
-│   │   ├── entities/        ドメインエンティティ（集約ごとにサブパッケージに分けることも）
-│   │   ├── values/          値オブジェクトや汎用ドメイン型
-│   │   └── repositories/    リポジトリのインターフェース定義
-│   ├── usecase/             ユースケース層：アプリケーションのビジネスロジック&#8203;:contentReference[oaicite:49]{index=49}
-│   │   ├── interactor/      ユースケースの実装（入力を受け取りドメイン/インフラを呼び出す）
-│   │   └── dto/             ユースケース間で受け渡すDTOやレスポンスモデル
-│   ├── interfaces/          インターフェース層：外部とのI/O（コントローラやプレゼンター）&#8203;:contentReference[oaicite:50]{index=50}
-│   │   ├── controllers/     WebAPIのコントローラ（Echoのハンドラなど）
-│   │   └── presenters/      UIへのプレゼンテーション変換（RESTではJSONにシリアライズ等）
-│   └── infrastructure/      インフラ層：DBや外部サービス接続の実装&#8203;:contentReference[oaicite:51]{index=51}
-│       ├── database/        DB接続やトランザクション管理（例：sql.DB保持や設定）
-│       ├── persistence/     リポジトリ実装（例：GORMやsqlxを使った実装）&#8203;:contentReference[oaicite:52]{index=52}
-│       ├── logger/          ロギングの実装（Zapのラッパーなど）
-│       └── router/          ルーティングの設定（Echoのルート定義など）
-├── config/                  設定ファイル（例：config.yaml や .env ファイル）
-├── migrations/              マイグレーションSQLファイル置き場
-├── pkg/                     外部公開可能な汎用パッケージ（必要なら）
-└── go.mod, go.sum           Goモジュール定義（依存関係）
+frondend/
+admin-frontend/
+
+
+
+backend
+   |
+  spot-teacher── api/
+            │   └── index.go                 エントリポイント（main関数など）、WireによるDI設定もここ
+            ├── cmd/
+            │   └── app/                 エントリポイント（main関数など）、WireによるDI設定もここ
+            │       └── main.go
+            ├── internal/                アプリケーション内部のパッケージ（※外部からimportされない想定）
+            │   ├── domain/              ドメイン層：エンティティやリポジトリインターフェース等&#8203;:contentReference[oaicite:48]{index=48}
+            │   │   ├── entities/        ドメインエンティティ（集約ごとにサブパッケージに分けることも）
+            │   │   ├── values/          値オブジェクトや汎用ドメイン型
+            │   │   └── repositories/    リポジトリのインターフェース定義
+            │   ├── usecase/             ユースケース層：アプリケーションのビジネスロジック&#8203;:contentReference[oaicite:49]{index=49}
+            │   │   ├── interactor/      ユースケースの実装（入力を受け取りドメイン/インフラを呼び出す）
+            │   │   └── dto/             ユースケース間で受け渡すDTOやレスポンスモデル
+            │   ├── interfaces/          インターフェース層：外部とのI/O（コントローラやプレゼンター）&#8203;:contentReference[oaicite:50]{index=50}
+            │   │   ├── controllers/     WebAPIのコントローラ（Echoのハンドラなど）
+            │   │   └── presenters/      UIへのプレゼンテーション変換（RESTではJSONにシリアライズ等）
+            │   └── infrastructure/      インフラ層：DBや外部サービス接続の実装&#8203;:contentReference[oaicite:51]{index=51}
+            │       ├── database/        DB接続やトランザクション管理（例：sql.DB保持や設定）
+            │       ├── persistence/     リポジトリ実装（例：GORMやsqlxを使った実装）&#8203;:contentReference[oaicite:52]{index=52}
+            │       ├── logger/          ロギングの実装（Zapのラッパーなど）
+            │       └── router/          ルーティングの設定（Echoのルート定義など）
+            ├── config/                  設定ファイル（例：config.yaml や .env ファイル）
+            ├── migrations/              マイグレーションSQLファイル置き場
+            ├── pkg/                     外部公開可能な汎用パッケージ（必要なら）
+            └── go.mod, go.sum           Goモジュール定義（依存関係）
+            
+   |
+   DBー  
 ```
 
 

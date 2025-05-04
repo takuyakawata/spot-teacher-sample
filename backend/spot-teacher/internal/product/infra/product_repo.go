@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent"
+
 	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
 )
 

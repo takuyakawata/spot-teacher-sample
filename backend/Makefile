@@ -54,10 +54,10 @@ migrate-apply: ## 保留中のマイグレーションをデータベースに�
 	@echo "Migrations applied."
 
 
-ent-generate: ## ent/schema/*.go の定義から Go コードを生成します
-	@echo "Generating ent code..."
-	@go generate ./db/ent
-	@echo "ent code generated."
+#ent-generate: ## ent/schema/*.go の定義から Go コードを生成します
+#	@echo "Generating ent code..."
+#	@go generate ./db/ent
+#	@echo "ent code generated."
 
 
 ent-describe: ## ent スキーマ定義の内容をテキストで表示します
