@@ -21,7 +21,7 @@ func TestCreateProductUseCase_Execute(t *testing.T) {
 
 	// テストデータ
 	name := domain.ProductName("Pen")
-	price := domain.ProductPrice(1.23)
+	price := domain.ProductPrice(123)
 	desc := "A nice pen"
 	input := usecase.CreateProductInput{
 		Name:        name,
