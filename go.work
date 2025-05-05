@@ -1,6 +1,6 @@
 go 1.23.2
 
 use (
-	./backend/db
-	./backend/spot-teacher
+	./db
+	./spot-teacher
 )
