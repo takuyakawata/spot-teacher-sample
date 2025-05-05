@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/domain"
 	"net/http"
 )
 

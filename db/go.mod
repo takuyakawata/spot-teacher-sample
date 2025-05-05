@@ -1,4 +1,4 @@
-module github.com/takuyakawta/spot-teacher-sample/backend/db
+module github.com/takuyakawta/spot-teacher-sample/db
 
 go 1.23.2
 

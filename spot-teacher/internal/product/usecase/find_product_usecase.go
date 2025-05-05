@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"fmt"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/domain"
 )
 
 type FindProductUseCase struct {

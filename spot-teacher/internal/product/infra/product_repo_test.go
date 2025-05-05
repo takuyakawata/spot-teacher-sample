@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/infra"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/domain"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/infra"
 	"testing"
 
 	"entgo.io/ent/dialect/sql"

@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
+import "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/domain"
 
 type CreateProductUseCase struct {
 	ProductRepository domain.ProductRepository

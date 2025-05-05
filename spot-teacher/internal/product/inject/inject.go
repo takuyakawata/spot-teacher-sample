@@ -2,7 +2,7 @@ package inject
 
 import (
 	"github.com/google/wire"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/handler"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/handler"
 )
 
 var productSet = wire.NewSet(

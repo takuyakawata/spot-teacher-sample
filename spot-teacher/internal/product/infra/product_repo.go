@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent"
 
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/domain"
 )
 
 type productRepository struct {

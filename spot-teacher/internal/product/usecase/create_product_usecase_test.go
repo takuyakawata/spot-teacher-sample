@@ -7,9 +7,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/domain"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/usecase"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/usecase/mock"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/domain"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/usecase"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/usecase/mock"
 )
 
 func TestCreateProductUseCase_Execute(t *testing.T) {
