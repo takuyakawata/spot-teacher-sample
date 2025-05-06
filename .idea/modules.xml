@@ -2,12 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/admin-frontend/admin-frontend.iml" filepath="$PROJECT_DIR$/admin-frontend/admin-frontend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/backend/backend.iml" filepath="$PROJECT_DIR$/backend/backend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/backend/db/db.iml" filepath="$PROJECT_DIR$/backend/db/db.iml" />
-      <module fileurl="file://$PROJECT_DIR$/frontend/frontend.iml" filepath="$PROJECT_DIR$/frontend/frontend.iml" />
-      <module fileurl="file://$PROJECT_DIR$/backend/shared/shared.iml" filepath="$PROJECT_DIR$/backend/shared/shared.iml" />
-      <module fileurl="file://$PROJECT_DIR$/backend/spot-teacher/spot-teacher.iml" filepath="$PROJECT_DIR$/backend/spot-teacher/spot-teacher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/shared/shared.iml" filepath="$PROJECT_DIR$/shared/shared.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/spot-teacher-sample.iml" filepath="$PROJECT_DIR$/.idea/spot-teacher-sample.iml" />
     </modules>
   </component>
