@@ -4,57 +4,46 @@
 # ==============================================================================
 # Secrets Manager から DB パスワードを取得 (ReadOnly)
 # ==============================================================================
-# このデータソースは、既存のSecrets Managerシークレットの値を読み取ります。
-# シークレット自体は、Terraform外で手動で作成するか、別のTerraformコードで管理することも可能です。
-data "aws_secretsmanager_secret_version" "db_password" {
-  secret_id = var.db_password_secret_id
-}
-
-
-# ==============================================================================
-# DB サブネットグループの作成
-# RDSインスタンスをどのサブネットに配置可能かを定義
-# ==============================================================================
-resource "aws_db_subnet_group" "main" {
-  name       = "${var.name}-${var.env}-rds-subnet-group"
-  subnet_ids = var.private_subnet_ids # プライベートサブネットのリストを使用
-  description = "DB subnet group for RDS instance"
-
+resource "aws_db_instance" "main" { # リソース名は "rds" ですね (私の例では "main" でした)
+  # Engine options
+  engine         = "mysql" # エンジン種類が直書き
+  engine_version = var.engine_version # バージョンは変数
+  # Multi-AZ
+  multi_az = false # Multi-AZ 設定が直書き
+  # settings
+  identifier = "${var.name}-${var.env}" # 識別子は変数使用
+  # Authentication
+  username                    = "admin" # ユーザー名が直書き！これは良くないプラクティスです
+  manage_master_user_password = true # AWSにパスワードを管理させるか、ここで指定するか
+  # Instance settings
+  instance_class = var.instance_class # インスタンスタイプは変数
+  # Storage
+  storage_type      = "gp3" # ストレージタイプが直書き
+  allocated_storage = var.allocated_storage # ストレージ容量は変数
+  # Connection
+  vpc_security_group_ids = var.security_group_ids # SG ID は変数
+  db_subnet_group_name   = aws_db_subnet_group.main.name # DBサブネットグループは参照
+  publicly_accessible    = false # パブリックアクセス設定が直書き
+  # PI
+  performance_insights_enabled = false # 拡張モニタリング設定が直書き
+  #EM
+  monitoring_interval = 60 # モニタリング間隔が直書き
+  monitoring_role_arn = var.monitoring_role_arn # モニタリングロールARNは変数 (新しい変数ですね)
+  # Additional settings
+  parameter_group_name       = aws_db_parameter_group.main.name # パラメータグループは参照
+  option_group_name          = "default:mysql-8-0" # オプショングループ名が直書き
+  backup_retention_period    = 1 # バックアップ保持期間が直書き
+  backup_window              = "17:00-17:30" # バックアップウィンドウが直書き
+  storage_encrypted          = true # ストレージ暗号化が直書き
+  auto_minor_version_upgrade = false # マイナーバージョン自動アップグレード設定が直書き
+  maintenance_window         = "Sat:18:00-Sat:18:30" # メンテナンスウィンドウが直書き
   tags = {
-    Name = "${var.name}-${var.env}-rds-subnet-group"
-    Env  = var.env
+    Name = "${var.name}-${var.env}-db" # タグは変数使用
   }
-}
-
-# ==============================================================================
-# RDS データベースインスタンスの作成
-# ==============================================================================
-resource "aws_rds_instance" "main" {
-  identifier           = "${var.name}-${var.env}-rds-instance" # インスタンス識別子
-  engine               = var.db_engine
-  engine_version       = var.db_engine_version
-  instance_class       = var.db_instance_type
-  allocated_storage    = var.db_allocated_storage
-  db_name              = var.db_name
-  username             = var.db_username
-  password             = data.aws_secretsmanager_secret_version.db_password.secret_string # Secrets Manager から取得したパスワードを使用
-  db_subnet_group_name = aws_db_subnet_group.main.name # 作成したサブネットグループを指定
-  vpc_security_group_ids = var.security_group_ids      # Security Groups モジュールから受け取った SG ID を指定
-
-  multi_az             = var.multi_az          # Multi-AZ 設定
-  deletion_protection  = var.deletion_protection # 削除保護設定
-
-  skip_final_snapshot = !var.deletion_protection # 削除保護が無効な場合、終了時に最終スナップショットを取得しない (開発用)
-  # 本番では true にして最終スナップショットを取得すべき
-
-  # 認証情報は Secrets Manager を推奨するため、マスターパスワードの直接入力は避ける
-  # username と password は Secrets Manager に含めるのが最も安全ですが、
-  # ここではシンプルに username 変数と Secrets Manager から取得した password を組み合わせています。
-  # より厳密には Secrets Manager にユーザー名とパスワードの両方をまとめて保存し、
-  # アプリケーションから Secrets Manager SDK で取得するのが理想的です。
-
-  tags = {
-    Name = "${var.name}-${var.env}-rds-instance"
-    Env  = var.env
-  }
+  skip_final_snapshot = true # 終了スナップショット設定が直書き (私の例では変数に連動させていました)
+  # Dependency
+  depends_on = [
+    aws_db_subnet_group.main,
+    aws_db_parameter_group.main # 依存関係は参照
+  ]
 }

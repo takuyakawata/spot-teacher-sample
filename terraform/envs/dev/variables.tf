@@ -4,7 +4,7 @@ variable "env" {
 }
 
 variable "name" {
-  default = "spot-teacher"
+  default = "spot-teacher-dev"
 }
 
 # AWSリージョン
@@ -18,12 +18,14 @@ variable "region" {
 variable "app_name" {
   description = "Application name"
   type        = string
+  default     = "spot-teacher-dev"
 }
 
 # デプロイするDockerイメージのURL
 variable "image_url" {
   description = "Docker image URL to deploy"
   type        = string
+  default     = ""
 }
 
 # ECSタスクの数
@@ -87,6 +89,14 @@ variable "db_username" {
   type        = string
 }
 
+# RDS パスワードの Secrets Manager Secret ID
+# この変数は、env/dev/terraform.tfvars で具体的な値を設定し、
+# main.tf で他のモジュール (IAM, ECS) に渡すために使用します。
+variable "db_password_secret_id" {
+  description = "The Secrets Manager Secret ID containing the DB master user password"
+  type        = string
+}
+
 # db_password は Sensitive な情報なので、直接 tfvars に書くより、
 # 環境変数、または AWS Systems Manager Parameter Store や AWS Secrets Manager を使うべきです。
 # ここでは例として変数定義だけ示し、tfvars では示しません。
@@ -95,3 +105,13 @@ variable "db_username" {
 #   type        = string
 #   sensitive   = true
 # }
+# ← ここが重要！ envs/dev/main.tf から db_host, db_port, db_name, db_username, db_password_secret_id を渡すために必要です
+variable "db_host" {
+  description = "Database host endpoint (from RDS module output)"
+  type        = string
+}
+
+variable "db_port" {
+  description = "Database port (from RDS module output)"
+  type        = number
+}

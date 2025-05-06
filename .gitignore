@@ -2,3 +2,10 @@
 .vercel
 
 .env*
+
+/terraform/envs/dev/.terraform.lock.hcl
+/terraform/envs/dev/.terraform/**
+
+/node_modules/**
+
+.DS_Store
