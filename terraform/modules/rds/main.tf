@@ -19,7 +19,7 @@ resource "aws_db_instance" "main" { # リソース名は "rds" ですね (私の
   instance_class = var.instance_class # インスタンスタイプは変数
   # Storage
   storage_type      = "gp3" # ストレージタイプが直書き
-  allocated_storage = var.allocated_storage # ストレージ容量は変数
+  allocated_storage = var.db_allocated_storage # ストレージ容量は変数
   # Connection
   vpc_security_group_ids = var.security_group_ids # SG ID は変数
   db_subnet_group_name   = aws_db_subnet_group.main.name # DBサブネットグループは参照
@@ -27,8 +27,8 @@ resource "aws_db_instance" "main" { # リソース名は "rds" ですね (私の
   # PI
   performance_insights_enabled = false # 拡張モニタリング設定が直書き
   #EM
-  monitoring_interval = 60 # モニタリング間隔が直書き
-  monitoring_role_arn = var.monitoring_role_arn # モニタリングロールARNは変数 (新しい変数ですね)
+  monitoring_interval = 0 # モニタリング間隔が直書き
+  monitoring_role_arn = null # モニタリングロールARNは変数 (新しい変数ですね)
   # Additional settings
   parameter_group_name       = aws_db_parameter_group.main.name # パラメータグループは参照
   option_group_name          = "default:mysql-8-0" # オプショングループ名が直書き

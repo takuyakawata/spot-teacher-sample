@@ -9,18 +9,6 @@ output "alb_dns_name" {
   value       = module.alb.alb_dns_name
 }
 
-# RDS のエンドポイントを出力 (RDS モジュールの出力を参照)
-output "rds_endpoint" {
-  description = "The endpoint of the RDS instance"
-  value       = module.rds.rds_endpoint
-}
-
-# RDS のポートを出力 (RDS モジュールの出力を参照)
-output "rds_port" {
-  description = "The port of the RDS instance"
-  value       = module.rds.rds_port
-}
-
 # (オプション) RDS の DB 名とユーザー名
 # output "db_name" {
 #   description = "The name of the database"

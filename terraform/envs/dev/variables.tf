@@ -48,6 +48,12 @@ variable "fargate_memory" {
   default     = 512
 }
 
+variable "monitoring_role_arn" {
+  description = "The ARN of the CloudWatch Agent IAM role"
+  type        = string
+  default     = 0
+}
+
 # コンテナ内でアプリがListenするポート
 variable "container_port" {
   description = "Port the application container listens on"
@@ -55,8 +61,8 @@ variable "container_port" {
 }
 
 # RDSの設定 (最低限必要なもの)
-variable "db_instance_type" {
-  description = "RDS instance type"
+variable "db_instance_class" {
+  description = "RDS instance class"
   type        = string
   default     = "db.t3.micro" # 開発環境向けの小さめのインスタンスタイプ
 }
@@ -70,13 +76,12 @@ variable "db_allocated_storage" {
 variable "db_engine" {
   description = "RDS database engine"
   type        = string
-  default     = "postgres" # 例: postgres, mysql
+  default     = "mysql" # 例: postgres, mysql
 }
 
 variable "db_engine_version" {
   description = "RDS database engine version"
   type        = string
-  default     = "15.5" # 使用するエンジンに合わせて適切なバージョンを指定
 }
 
 variable "db_name" {
@@ -97,6 +102,8 @@ variable "db_password_secret_id" {
   type        = string
 }
 
+
+
 # db_password は Sensitive な情報なので、直接 tfvars に書くより、
 # 環境変数、または AWS Systems Manager Parameter Store や AWS Secrets Manager を使うべきです。
 # ここでは例として変数定義だけ示し、tfvars では示しません。
@@ -106,12 +113,14 @@ variable "db_password_secret_id" {
 #   sensitive   = true
 # }
 # ← ここが重要！ envs/dev/main.tf から db_host, db_port, db_name, db_username, db_password_secret_id を渡すために必要です
-variable "db_host" {
-  description = "Database host endpoint (from RDS module output)"
-  type        = string
-}
+# variable "db_host" {
+#   description = "Database host endpoint (from RDS module output)"
+#   type        = string
+# }
+#
+# variable "db_port" {
+#   description = "Database port (from RDS module output)"
+#   type        = number
+# }
 
-variable "db_port" {
-  description = "Database port (from RDS module output)"
-  type        = number
-}
+

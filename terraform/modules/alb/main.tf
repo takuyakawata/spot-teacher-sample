@@ -13,7 +13,6 @@ resource "aws_lb" "main" {
 
   tags = {
     Name = "${var.name}-${var.env}-alb"
-    Env  = var.env
   }
 }
 
@@ -24,7 +23,7 @@ resource "aws_lb" "main" {
 resource "aws_lb_target_group" "main" {
   name        = "${var.name}-${var.env}-tg"
   port        = var.app_container_port # ターゲット（ECSタスク）がListenするポート
-  protocol    = "TCP" # ALBとターゲット間のプロトコル (多くの場合TCP)
+  protocol    = "HTTP" # ALBとターゲット間のプロトコル (多くの場合TCP)
   vpc_id      = var.vpc_id
   target_type = "ip" # Fargate の場合、ターゲットタイプは 'ip'
 
@@ -42,7 +41,6 @@ resource "aws_lb_target_group" "main" {
 
   tags = {
     Name = "${var.name}-${var.env}-tg"
-    Env  = var.env
   }
 }
 
@@ -62,8 +60,14 @@ resource "aws_lb_listener" "main" {
     target_group_arn = aws_lb_target_group.main.arn
   }
 
+  # dynamic "certificate" {
+  #   for_each = var.ssl_certificate_arn != null ? [var.ssl_certificate_arn] : []
+  #   content {
+  #     certificate_arn = certificate.value
+  #   }
+  # }
+
   tags = {
     Name = "${var.name}-${var.env}-listener-${var.alb_listener_port}"
-    Env  = var.env
   }
 }

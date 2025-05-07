@@ -99,48 +99,6 @@ resource "aws_ecs_task_definition" "app_task" {
         "awslogs-stream-prefix" = "ecs"                  # ログストリーム名のプレフィックス
       }
     }
-
-    # 環境変数 (必要に応じて追加)
-    environment = [
-      {
-        name  = "DB_HOST"
-        # envs/dev/main.tf で ECS モジュール呼び出し時に RDS モジュールの出力を変数として渡す
-        # 例: db_host = module.rds.rds_endpoint
-        # ここでは、ECS モジュールの variables.tf に db_host を追加し、それを参照
-        value = var.db_host
-      },
-      {
-        name  = "DB_PORT"
-        # 同様に envs/dev/main.tf で渡す
-        value = var.db_port # または var.db_port 変数を ECS モジュール変数に追加
-      },
-      {
-        name  = "DB_NAME"
-        value = var.db_name # envs/dev の変数を使用
-      },
-      {
-        name  = "DB_USER"
-        value = var.db_username # envs/dev の変数を使用
-      },
-      # DB_PASSWORD は Secrets Manager から取得するように設定
-      # Secrets Manager の ARN または名前を環境変数として渡し、
-      # アプリケーションコード内でその環境変数を見て Secrets Manager から値を取得する
-      {
-        name  = "DB_PASSWORD_SECRET_ID" # アプリコードが参照する環境変数名
-        value = var.db_password_secret_id # envs/dev の変数を使用
-      },
-      # 他のアプリケーション設定値など
-      {
-        name = "APP_ENV"
-        value = var.env
-      }
-      # GITHUB_ACCESS_TOKEN や VERCEL_API_TOKEN がアプリに必要ならここに追加
-      # ただし、これらの値も Secrets Manager などで管理し、環境変数として渡すことを推奨
-      # {
-      #   name = "GITHUB_ACCESS_TOKEN"
-      #   value = "secretsmanager:your/github/token/secret/id" # ECS Exec Role に Secrets Manager 権限が必要
-      # }
-    ]
   }])
 
   tags = {

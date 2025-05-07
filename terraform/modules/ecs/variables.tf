@@ -100,26 +100,24 @@ variable "region" {
   type        = string
 }
 
-
-
 # データベース接続情報として ECS タスクの環境変数に渡す変数 (envs/dev から RDS モジュールの出力や envs/dev 変数を受け取る)
 # ★ ここが重要！これらの変数定義が不足していました。
-variable "db_host" {
-  description = "Database host endpoint (from RDS module output)"
-  type        = string
-}
-
-variable "db_port" {
-  description = "Database port (from RDS module output)"
-  type        = number
-}
-
-variable "db_name" {
-  description = "Database name"
-  type        = string
-}
-
-variable "db_username" {
-  description = "Database username"
-  type        = string
-}
+# variable "db_host" {
+#   description = "Database host endpoint (from RDS module output)"
+#   type        = string
+# }
+#
+# variable "db_port" {
+#   description = "Database port (from RDS module output)"
+#   type        = number
+# }
+#
+# variable "db_name" {
+#   description = "Database name"
+#   type        = string
+# }
+#
+# variable "db_username" {
+#   description = "Database username"
+#   type        = string
+# }

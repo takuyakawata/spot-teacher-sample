@@ -1,5 +1,14 @@
 # modules/iam/main.tf
 
+data "aws_iam_policy_document" "ecs_tasks_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
 # ==============================================================================
 # IAM ロール (ECS タスク実行ロール) の作成
 # Fargate がコンテナイメージのプル、CloudWatch Logs へのログ送信などを行うために必要
@@ -8,20 +17,10 @@
 resource "aws_iam_role" "task_execution_role" {
   name = "${var.name}-${var.env}-ecsTaskExecutionRole"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-    }]
-  })
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
 
   tags = {
-    Name = "${var.name}-${var.env}-ecs-task-execution-role"
-    Env  = var.env
+    Name = "${var.name}-${var.env}-ecsTaskExecutionRole"
   }
 }
 
@@ -50,20 +49,10 @@ resource "aws_iam_role" "app_task_role" {
   name = "${var.name}-${var.env}-appTaskRole"
 
   # このロールを ECS タスクが引き受けられるようにする信頼ポリシー
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ecs-tasks.amazonaws.com"
-      }
-    }]
-  })
+  assume_role_policy = data.aws_iam_policy_document.ecs_tasks_assume_role.json
 
   tags = {
     Name = "${var.name}-${var.env}-app-task-role"
-    Env  = var.env
   }
 }
 
@@ -116,3 +105,41 @@ resource "aws_iam_role_policy" "app_secretsmanager_policy" {
 #   role       = aws_iam_role.app_task_role.name
 #   policy_arn = "arn:aws:iam::aws:policy/AmazonSQSFullAccess" # 必要最小限のポリシーに変更
 # }
+
+# ==============================================================================
+# RDS 拡張モニタリング用 IAM ロールが引き受けるための信頼ポリシー定義 (Data Source)
+# RDS サービスプリンシパルからの引き受けを許可します。
+# ==============================================================================
+data "aws_iam_policy_document" "rds_monitoring_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["rds.amazonaws.com"] # ★ rds.amazonaws.com を信頼 ★
+    }
+  }
+}
+
+# ==============================================================================
+# IAM ロール (RDS 拡張モニタリング用) の作成
+# RDS が CloudWatch Logs にメトリクスを送信するために必要
+# ==============================================================================
+resource "aws_iam_role" "rds_monitoring_role" {
+  name               = "${var.name}-${var.env}-rdsMonitoringRole" # ロール名は環境に合わせて設定
+
+  # RDS サービスプリンシパルからの引き受けを許可する信頼ポリシー
+  assume_role_policy = data.aws_iam_policy_document.rds_monitoring_assume_role.json
+
+  tags = {
+    Name = "${var.name}-${var.env}-rdsMonitoringRole"
+  }
+}
+
+# ==============================================================================
+# RDS 拡張モニタリング用ロールに AWS 管理ポリシーをアタッチ
+# CloudWatch Logs への書き込み権限を付与
+# ==============================================================================
+resource "aws_iam_role_policy_attachment" "rds_monitoring_policy" {
+  role       = aws_iam_role.rds_monitoring_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole" # ★ 必須の管理ポリシー ★
+}

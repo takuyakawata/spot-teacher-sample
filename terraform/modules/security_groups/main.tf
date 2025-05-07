@@ -37,64 +37,6 @@ resource "aws_security_group_rule" "alb_ingress_http" {
 #   security_group_id = aws_security_group.alb.id
 # }
 
-# ALB SG - アウトバウンド (任意 - 必要に応じて制限)
-# デフォルトではすべてのアウトバウンドが許可されていますが、必要に応じて明示的に許可ルールを追加・制限します。
-
-
-# ==============================================================================
-# ECS タスク (Go アプリ) 用セキュリティグループ
-# ALB からのアクセス、RDS へのアウトバウンドなどを許可
-# ==============================================================================
-resource "aws_security_group" "ecs" {
-  name        = "${var.name}-${var.env}-ecs-sg"
-  description = "Allow ALB access to ECS tasks and outbound to RDS/Internet"
-  vpc_id      = var.vpc_id
-
-  tags = {
-    Name = "${var.name}-${var.env}-ecs-sg"
-    Env  = var.env
-  }
-}
-
-# ECS SG - インバウンド (ALB からのアクセス許可)
-# 許可元として ALB SG の ID を指定するのがベストプラクティスです。
-# ALBからのトラフィックは、ALB SGを経由してこのECS SGに到達します。
-resource "aws_security_group_rule" "ecs_ingress_from_alb" {
-  type              = "ingress"
-  from_port         = var.app_container_port # Go アプリがListenするポート
-  to_port           = var.app_container_port
-  protocol          = "tcp"
-  # 許可元として ALB 用セキュリティグループの ID を指定！
-  source_security_group_id = aws_security_group.alb.id
-  security_group_id        = aws_security_group.ecs.id # ECS SG自体にルールを適用
-}
-
-# ECS SG - アウトバウンド (RDS へのアクセス許可)
-# 許可先として RDS SG の ID を指定するのがベストプラクティスです。
-resource "aws_security_group_rule" "ecs_egress_to_rds" {
-  type              = "egress" # アウトバウンドルール
-  from_port         = var.rds_port
-  to_port           = var.rds_port
-  protocol          = "tcp"
-  # 許可先として RDS 用セキュリティグループの ID を指定！ (まだ定義してないですが、後で定義します)
-  # ここではプレースホルダーとして aws_security_group.rds.id を使います。
-  destination_security_group_id = aws_security_group.rds.id
-  security_group_id             = aws_security_group.ecs.id
-}
-
-# ECS SG - アウトバウンド (インターネットへのアクセス許可 - 必要に応じて)
-# NAT Gateway経由でインターネットに出るために、アウトバウンドを許可します。
-# デフォルトでは全アウトバウンド許可されていることが多いですが、明示的に許可します。
-resource "aws_security_group_rule" "ecs_egress_to_internet" {
-  type              = "egress"
-  from_port         = 0 # すべてのポート
-  to_port           = 65535
-  protocol          = "all" # TCP/UDPなどすべて
-  cidr_blocks       = ["0.0.0.0/0"] # 全世界のIPv4アドレスへ
-  security_group_id = aws_security_group.ecs.id
-}
-
-
 # ==============================================================================
 # RDS (データベース) 用セキュリティグループ
 # ECS タスクや Bastion ホストからのアクセスを許可
@@ -108,8 +50,13 @@ resource "aws_security_group" "rds" {
     Name = "${var.name}-${var.env}-rds-sg"
     Env  = var.env
   }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
-
 # RDS SG - インバウンド (ECS SG からのアクセス許可)
 # 許可元として ECS SG の ID を指定するのがベストプラクティスです。
 resource "aws_security_group_rule" "rds_ingress_from_ecs" {
@@ -121,20 +68,18 @@ resource "aws_security_group_rule" "rds_ingress_from_ecs" {
   source_security_group_id = aws_security_group.ecs.id
   security_group_id        = aws_security_group.rds.id # RDS SG自体にルールを適用
 }
-
 # RDS SG - インバウンド (Bastion SG からのアクセス許可 - 必要に応じて)
 # Bastion ホスト経由でDBに接続する場合に必要です。
 # 許可元として Bastion SG の ID を指定します。
 # count を使うことで、bastion_ingress_cidrs が空の場合はこのルールは作成されません。
 resource "aws_security_group_rule" "rds_ingress_from_bastion" {
   count = length(var.bastion_ingress_cidrs) > 0 ? 1 : 0 # bastion_ingress_cidrs が1つ以上ある場合のみルールを作成
-
   type              = "ingress"
   from_port         = var.rds_port
   to_port           = var.rds_port
   protocol          = "tcp"
   # 許可元として Bastion 用セキュリティグループの ID を指定！ (まだ定義してないですが、後で定義します)
-  source_security_group_id = aws_security_group.bastion.id
+  source_security_group_id = one(aws_security_group.bastion.*.id)
   security_group_id        = aws_security_group.rds.id
 }
 
@@ -170,6 +115,60 @@ resource "aws_security_group_rule" "bastion_ingress_ssh" {
   security_group_id = aws_security_group.bastion[0].id # count を使っているため、[0] で SG を参照
 }
 
-# Bastion SG - アウトバウンド (任意 - 必要に応じて制限)
-# Bastion からインターネットや社内ネットワークへのアクセスを許可する場合など。
-# デフォルトでは全アウトバウンド許可されています。
+# ==============================================================================
+# ECS タスク (Go アプリ) 用セキュリティグループ
+# ALB からのアクセス、RDS へのアウトバウンドなどを許可
+# ==============================================================================
+resource "aws_security_group" "ecs" {
+  name        = "${var.name}-${var.env}-ecs-sg"
+  description = "Allow ALB access to ECS tasks and outbound to RDS/Internet"
+  vpc_id      = var.vpc_id
+
+  tags = {
+    Name = "${var.name}-${var.env}-ecs-sg"
+    Env  = var.env
+  }
+
+  egress {
+    from_port   = var.rds_port
+    to_port     = var.rds_port
+    protocol    = "tcp"
+    security_groups = [aws_security_group.rds.id]
+    description = "Allow outbound to RDS"
+  }
+
+
+}
+# ECS SG - インバウンド (ALB からのアクセス許可)
+# 許可元として ALB SG の ID を指定するのがベストプラクティスです。
+# ALBからのトラフィックは、ALB SGを経由してこのECS SGに到達します。
+resource "aws_security_group_rule" "ecs_ingress_from_alb" {
+  type              = "ingress"
+  from_port         = var.app_container_port # Go アプリがListenするポート
+  to_port           = var.app_container_port
+  protocol          = "tcp"
+  source_security_group_id = aws_security_group.alb.id
+  security_group_id        = aws_security_group.ecs.id
+  description              = "Allow ingress from ALB"
+}
+
+# ECS SG - アウトバウンド (インターネットへのアクセス許可 - 必要に応じて)
+resource "aws_security_group_rule" "ecs_egress_to_internet" {
+  type              = "egress"
+  from_port         = 0 # すべてのポート
+  to_port           = 65535
+  protocol          = "all" # TCP/UDPなどすべて
+  cidr_blocks       = ["0.0.0.0/0"] # 全世界のIPv4アドレスへ
+  security_group_id = aws_security_group.ecs.id
+  description       = "Allow all outbound to Internet"
+}
+
+resource "aws_security_group_rule" "ecs_same_sg" {
+  security_group_id        = aws_security_group.ecs.id
+  from_port                = 0
+  protocol                 = "-1"
+  source_security_group_id = aws_security_group.ecs.id
+  to_port                  = 0
+  type                     = "ingress"
+  description              = "Allow same security group"
+}

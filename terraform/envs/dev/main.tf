@@ -1,5 +1,4 @@
 # envs/dev/main.tf
-
 # ==============================================================================
 # Terraform および Provider の設定
 # version.tf と分ける場合は、このブロックは不要です。
@@ -26,14 +25,13 @@ terraform {
 # }
 
 # AWSプロバイダーの設定
-# リージョンは envs/dev/variables.tf で定義し、terraform.tfvars で値を設定するのが一般的です。
 provider "aws" {
   profile = "spot-teacher-dev-account"
-  region = var.region # envs/dev/variables.tf で定義した変数を参照
+  region = var.region
   default_tags {
     tags = {
-      team      = var.name # envs/dev/variables.tf で定義した変数を参照
-      env       = var.env  # envs/dev/variables.tf で定義した変数を参照
+      team      = var.name
+      env       = var.env
       managedBy = "terraform"
     }
   }
@@ -45,36 +43,20 @@ provider "aws" {
 # モジュールの outputs.tf で定義された出力を他のモジュールの入力として渡します。
 # ==============================================================================
 # --- データソース (現在のAWSアカウントIDとリージョンを取得) ---
-# これらは他のモジュールにアカウント情報などを渡すために便利です
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
-
-# --- IAM モジュール呼び出し ---
-# IAMポリシーなどを別のモジュールで管理している場合
-# お示しのコードにある IAM モジュールの呼び出しはここに記述します。
-# 各モジュールは、そのモジュールの variables.tf で定義された変数を入力として受け取ります。
-# depends_on は、他のモジュールの出力を入力として渡すことができない場合に、
-# 実行順序を制御するために使用します。可能な限り出力⇒入力を利用するのが良いです。
 module "iam" {
-  source = "../../modules/iam" # modules/iam ディレクトリへの相対パス
-
-  # modules/iam/variables.tf で定義した変数を渡す
+  source = "../../modules/iam"
   name = var.name
   env  = var.env
-
-  # 現在の AWS アカウント ID と リージョン を渡す
   aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = data.aws_region.current.name
 
   # DB パスワードの Secret ID を渡す
-  db_password_secret_id = var.db_password_secret_id # envs/dev/variables.tf で定義した変数
+  db_password_secret_id = var.db_password_secret_id
 }
 
-
-# --- Network モジュール呼び出し (ステップ 2 で作成) ---
-# modules/network の variables.tf で定義された変数を渡します。
-# envs/dev/variables.tf や terraform.tfvars で設定した値を渡します。
 module "network" {
   source = "../../modules/network" # modules/network ディレクトリへの相対パス
 
@@ -89,14 +71,8 @@ module "network" {
   env  = var.env
 }
 
-
-# --- Security Groups モジュール呼び出し (ステップ 3 で作成) ---
-# modules/security_groups の variables.tf で定義された変数を渡します。
 module "security_groups" {
-  source = "../../modules/security_groups" # modules/security_groups ディレクトリへの相対パス
-
-  # modules/security_groups/variables.tf で定義した変数を指定
-  # VPC_ID は network モジュールの出力を参照！
+  source = "../../modules/security_groups"
   vpc_id             = module.network.vpc_id
 
   # ポートやタグ関連の変数 (envs/dev の変数や値を渡す)
@@ -110,45 +86,26 @@ module "security_groups" {
   depends_on = [module.network] # Network モジュールが作成されてから実行
 }
 
-
-
-
-# --- ALB モジュール呼び出し (ステップ 5 で作成) ---
-# modules/alb の variables.tf で定義された変数を渡します。
 module "alb" {
-  source = "../../modules/alb" # modules/alb ディレクトリへの相対パス
-
-  # modules/alb/variables.tf で定義された変数を指定
-  # VPC ID, Public Subnet ID は network モジュールの出力を参照！
+  source = "../../modules/alb"
   vpc_id            = module.network.vpc_id
-  public_subnet_ids = module.network.public_subnet_ids # network モジュールの出力を使用
-
-  # Security Group ID は security_groups モジュールの出力を参照！
-  security_group_ids = [module.security_groups.alb_security_group_id] # リスト形式で渡す
-
+  public_subnet_ids = module.network.public_subnet_ids
+  security_group_ids = [module.security_groups.alb_security_group_id]
   # ポートやプロトコル、SSL 証明書など (envs/dev の変数や値を渡す)
   app_container_port      = var.container_port # ECSタスクがListenするポート
   alb_listener_port       = 80 # 例: HTTP 80番ポート
   alb_listener_protocol   = "HTTP" # 例: HTTP
   # ssl_certificate_arn   = null # HTTPS の場合、envs/dev の変数などを渡す
-
-  # タグ関連の変数 (envs/dev から受け取った変数を渡す)
   name = var.name
   env  = var.env
-
-  # ALB モジュールは Network モジュールと Security Groups モジュールに依存します
   depends_on = [
     module.network,
     module.security_groups
   ]
 }
 
-
-# --- ECS モジュール呼び出し (次のステップ 6 で作成) ---
-# modules/ecs の variables.tf で定義された変数を渡します。
 module "ecs" {
   source = "../../modules/ecs"
-  # modules/ecs/variables.tf で定義された変数を指定
   vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
   # Security Group ID は security_groups モジュールの出力を参照！
@@ -162,12 +119,9 @@ module "ecs" {
   desired_count  = var.desired_count # envs/dev の変数を使用
   fargate_cpu    = var.fargate_cpu # envs/dev の変数を使用
   fargate_memory = var.fargate_memory # envs/dev の変数を使用
-
-  # タグ関連の変数 (envs/dev から受け取った変数を渡す)
   name = var.name
   env  = var.env
 
-  # ECS モジュールは Network, Security Groups, ALB モジュールに依存します
   depends_on = [
     module.network,
     module.security_groups,
@@ -175,42 +129,23 @@ module "ecs" {
     module.rds,
     module.iam,
   ]
-  db_host                 = ""
-  db_name                 = ""
   db_password_secret_id   = ""
-  db_port                 = 0
-  db_username             = ""
-  region                  = ""
   task_execution_role_arn = ""
+  region                  = var.region
 }
 
-# --- RDS モジュール呼び出し (ステップ 4 で作成) ---
-# modules/rds の variables.tf で定義された変数を渡します。
 module "rds" {
-  source = "../../modules/rds" # modules/rds ディレクトリへの相対パス
-
-  # modules/rds/variables.tf で定義した変数を指定
-  # VPC ID, Subnet ID は network モジュールの出力を参照！
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.private_subnet_ids # network モジュールの出力を使用
-
-  # Security Group ID は security_groups モジュールの出力を参照！
-  security_group_ids = [module.security_groups.rds_security_group_id] # リスト形式で渡す
+  source = "../../modules/rds"
+  security_group_ids = [module.security_groups.rds_security_group_id]
 
   # データベースの設定 (envs/dev の変数や値を渡す)
-  db_engine          = var.db_engine
-  db_engine_version  = var.db_engine_version
-  db_instance_type   = var.db_instance_type
-  db_allocated_storage = var.db_allocated_storage
-  db_name            = var.db_name
-  db_username        = var.db_username
 
   # DB パスワードの Secret ID は envs/dev の変数や値を渡す
-  db_password_secret_id = "your/db/password/secret/id" # 例: 実際に作成した Secret ID に置き換えるか、envs/dev の変数にする
+  # 例: 実際に作成した Secret ID に置き換えるか、envs/dev の変数にする
 
   # Multi-AZ や削除保護 (envs/dev の変数や値を渡す)
-  multi_az           = false # 開発環境なので false にするか、envs/dev の変数にする
-  deletion_protection = false # 開発環境なので false にするか、envs/dev の変数にする
+  # 開発環境なので false にするか、envs/dev の変数にする
+  # 開発環境なので false にするか、envs/dev の変数にする
 
   # タグ関連の変数 (envs/dev から受け取った変数を渡す)
   name = var.name
@@ -219,11 +154,12 @@ module "rds" {
   # RDS モジュールは Network モジュールと Security Groups モジュールに依存します
   depends_on = [
     module.network,
-    module.security_groups
+    module.security_groups,
+    module.iam
   ]
-  allocated_storage   = 0
-  engine_version      = ""
-  instance_class      = ""
-  monitoring_role_arn = ""
-  subnet_ids = []
+  db_allocated_storage = var.db_allocated_storage
+  engine_version      = var.db_engine_version
+  monitoring_role_arn = module.iam.rds_monitoring_role_arn
+  private_subnet_ids = module.network.private_subnet_ids
+  instance_class      = var.db_instance_class
 }

@@ -23,16 +23,18 @@ private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"] # 使用するAZの数�
 azs                 = ["ap-northeast-1a", "ap-northeast-1c"] # 使用するAZのリスト (public/private subnet の数と一致させる)
 
 # RDS設定 (RDSモジュールに渡す値)
-db_instance_type     = "db.t3.micro"
+db_instance_class     = "db.t3.micro"
 db_allocated_storage = 20
 db_engine            = "postgres" # 使用するDBエンジン (例: postgres, mysql)
-db_engine_version    = "15.5" # 使用するDBエンジンのバージョン (db_engine に合わせる)
+db_engine_version    = "8.0.36" # 使用するDBエンジンのバージョン (db_engine に合わせる)
 db_name              = "spot-teacher-db"
 db_username          = "user"
 db_password_secret_id = "your/db/password/secret/id" # ★ Secrets Managerに事前に作成したSecret IDに置き換える ★
 
 db_multi_az          = false # 開発環境なので Multi-AZ は false
 db_deletion_protection = false # 開発環境なので削除保護は false
+
+
 
 # Security Groups 設定 (Security Groupsモジュールに渡す値)
 # variables.tf でデフォルト値を指定しない場合はここで必須
