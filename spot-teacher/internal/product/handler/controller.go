@@ -11,5 +11,5 @@ func (h ProductHandler) RegisterRoutes(e *echo.Echo) {
 	apiGroup := e.Group("/spot-teacher")
 	g := apiGroup.Group("/product")
 	g.POST("", h.Create.HandleCreateProduct)
-	g.GET("test", h.Test.HandleTestProduct)
+	g.GET("/test", h.Test.HandleTestProduct)
 }

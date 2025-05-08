@@ -28,6 +28,5 @@ func NewTestProductHandler() *TestProductHandler {
 }
 
 func (h *TestProductHandler) HandleTestProduct(c echo.Context) error {
-	//helloと返す
 	return c.String(http.StatusOK, "hello")
 }
