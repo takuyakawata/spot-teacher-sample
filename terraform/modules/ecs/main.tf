@@ -118,7 +118,7 @@ resource "aws_ecs_service" "app_service" {
 
   # ネットワーキング設定 (Fargate では必須)
   network_configuration {
-    subnets         = var.subnet_ids         # 実行するサブネット
+    subnets         = var.private_subnet_ids      # 実行するサブネット
     security_groups = var.security_group_ids # 適用するセキュリティグループ
     assign_public_ip = false # ALBなどがプライベートサブネットにある場合は false。 ALBがパブリックサブネットにあり、Fargateタスクがプライベートサブネットにある構成が一般的。
   }
