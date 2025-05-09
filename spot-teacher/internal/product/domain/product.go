@@ -31,7 +31,6 @@ type ProductID int64 // Goの基本型として int64 を使用
 
 func NewProductID(value int64) (ProductID, error) {
 	if value <= 0 {
-		// IDが0以下は無効とするバリデーション例
 		return 0, errors.New("product ID must be positive")
 	}
 	return ProductID(value), nil
@@ -50,7 +49,6 @@ func NewProductName(value string) (ProductName, error) {
 		return "", errors.New("product name cannot be empty or only whitespace")
 	}
 	if utf8.RuneCountInString(trimmedValue) > maxLength {
-		// 3. エラーメッセージ内で変数を使う場合は fmt.Errorf を使用
 		return "", fmt.Errorf("product name cannot exceed %d characters", maxLength)
 	}
 	return ProductName(value), nil
