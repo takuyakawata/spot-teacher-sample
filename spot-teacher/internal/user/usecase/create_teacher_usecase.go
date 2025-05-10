@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	schoolDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/school/domain"
 	sharedDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/user/domain"
 )
@@ -15,9 +16,11 @@ func NewCreateTeacherUseCase(teacherRepository domain.TeacherRepository) *Create
 }
 
 type CreateTeacherUseCaseInput struct {
-	Email           sharedDomain.EmailAddress
 	FirstName       domain.TeacherName
-	LastName        domain.TeacherName
+	FamilyName      domain.TeacherName
+	SchoolID        schoolDomain.SchoolID
+	Email           sharedDomain.EmailAddress
+	PhoneNumber     *sharedDomain.PhoneNumber
 	Password        sharedDomain.Password
 	ConfirmPassword sharedDomain.Password
 }
@@ -36,10 +39,12 @@ func (uc *CreateTeacherUseCase) Execute(input CreateTeacherUseCaseInput) error {
 
 	// Create new teacher entity
 	teacher := &domain.Teacher{
-		FirstName:  input.FirstName,
-		FamilyName: input.LastName,
-		Email:      input.Email,
-		Password:   input.Password,
+		FirstName:   input.FirstName,
+		FamilyName:  input.FamilyName,
+		SchoolID:    input.SchoolID,
+		Email:       input.Email,
+		PhoneNumber: input.PhoneNumber,
+		Password:    input.Password,
 	}
 
 	// Save the teacher in the repository
