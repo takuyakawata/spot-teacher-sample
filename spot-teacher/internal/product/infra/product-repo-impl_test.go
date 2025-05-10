@@ -10,7 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent"
 )
 
 func setupInMemoryClient(t *testing.T) *ent.Client {

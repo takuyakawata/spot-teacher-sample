@@ -19,7 +19,7 @@ func TestFindProductUseCase_Execute(t *testing.T) {
 	// テストデータ
 	id := domain.ProductID(1)
 	name := domain.ProductName("Pen")
-	price := domain.ProductPrice(1.23)
+	price := domain.ProductPrice(123)
 	desc := "A nice pen"
 
 	product := &domain.Product{
