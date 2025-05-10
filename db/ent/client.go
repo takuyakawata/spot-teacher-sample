@@ -9,13 +9,13 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/migrate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/product"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/user"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 // Client is the client that holds all ent builders.

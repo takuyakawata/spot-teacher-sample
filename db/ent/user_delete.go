@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/predicate"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/user"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 // UserDelete is the builder for deleting a User entity.

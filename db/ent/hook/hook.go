@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent"
 )
 
 // The ProductFunc type is an adapter to allow the use of ordinary

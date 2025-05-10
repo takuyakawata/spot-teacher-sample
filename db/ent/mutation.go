@@ -11,9 +11,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/predicate"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/product"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/user"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 const (

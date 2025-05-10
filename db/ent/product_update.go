@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/predicate"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
 )
 
 // ProductUpdate is the builder for updating Product entities.

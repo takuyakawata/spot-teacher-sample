@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent"
 	// required by schema hooks.
-	_ "github.com/takuyakawta/spot-teacher-sample/backend/db/ent/runtime"
+	_ "github.com/takuyakawta/spot-teacher-sample/db/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/migrate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/migrate"
 )
 
 type (

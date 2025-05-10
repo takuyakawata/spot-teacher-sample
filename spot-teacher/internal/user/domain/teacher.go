@@ -12,10 +12,30 @@ import (
 type Teacher struct {
 	ID          TeacherID
 	SchoolID    schoolDomain.SchoolID
-	firstName   TeacherName
+	FirstName   TeacherName
 	FamilyName  TeacherName
 	Email       sharedDomain.EmailAddress
 	PhoneNumber *sharedDomain.PhoneNumber
+	Password    sharedDomain.Password
+}
+
+func NewTeacher(
+	id TeacherID,
+	schoolID schoolDomain.SchoolID,
+	firstName TeacherName,
+	familyName TeacherName,
+	email sharedDomain.EmailAddress,
+	phoneNumber *sharedDomain.PhoneNumber,
+	password sharedDomain.Password) *Teacher {
+	return &Teacher{
+		ID:          id,
+		SchoolID:    schoolID,
+		FirstName:   firstName,
+		FamilyName:  familyName,
+		Email:       email,
+		PhoneNumber: phoneNumber,
+		Password:    password,
+	}
 }
 
 type TeacherID int64
@@ -26,6 +46,10 @@ func NewTeacherID(value int64) (TeacherID, error) {
 	}
 
 	return TeacherID(value), nil
+}
+
+func (p TeacherID) Value() int64 {
+	return int64(p)
 }
 
 type TeacherName string
@@ -42,4 +66,6 @@ func NewTeacherName(value string) (TeacherName, error) {
 	return TeacherName(value), nil
 }
 
-type User struct{}
+func (p TeacherName) Value() string {
+	return string(p)
+}

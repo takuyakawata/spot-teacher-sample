@@ -5,9 +5,9 @@ package ent
 import (
 	"time"
 
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/product"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/schema"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/user"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/schema"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code

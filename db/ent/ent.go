@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/product"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/user"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 // ent aliases to avoid import conflicts in user's code.

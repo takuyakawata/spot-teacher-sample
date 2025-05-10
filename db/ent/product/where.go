@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

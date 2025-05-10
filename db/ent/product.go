@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/takuyakawta/spot-teacher-sample/backend/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
 )
 
 // Product is the model entity for the Product schema.
