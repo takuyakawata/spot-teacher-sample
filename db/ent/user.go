@@ -9,6 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
@@ -16,20 +18,64 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
+	// UserType holds the value of the "user_type" field.
+	UserType user.UserType `json:"user_type,omitempty"`
+	// SchoolID holds the value of the "school_id" field.
+	SchoolID *int64 `json:"school_id,omitempty"`
+	// CompanyID holds the value of the "company_id" field.
+	CompanyID *int64 `json:"company_id,omitempty"`
 	// FirstName holds the value of the "first_name" field.
 	FirstName string `json:"first_name,omitempty"`
 	// FamilyName holds the value of the "family_name" field.
 	FamilyName string `json:"family_name,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
+	// PhoneNumber holds the value of the "phone_number" field.
+	PhoneNumber string `json:"phone_number,omitempty"`
 	// Password holds the value of the "password" field.
-	Password string `json:"-"`
+	Password *string `json:"-"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt    time.Time `json:"created_at,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges        UserEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// School holds the value of the school edge.
+	School *School `json:"school,omitempty"`
+	// Company holds the value of the company edge.
+	Company *Company `json:"company,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// SchoolOrErr returns the School value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) SchoolOrErr() (*School, error) {
+	if e.School != nil {
+		return e.School, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: school.Label}
+	}
+	return nil, &NotLoadedError{edge: "school"}
+}
+
+// CompanyOrErr returns the Company value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) CompanyOrErr() (*Company, error) {
+	if e.Company != nil {
+		return e.Company, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: company.Label}
+	}
+	return nil, &NotLoadedError{edge: "company"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,9 +83,9 @@ func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case user.FieldID:
+		case user.FieldID, user.FieldSchoolID, user.FieldCompanyID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldFirstName, user.FieldFamilyName, user.FieldEmail, user.FieldPassword:
+		case user.FieldUserType, user.FieldFirstName, user.FieldFamilyName, user.FieldEmail, user.FieldPhoneNumber, user.FieldPassword:
 			values[i] = new(sql.NullString)
 		case user.FieldUpdatedAt, user.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -63,7 +109,27 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int(value.Int64)
+			u.ID = int64(value.Int64)
+		case user.FieldUserType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field user_type", values[i])
+			} else if value.Valid {
+				u.UserType = user.UserType(value.String)
+			}
+		case user.FieldSchoolID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field school_id", values[i])
+			} else if value.Valid {
+				u.SchoolID = new(int64)
+				*u.SchoolID = value.Int64
+			}
+		case user.FieldCompanyID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field company_id", values[i])
+			} else if value.Valid {
+				u.CompanyID = new(int64)
+				*u.CompanyID = value.Int64
+			}
 		case user.FieldFirstName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field first_name", values[i])
@@ -82,11 +148,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Email = value.String
 			}
+		case user.FieldPhoneNumber:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field phone_number", values[i])
+			} else if value.Valid {
+				u.PhoneNumber = value.String
+			}
 		case user.FieldPassword:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
-				u.Password = value.String
+				u.Password = new(string)
+				*u.Password = value.String
 			}
 		case user.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -113,6 +186,16 @@ func (u *User) Value(name string) (ent.Value, error) {
 	return u.selectValues.Get(name)
 }
 
+// QuerySchool queries the "school" edge of the User entity.
+func (u *User) QuerySchool() *SchoolQuery {
+	return NewUserClient(u.config).QuerySchool(u)
+}
+
+// QueryCompany queries the "company" edge of the User entity.
+func (u *User) QueryCompany() *CompanyQuery {
+	return NewUserClient(u.config).QueryCompany(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -136,6 +219,19 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("user_type=")
+	builder.WriteString(fmt.Sprintf("%v", u.UserType))
+	builder.WriteString(", ")
+	if v := u.SchoolID; v != nil {
+		builder.WriteString("school_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := u.CompanyID; v != nil {
+		builder.WriteString("company_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
 	builder.WriteString("first_name=")
 	builder.WriteString(u.FirstName)
 	builder.WriteString(", ")
@@ -144,6 +240,9 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(u.Email)
+	builder.WriteString(", ")
+	builder.WriteString("phone_number=")
+	builder.WriteString(u.PhoneNumber)
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
 	builder.WriteString(", ")

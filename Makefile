@@ -11,9 +11,10 @@ $(foreach var,$(REQUIRED_VARS),\
 DATABASE_URL="mysql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_DATABASE}?multiStatements=true"
 
 MIGRATIONS_PATH=./db/migrations
-GORM_GEN_TOOL=./backend/db/tools/gormgen/main.go
-ATLAS_MIGR_DIR="file://db/ent/migrate/migrations"
-ATLAS_TO_SCHEMA="ent://db/ent/schema"
+GORM_GEN_TOOL=./db/tools/gormgen/main.go
+ATLAS_MIGR_DIR=file://db/ent/migrate/migrations
+ATLAS_TO_SCHEMA=ent://db/ent/schema
+#ATLAS_TO_SCHEMA="ent://github.com/takuyakawta/spot-teacher-sample/db/ent/schema"
 ATLAS_DEV_URL="docker://mysql/8/ent"
 
 # --- ターゲット定義 ---
@@ -40,11 +41,12 @@ db-drop: ## データベースを削除 (注意して実行！)
 
 migrate-diff: ## ent スキーマと DB の差分から SQL マイグレーションファイルを生成します (例: make migrate-diff MIGRATION_NAME=create_users)
 	@if [ -z "${MIG}" ] || [ "${MIG}" = "migration" ]; then \
-		echo "エラー: MIGRATION_NAME を指定してください (例: make migrate-diff MIGRATION_NAME=my_migration)"; \
+		echo "エラー: MIGRATIONのNAME を指定してください (例: make migrate-diff MIG=my_migration)"; \
 		exit 1; \
 	fi
-	@echo "Generating migration file named '${name}'..."
-	@atlas migrate diff ${name} --dir ${ATLAS_MIGR_DIR} --to ${ATLAS_TO_SCHEMA} --dev-url ${ATLAS_DEV_URL}
+	@echo "Generating migration file named '${MIG}'..."
+	@#cd ./db & GOWORK=off atlas migrate diff ${MIG} --dir ${ATLAS_MIGR_DIR} --to ${ATLAS_TO_SCHEMA} --dev-url ${ATLAS_DEV_URL}
+	@cd ./db & GOWORK=off atlas migrate diff ${MIG} --dir ${ATLAS_MIGR_DIR} --to ${ATLAS_TO_SCHEMA} --dev-url ${ATLAS_DEV_URL}
 	@echo "Migration file generated."
 
 

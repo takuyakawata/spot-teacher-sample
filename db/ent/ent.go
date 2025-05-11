@@ -12,7 +12,14 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
@@ -74,8 +81,15 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			product.Table: product.ValidColumn,
-			user.Table:    user.ValidColumn,
+			company.Table:           company.ValidColumn,
+			educationcategory.Table: educationcategory.ValidColumn,
+			grade.Table:             grade.ValidColumn,
+			lessonplan.Table:        lessonplan.ValidColumn,
+			lessonschedule.Table:    lessonschedule.ValidColumn,
+			product.Table:           product.ValidColumn,
+			school.Table:            school.ValidColumn,
+			subject.Table:           subject.ValidColumn,
+			user.Table:              user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

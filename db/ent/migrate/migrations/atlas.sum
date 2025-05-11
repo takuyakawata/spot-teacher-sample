@@ -1,4 +1,5 @@
-h1:O+WiQP9iqHopbCXkTmlXCc+duE5h4coOqcKl4cgn38s=
+h1:IZXJdkd/KIDlM7LaSfIG6FuU3c3vcYxTExB2xcorxK8=
 20250430044643_create_product_table.sql h1:opJ6UkogZzINjVBP+ar7zPTq7k05Asx/lTiIgOc3PFc=
 20250430061144_create_users_table.sql h1:oljSOC4jsCdGmG8lG2nBXeU4i4Fmb+5v3831SYNZQMc=
 20250501231755_update_product_price_column.sql h1:dIzg8zk71B93w2lRkjktsG37aVZ4wtHefQ2+sQJwZks=
+20250511230258_create_base_tables_and_add_columns.sql h1:+XDrdcRHn0L+JeI7vm7xSQibjMGkCLcO4m5rc/F4ues=

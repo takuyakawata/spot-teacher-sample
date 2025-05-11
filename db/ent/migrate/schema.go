@@ -8,6 +8,166 @@ import (
 )
 
 var (
+	// CompaniesColumns holds the columns for the "companies" table.
+	CompaniesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "prefecture", Type: field.TypeInt},
+		{Name: "city", Type: field.TypeString},
+		{Name: "street", Type: field.TypeString, Nullable: true},
+		{Name: "post_code", Type: field.TypeString, Size: 7},
+		{Name: "phone_number", Type: field.TypeString},
+		{Name: "url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// CompaniesTable holds the schema information for the "companies" table.
+	CompaniesTable = &schema.Table{
+		Name:       "companies",
+		Columns:    CompaniesColumns,
+		PrimaryKey: []*schema.Column{CompaniesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "company_name",
+				Unique:  false,
+				Columns: []*schema.Column{CompaniesColumns[1]},
+			},
+		},
+	}
+	// EducationCategoriesColumns holds the columns for the "education_categories" table.
+	EducationCategoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "code", Type: field.TypeString, Unique: true},
+	}
+	// EducationCategoriesTable holds the schema information for the "education_categories" table.
+	EducationCategoriesTable = &schema.Table{
+		Name:       "education_categories",
+		Columns:    EducationCategoriesColumns,
+		PrimaryKey: []*schema.Column{EducationCategoriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "educationcategory_name",
+				Unique:  false,
+				Columns: []*schema.Column{EducationCategoriesColumns[1]},
+			},
+			{
+				Name:    "educationcategory_code",
+				Unique:  false,
+				Columns: []*schema.Column{EducationCategoriesColumns[2]},
+			},
+		},
+	}
+	// GradesColumns holds the columns for the "grades" table.
+	GradesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "code", Type: field.TypeString, Unique: true},
+	}
+	// GradesTable holds the schema information for the "grades" table.
+	GradesTable = &schema.Table{
+		Name:       "grades",
+		Columns:    GradesColumns,
+		PrimaryKey: []*schema.Column{GradesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "grade_name",
+				Unique:  false,
+				Columns: []*schema.Column{GradesColumns[1]},
+			},
+			{
+				Name:    "grade_code",
+				Unique:  false,
+				Columns: []*schema.Column{GradesColumns[2]},
+			},
+		},
+	}
+	// LessonPlansColumns holds the columns for the "lesson_plans" table.
+	LessonPlansColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "title", Type: field.TypeString, Size: 500},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2000},
+		{Name: "location", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "lesson_type", Type: field.TypeEnum, Enums: []string{"online", "offline", "online_and_offline"}},
+		{Name: "annual_max_executions", Type: field.TypeInt},
+		{Name: "start_month", Type: field.TypeInt},
+		{Name: "start_day", Type: field.TypeInt},
+		{Name: "end_month", Type: field.TypeInt},
+		{Name: "end_day", Type: field.TypeInt},
+		{Name: "start_time", Type: field.TypeTime},
+		{Name: "end_time", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "company_id", Type: field.TypeInt64},
+	}
+	// LessonPlansTable holds the schema information for the "lesson_plans" table.
+	LessonPlansTable = &schema.Table{
+		Name:       "lesson_plans",
+		Columns:    LessonPlansColumns,
+		PrimaryKey: []*schema.Column{LessonPlansColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "lesson_plans_companies_lesson_plans",
+				Columns:    []*schema.Column{LessonPlansColumns[14]},
+				RefColumns: []*schema.Column{CompaniesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lessonplan_company_id",
+				Unique:  false,
+				Columns: []*schema.Column{LessonPlansColumns[14]},
+			},
+			{
+				Name:    "lessonplan_title",
+				Unique:  false,
+				Columns: []*schema.Column{LessonPlansColumns[1]},
+			},
+		},
+	}
+	// LessonSchedulesColumns holds the columns for the "lesson_schedules" table.
+	LessonSchedulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "title", Type: field.TypeString, Size: 100},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "location", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "lesson_type", Type: field.TypeEnum, Enums: []string{"online", "offline", "online_and_offline"}},
+		{Name: "annual_max_executions", Type: field.TypeInt},
+		{Name: "start_date", Type: field.TypeTime},
+		{Name: "end_date", Type: field.TypeTime},
+		{Name: "start_time", Type: field.TypeTime},
+		{Name: "end_time", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "lesson_plan_id", Type: field.TypeInt64},
+	}
+	// LessonSchedulesTable holds the schema information for the "lesson_schedules" table.
+	LessonSchedulesTable = &schema.Table{
+		Name:       "lesson_schedules",
+		Columns:    LessonSchedulesColumns,
+		PrimaryKey: []*schema.Column{LessonSchedulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "lesson_schedules_lesson_plans_schedules",
+				Columns:    []*schema.Column{LessonSchedulesColumns[12]},
+				RefColumns: []*schema.Column{LessonPlansColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lessonschedule_lesson_plan_id",
+				Unique:  false,
+				Columns: []*schema.Column{LessonSchedulesColumns[12]},
+			},
+			{
+				Name:    "lessonschedule_title",
+				Unique:  false,
+				Columns: []*schema.Column{LessonSchedulesColumns[1]},
+			},
+		},
+	}
 	// ProductsColumns holds the columns for the "products" table.
 	ProductsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -23,35 +183,225 @@ var (
 		Columns:    ProductsColumns,
 		PrimaryKey: []*schema.Column{ProductsColumns[0]},
 	}
+	// SchoolsColumns holds the columns for the "schools" table.
+	SchoolsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "school_type", Type: field.TypeEnum, Enums: []string{"elementary", "juniorHigh", "highSchool"}},
+		{Name: "name", Type: field.TypeString, Size: 50},
+		{Name: "email", Type: field.TypeString, Nullable: true, Size: 200},
+		{Name: "phone_number", Type: field.TypeString},
+		{Name: "prefecture", Type: field.TypeInt},
+		{Name: "city", Type: field.TypeString},
+		{Name: "street", Type: field.TypeString, Nullable: true},
+		{Name: "post_code", Type: field.TypeString, Size: 7},
+		{Name: "url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SchoolsTable holds the schema information for the "schools" table.
+	SchoolsTable = &schema.Table{
+		Name:       "schools",
+		Columns:    SchoolsColumns,
+		PrimaryKey: []*schema.Column{SchoolsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "school_name",
+				Unique:  false,
+				Columns: []*schema.Column{SchoolsColumns[2]},
+			},
+			{
+				Name:    "school_school_type",
+				Unique:  false,
+				Columns: []*schema.Column{SchoolsColumns[1]},
+			},
+		},
+	}
+	// SubjectsColumns holds the columns for the "subjects" table.
+	SubjectsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "code", Type: field.TypeString, Unique: true},
+	}
+	// SubjectsTable holds the schema information for the "subjects" table.
+	SubjectsTable = &schema.Table{
+		Name:       "subjects",
+		Columns:    SubjectsColumns,
+		PrimaryKey: []*schema.Column{SubjectsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "subject_name",
+				Unique:  false,
+				Columns: []*schema.Column{SubjectsColumns[1]},
+			},
+			{
+				Name:    "subject_code",
+				Unique:  false,
+				Columns: []*schema.Column{SubjectsColumns[2]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "first_name", Type: field.TypeString, Size: 100},
-		{Name: "family_name", Type: field.TypeString, Size: 100},
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "user_type", Type: field.TypeEnum, Enums: []string{"teacher", "company_member", "admin"}, Default: "teacher"},
+		{Name: "first_name", Type: field.TypeString, Size: 50},
+		{Name: "family_name", Type: field.TypeString, Size: 50},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 100},
-		{Name: "password", Type: field.TypeString},
+		{Name: "phone_number", Type: field.TypeString, Size: 20},
+		{Name: "password", Type: field.TypeString, Nullable: true},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
+		{Name: "company_id", Type: field.TypeInt64, Nullable: true},
+		{Name: "school_id", Type: field.TypeInt64, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "users_companies_members",
+				Columns:    []*schema.Column{UsersColumns[9]},
+				RefColumns: []*schema.Column{CompaniesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_schools_teachers",
+				Columns:    []*schema.Column{UsersColumns[10]},
+				RefColumns: []*schema.Column{SchoolsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "user_first_name_family_name",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[1], UsersColumns[2]},
+				Columns: []*schema.Column{UsersColumns[2], UsersColumns[3]},
+			},
+			{
+				Name:    "user_user_type",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[1]},
+			},
+			{
+				Name:    "user_school_id",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[10]},
+			},
+			{
+				Name:    "user_company_id",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[9]},
+			},
+			{
+				Name:    "user_email",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[4]},
+			},
+		},
+	}
+	// LessonPlanGradesColumns holds the columns for the "lesson_plan_grades" table.
+	LessonPlanGradesColumns = []*schema.Column{
+		{Name: "lesson_plan_id", Type: field.TypeInt64},
+		{Name: "grade_id", Type: field.TypeInt},
+	}
+	// LessonPlanGradesTable holds the schema information for the "lesson_plan_grades" table.
+	LessonPlanGradesTable = &schema.Table{
+		Name:       "lesson_plan_grades",
+		Columns:    LessonPlanGradesColumns,
+		PrimaryKey: []*schema.Column{LessonPlanGradesColumns[0], LessonPlanGradesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "lesson_plan_grades_lesson_plan_id",
+				Columns:    []*schema.Column{LessonPlanGradesColumns[0]},
+				RefColumns: []*schema.Column{LessonPlansColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "lesson_plan_grades_grade_id",
+				Columns:    []*schema.Column{LessonPlanGradesColumns[1]},
+				RefColumns: []*schema.Column{GradesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// LessonPlanSubjectsColumns holds the columns for the "lesson_plan_subjects" table.
+	LessonPlanSubjectsColumns = []*schema.Column{
+		{Name: "lesson_plan_id", Type: field.TypeInt64},
+		{Name: "subject_id", Type: field.TypeInt},
+	}
+	// LessonPlanSubjectsTable holds the schema information for the "lesson_plan_subjects" table.
+	LessonPlanSubjectsTable = &schema.Table{
+		Name:       "lesson_plan_subjects",
+		Columns:    LessonPlanSubjectsColumns,
+		PrimaryKey: []*schema.Column{LessonPlanSubjectsColumns[0], LessonPlanSubjectsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "lesson_plan_subjects_lesson_plan_id",
+				Columns:    []*schema.Column{LessonPlanSubjectsColumns[0]},
+				RefColumns: []*schema.Column{LessonPlansColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "lesson_plan_subjects_subject_id",
+				Columns:    []*schema.Column{LessonPlanSubjectsColumns[1]},
+				RefColumns: []*schema.Column{SubjectsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// LessonPlanEducationCategoriesColumns holds the columns for the "lesson_plan_education_categories" table.
+	LessonPlanEducationCategoriesColumns = []*schema.Column{
+		{Name: "lesson_plan_id", Type: field.TypeInt64},
+		{Name: "education_category_id", Type: field.TypeInt},
+	}
+	// LessonPlanEducationCategoriesTable holds the schema information for the "lesson_plan_education_categories" table.
+	LessonPlanEducationCategoriesTable = &schema.Table{
+		Name:       "lesson_plan_education_categories",
+		Columns:    LessonPlanEducationCategoriesColumns,
+		PrimaryKey: []*schema.Column{LessonPlanEducationCategoriesColumns[0], LessonPlanEducationCategoriesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "lesson_plan_education_categories_lesson_plan_id",
+				Columns:    []*schema.Column{LessonPlanEducationCategoriesColumns[0]},
+				RefColumns: []*schema.Column{LessonPlansColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "lesson_plan_education_categories_education_category_id",
+				Columns:    []*schema.Column{LessonPlanEducationCategoriesColumns[1]},
+				RefColumns: []*schema.Column{EducationCategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CompaniesTable,
+		EducationCategoriesTable,
+		GradesTable,
+		LessonPlansTable,
+		LessonSchedulesTable,
 		ProductsTable,
+		SchoolsTable,
+		SubjectsTable,
 		UsersTable,
+		LessonPlanGradesTable,
+		LessonPlanSubjectsTable,
+		LessonPlanEducationCategoriesTable,
 	}
 )
 
 func init() {
+	LessonPlansTable.ForeignKeys[0].RefTable = CompaniesTable
+	LessonSchedulesTable.ForeignKeys[0].RefTable = LessonPlansTable
+	UsersTable.ForeignKeys[0].RefTable = CompaniesTable
+	UsersTable.ForeignKeys[1].RefTable = SchoolsTable
+	LessonPlanGradesTable.ForeignKeys[0].RefTable = LessonPlansTable
+	LessonPlanGradesTable.ForeignKeys[1].RefTable = GradesTable
+	LessonPlanSubjectsTable.ForeignKeys[0].RefTable = LessonPlansTable
+	LessonPlanSubjectsTable.ForeignKeys[1].RefTable = SubjectsTable
+	LessonPlanEducationCategoriesTable.ForeignKeys[0].RefTable = LessonPlansTable
+	LessonPlanEducationCategoriesTable.ForeignKeys[1].RefTable = EducationCategoriesTable
 }

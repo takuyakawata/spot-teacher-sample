@@ -11,7 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
@@ -25,6 +27,60 @@ type UserUpdate struct {
 // Where appends a list predicates to the UserUpdate builder.
 func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	uu.mutation.Where(ps...)
+	return uu
+}
+
+// SetUserType sets the "user_type" field.
+func (uu *UserUpdate) SetUserType(ut user.UserType) *UserUpdate {
+	uu.mutation.SetUserType(ut)
+	return uu
+}
+
+// SetNillableUserType sets the "user_type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUserType(ut *user.UserType) *UserUpdate {
+	if ut != nil {
+		uu.SetUserType(*ut)
+	}
+	return uu
+}
+
+// SetSchoolID sets the "school_id" field.
+func (uu *UserUpdate) SetSchoolID(i int64) *UserUpdate {
+	uu.mutation.SetSchoolID(i)
+	return uu
+}
+
+// SetNillableSchoolID sets the "school_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableSchoolID(i *int64) *UserUpdate {
+	if i != nil {
+		uu.SetSchoolID(*i)
+	}
+	return uu
+}
+
+// ClearSchoolID clears the value of the "school_id" field.
+func (uu *UserUpdate) ClearSchoolID() *UserUpdate {
+	uu.mutation.ClearSchoolID()
+	return uu
+}
+
+// SetCompanyID sets the "company_id" field.
+func (uu *UserUpdate) SetCompanyID(i int64) *UserUpdate {
+	uu.mutation.SetCompanyID(i)
+	return uu
+}
+
+// SetNillableCompanyID sets the "company_id" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCompanyID(i *int64) *UserUpdate {
+	if i != nil {
+		uu.SetCompanyID(*i)
+	}
+	return uu
+}
+
+// ClearCompanyID clears the value of the "company_id" field.
+func (uu *UserUpdate) ClearCompanyID() *UserUpdate {
+	uu.mutation.ClearCompanyID()
 	return uu
 }
 
@@ -70,6 +126,20 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 	return uu
 }
 
+// SetPhoneNumber sets the "phone_number" field.
+func (uu *UserUpdate) SetPhoneNumber(s string) *UserUpdate {
+	uu.mutation.SetPhoneNumber(s)
+	return uu
+}
+
+// SetNillablePhoneNumber sets the "phone_number" field if the given value is not nil.
+func (uu *UserUpdate) SetNillablePhoneNumber(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetPhoneNumber(*s)
+	}
+	return uu
+}
+
 // SetPassword sets the "password" field.
 func (uu *UserUpdate) SetPassword(s string) *UserUpdate {
 	uu.mutation.SetPassword(s)
@@ -84,15 +154,43 @@ func (uu *UserUpdate) SetNillablePassword(s *string) *UserUpdate {
 	return uu
 }
 
+// ClearPassword clears the value of the "password" field.
+func (uu *UserUpdate) ClearPassword() *UserUpdate {
+	uu.mutation.ClearPassword()
+	return uu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	uu.mutation.SetUpdatedAt(t)
 	return uu
 }
 
+// SetSchool sets the "school" edge to the School entity.
+func (uu *UserUpdate) SetSchool(s *School) *UserUpdate {
+	return uu.SetSchoolID(s.ID)
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (uu *UserUpdate) SetCompany(c *Company) *UserUpdate {
+	return uu.SetCompanyID(c.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearSchool clears the "school" edge to the School entity.
+func (uu *UserUpdate) ClearSchool() *UserUpdate {
+	uu.mutation.ClearSchool()
+	return uu
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (uu *UserUpdate) ClearCompany() *UserUpdate {
+	uu.mutation.ClearCompany()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -133,6 +231,21 @@ func (uu *UserUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uu *UserUpdate) check() error {
+	if v, ok := uu.mutation.UserType(); ok {
+		if err := user.UserTypeValidator(v); err != nil {
+			return &ValidationError{Name: "user_type", err: fmt.Errorf(`ent: validator failed for field "User.user_type": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.SchoolID(); ok {
+		if err := user.SchoolIDValidator(v); err != nil {
+			return &ValidationError{Name: "school_id", err: fmt.Errorf(`ent: validator failed for field "User.school_id": %w`, err)}
+		}
+	}
+	if v, ok := uu.mutation.CompanyID(); ok {
+		if err := user.CompanyIDValidator(v); err != nil {
+			return &ValidationError{Name: "company_id", err: fmt.Errorf(`ent: validator failed for field "User.company_id": %w`, err)}
+		}
+	}
 	if v, ok := uu.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
 			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
@@ -148,9 +261,9 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
+	if v, ok := uu.mutation.PhoneNumber(); ok {
+		if err := user.PhoneNumberValidator(v); err != nil {
+			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "User.phone_number": %w`, err)}
 		}
 	}
 	return nil
@@ -160,13 +273,16 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := uu.mutation.UserType(); ok {
+		_spec.SetField(user.FieldUserType, field.TypeEnum, value)
 	}
 	if value, ok := uu.mutation.FirstName(); ok {
 		_spec.SetField(user.FieldFirstName, field.TypeString, value)
@@ -177,11 +293,75 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if value, ok := uu.mutation.PhoneNumber(); ok {
+		_spec.SetField(user.FieldPhoneNumber, field.TypeString, value)
+	}
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
+	if uu.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
 	if value, ok := uu.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if uu.mutation.SchoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.SchoolTable,
+			Columns: []string{user.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.SchoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.SchoolTable,
+			Columns: []string{user.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.CompanyTable,
+			Columns: []string{user.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.CompanyTable,
+			Columns: []string{user.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -201,6 +381,60 @@ type UserUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UserMutation
+}
+
+// SetUserType sets the "user_type" field.
+func (uuo *UserUpdateOne) SetUserType(ut user.UserType) *UserUpdateOne {
+	uuo.mutation.SetUserType(ut)
+	return uuo
+}
+
+// SetNillableUserType sets the "user_type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUserType(ut *user.UserType) *UserUpdateOne {
+	if ut != nil {
+		uuo.SetUserType(*ut)
+	}
+	return uuo
+}
+
+// SetSchoolID sets the "school_id" field.
+func (uuo *UserUpdateOne) SetSchoolID(i int64) *UserUpdateOne {
+	uuo.mutation.SetSchoolID(i)
+	return uuo
+}
+
+// SetNillableSchoolID sets the "school_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSchoolID(i *int64) *UserUpdateOne {
+	if i != nil {
+		uuo.SetSchoolID(*i)
+	}
+	return uuo
+}
+
+// ClearSchoolID clears the value of the "school_id" field.
+func (uuo *UserUpdateOne) ClearSchoolID() *UserUpdateOne {
+	uuo.mutation.ClearSchoolID()
+	return uuo
+}
+
+// SetCompanyID sets the "company_id" field.
+func (uuo *UserUpdateOne) SetCompanyID(i int64) *UserUpdateOne {
+	uuo.mutation.SetCompanyID(i)
+	return uuo
+}
+
+// SetNillableCompanyID sets the "company_id" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCompanyID(i *int64) *UserUpdateOne {
+	if i != nil {
+		uuo.SetCompanyID(*i)
+	}
+	return uuo
+}
+
+// ClearCompanyID clears the value of the "company_id" field.
+func (uuo *UserUpdateOne) ClearCompanyID() *UserUpdateOne {
+	uuo.mutation.ClearCompanyID()
+	return uuo
 }
 
 // SetFirstName sets the "first_name" field.
@@ -245,6 +479,20 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// SetPhoneNumber sets the "phone_number" field.
+func (uuo *UserUpdateOne) SetPhoneNumber(s string) *UserUpdateOne {
+	uuo.mutation.SetPhoneNumber(s)
+	return uuo
+}
+
+// SetNillablePhoneNumber sets the "phone_number" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePhoneNumber(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetPhoneNumber(*s)
+	}
+	return uuo
+}
+
 // SetPassword sets the "password" field.
 func (uuo *UserUpdateOne) SetPassword(s string) *UserUpdateOne {
 	uuo.mutation.SetPassword(s)
@@ -259,15 +507,43 @@ func (uuo *UserUpdateOne) SetNillablePassword(s *string) *UserUpdateOne {
 	return uuo
 }
 
+// ClearPassword clears the value of the "password" field.
+func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
+	uuo.mutation.ClearPassword()
+	return uuo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	uuo.mutation.SetUpdatedAt(t)
 	return uuo
 }
 
+// SetSchool sets the "school" edge to the School entity.
+func (uuo *UserUpdateOne) SetSchool(s *School) *UserUpdateOne {
+	return uuo.SetSchoolID(s.ID)
+}
+
+// SetCompany sets the "company" edge to the Company entity.
+func (uuo *UserUpdateOne) SetCompany(c *Company) *UserUpdateOne {
+	return uuo.SetCompanyID(c.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearSchool clears the "school" edge to the School entity.
+func (uuo *UserUpdateOne) ClearSchool() *UserUpdateOne {
+	uuo.mutation.ClearSchool()
+	return uuo
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (uuo *UserUpdateOne) ClearCompany() *UserUpdateOne {
+	uuo.mutation.ClearCompany()
+	return uuo
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -321,6 +597,21 @@ func (uuo *UserUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uuo *UserUpdateOne) check() error {
+	if v, ok := uuo.mutation.UserType(); ok {
+		if err := user.UserTypeValidator(v); err != nil {
+			return &ValidationError{Name: "user_type", err: fmt.Errorf(`ent: validator failed for field "User.user_type": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.SchoolID(); ok {
+		if err := user.SchoolIDValidator(v); err != nil {
+			return &ValidationError{Name: "school_id", err: fmt.Errorf(`ent: validator failed for field "User.school_id": %w`, err)}
+		}
+	}
+	if v, ok := uuo.mutation.CompanyID(); ok {
+		if err := user.CompanyIDValidator(v); err != nil {
+			return &ValidationError{Name: "company_id", err: fmt.Errorf(`ent: validator failed for field "User.company_id": %w`, err)}
+		}
+	}
 	if v, ok := uuo.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
 			return &ValidationError{Name: "first_name", err: fmt.Errorf(`ent: validator failed for field "User.first_name": %w`, err)}
@@ -336,9 +627,9 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Password(); ok {
-		if err := user.PasswordValidator(v); err != nil {
-			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
+	if v, ok := uuo.mutation.PhoneNumber(); ok {
+		if err := user.PhoneNumberValidator(v); err != nil {
+			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "User.phone_number": %w`, err)}
 		}
 	}
 	return nil
@@ -348,7 +639,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -373,6 +664,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
+	if value, ok := uuo.mutation.UserType(); ok {
+		_spec.SetField(user.FieldUserType, field.TypeEnum, value)
+	}
 	if value, ok := uuo.mutation.FirstName(); ok {
 		_spec.SetField(user.FieldFirstName, field.TypeString, value)
 	}
@@ -382,11 +676,75 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 	}
+	if value, ok := uuo.mutation.PhoneNumber(); ok {
+		_spec.SetField(user.FieldPhoneNumber, field.TypeString, value)
+	}
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
+	if uuo.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
+	}
 	if value, ok := uuo.mutation.UpdatedAt(); ok {
 		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if uuo.mutation.SchoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.SchoolTable,
+			Columns: []string{user.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.SchoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.SchoolTable,
+			Columns: []string{user.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.CompanyTable,
+			Columns: []string{user.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.CompanyTable,
+			Columns: []string{user.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

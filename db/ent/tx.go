@@ -12,8 +12,22 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Company is the client for interacting with the Company builders.
+	Company *CompanyClient
+	// EducationCategory is the client for interacting with the EducationCategory builders.
+	EducationCategory *EducationCategoryClient
+	// Grade is the client for interacting with the Grade builders.
+	Grade *GradeClient
+	// LessonPlan is the client for interacting with the LessonPlan builders.
+	LessonPlan *LessonPlanClient
+	// LessonSchedule is the client for interacting with the LessonSchedule builders.
+	LessonSchedule *LessonScheduleClient
 	// Product is the client for interacting with the Product builders.
 	Product *ProductClient
+	// School is the client for interacting with the School builders.
+	School *SchoolClient
+	// Subject is the client for interacting with the Subject builders.
+	Subject *SubjectClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -147,7 +161,14 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Company = NewCompanyClient(tx.config)
+	tx.EducationCategory = NewEducationCategoryClient(tx.config)
+	tx.Grade = NewGradeClient(tx.config)
+	tx.LessonPlan = NewLessonPlanClient(tx.config)
+	tx.LessonSchedule = NewLessonScheduleClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
+	tx.School = NewSchoolClient(tx.config)
+	tx.Subject = NewSubjectClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 
@@ -158,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Product.QueryXXX(), the query will be executed
+// applies a query, for example: Company.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

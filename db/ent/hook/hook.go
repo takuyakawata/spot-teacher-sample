@@ -9,6 +9,66 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent"
 )
 
+// The CompanyFunc type is an adapter to allow the use of ordinary
+// function as Company mutator.
+type CompanyFunc func(context.Context, *ent.CompanyMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CompanyFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CompanyMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CompanyMutation", m)
+}
+
+// The EducationCategoryFunc type is an adapter to allow the use of ordinary
+// function as EducationCategory mutator.
+type EducationCategoryFunc func(context.Context, *ent.EducationCategoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EducationCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EducationCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EducationCategoryMutation", m)
+}
+
+// The GradeFunc type is an adapter to allow the use of ordinary
+// function as Grade mutator.
+type GradeFunc func(context.Context, *ent.GradeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f GradeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.GradeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GradeMutation", m)
+}
+
+// The LessonPlanFunc type is an adapter to allow the use of ordinary
+// function as LessonPlan mutator.
+type LessonPlanFunc func(context.Context, *ent.LessonPlanMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonPlanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonPlanMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanMutation", m)
+}
+
+// The LessonScheduleFunc type is an adapter to allow the use of ordinary
+// function as LessonSchedule mutator.
+type LessonScheduleFunc func(context.Context, *ent.LessonScheduleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonScheduleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonScheduleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonScheduleMutation", m)
+}
+
 // The ProductFunc type is an adapter to allow the use of ordinary
 // function as Product mutator.
 type ProductFunc func(context.Context, *ent.ProductMutation) (ent.Value, error)
@@ -19,6 +79,30 @@ func (f ProductFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProductMutation", m)
+}
+
+// The SchoolFunc type is an adapter to allow the use of ordinary
+// function as School mutator.
+type SchoolFunc func(context.Context, *ent.SchoolMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SchoolFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SchoolMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SchoolMutation", m)
+}
+
+// The SubjectFunc type is an adapter to allow the use of ordinary
+// function as Subject mutator.
+type SubjectFunc func(context.Context, *ent.SubjectMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SubjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SubjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubjectMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
