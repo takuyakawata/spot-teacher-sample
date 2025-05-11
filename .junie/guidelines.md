@@ -1,40 +1,37 @@
 # Project Guidelines
 
-ディレクトリ構成
+ディレクトリ構成図
 ```
-frondend/
-admin-frontend/
+spot-teacher── api/
+            │   └── index.go                 エントリポイント（Vercel用）
+            ├── cmd/                         コマンドライン用ディレクトリ（現在は空）
+            ├── internal/                    アプリケーション内部のパッケージ（※外部からimportされない想定）
+            │   ├── company/                 会社関連の機能
+            │   │   └── domain/              会社ドメインの定義
+            │   ├── lesson/                  レッスン関連の機能
+            │   │   └── domain/              レッスンドメインの定義
+            │   ├── product/                 商品関連の機能
+            │   │   ├── domain/              商品ドメインの定義
+            │   │   ├── handler/             商品APIハンドラ（Echoのコントローラ）
+            │   │   ├── infra/               商品インフラ層（リポジトリ実装など）
+            │   │   ├── inject/              商品DIの設定（Wire用）
+            │   │   └── usecase/             商品ユースケース実装
+            │   │       └── mock/            ユースケースのモック（テスト用）
+            │   ├── router/                  ルーティングの設定（Echoのルート定義など）
+            │   ├── school/                  学校関連の機能
+            │   │   └── domain/              学校ドメインの定義
+            │   ├── shared/                  共有コンポーネント
+            │   │   ├── domain/              共有ドメインの定義
+            │   │   └── hander/              共有ハンドラ
+            │   └── user/                    ユーザー関連の機能
+            │       ├── domain/              ユーザードメインの定義
+            │       ├── handler/             ユーザーAPIハンドラ
+            │       ├── infra/               ユーザーインフラ層
+            │       └── usecase/             ユーザーユースケース実装
+            │           └── mock/            ユースケースのモック（テスト用）
+            ├── go.mod, go.sum               Goモジュール定義（依存関係）
+            └── main.go                      メインエントリポイント
 
-
-
-backend
-   |
-  spot-teacher── api/
-            │   └── index.go                 エントリポイント（main関数など）、WireによるDI設定もここ
-            ├── cmd/
-            │   └── app/                 エントリポイント（main関数など）、WireによるDI設定もここ
-            │       └── main.go
-            ├── internal/                アプリケーション内部のパッケージ（※外部からimportされない想定）
-            │   ├── domain/              ドメイン層：エンティティやリポジトリインターフェース等&#8203;:contentReference[oaicite:48]{index=48}
-            │   │   ├── entities/        ドメインエンティティ（集約ごとにサブパッケージに分けることも）
-            │   │   ├── values/          値オブジェクトや汎用ドメイン型
-            │   │   └── repositories/    リポジトリのインターフェース定義
-            │   ├── usecase/             ユースケース層：アプリケーションのビジネスロジック&#8203;:contentReference[oaicite:49]{index=49}
-            │   │   ├── interactor/      ユースケースの実装（入力を受け取りドメイン/インフラを呼び出す）
-            │   │   └── dto/             ユースケース間で受け渡すDTOやレスポンスモデル
-            │   ├── interfaces/          インターフェース層：外部とのI/O（コントローラやプレゼンター）&#8203;:contentReference[oaicite:50]{index=50}
-            │   │   ├── controllers/     WebAPIのコントローラ（Echoのハンドラなど）
-            │   │   └── presenters/      UIへのプレゼンテーション変換（RESTではJSONにシリアライズ等）
-            │   └── infrastructure/      インフラ層：DBや外部サービス接続の実装&#8203;:contentReference[oaicite:51]{index=51}
-            │       ├── database/        DB接続やトランザクション管理（例：sql.DB保持や設定）
-            │       ├── persistence/     リポジトリ実装（例：GORMやsqlxを使った実装）&#8203;:contentReference[oaicite:52]{index=52}
-            │       ├── logger/          ロギングの実装（Zapのラッパーなど）
-            │       └── router/          ルーティングの設定（Echoのルート定義など）
-            ├── config/                  設定ファイル（例：config.yaml や .env ファイル）
-            ├── migrations/              マイグレーションSQLファイル置き場
-            ├── pkg/                     外部公開可能な汎用パッケージ（必要なら）
-            └── go.mod, go.sum           Goモジュール定義（依存関係）
-            
    |
    DBー  
 ```
@@ -126,5 +123,3 @@ migrate -path ./migrations -database "mysql://user:pass@tcp(localhost:3306)/dbna
 ---
 
 # ☕ 開発活動すすめていきましょう!
-
-
