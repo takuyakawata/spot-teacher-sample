@@ -39,12 +39,21 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "lesson_schedule_education_categories", Type: field.TypeInt64, Nullable: true},
 	}
 	// EducationCategoriesTable holds the schema information for the "education_categories" table.
 	EducationCategoriesTable = &schema.Table{
 		Name:       "education_categories",
 		Columns:    EducationCategoriesColumns,
 		PrimaryKey: []*schema.Column{EducationCategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "education_categories_lesson_schedules_education_categories",
+				Columns:    []*schema.Column{EducationCategoriesColumns[3]},
+				RefColumns: []*schema.Column{LessonSchedulesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "educationcategory_name",
@@ -63,12 +72,21 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "lesson_schedule_grades", Type: field.TypeInt64, Nullable: true},
 	}
 	// GradesTable holds the schema information for the "grades" table.
 	GradesTable = &schema.Table{
 		Name:       "grades",
 		Columns:    GradesColumns,
 		PrimaryKey: []*schema.Column{GradesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "grades_lesson_schedules_grades",
+				Columns:    []*schema.Column{GradesColumns[3]},
+				RefColumns: []*schema.Column{LessonSchedulesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "grade_name",
@@ -221,12 +239,21 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "lesson_schedule_subjects", Type: field.TypeInt64, Nullable: true},
 	}
 	// SubjectsTable holds the schema information for the "subjects" table.
 	SubjectsTable = &schema.Table{
 		Name:       "subjects",
 		Columns:    SubjectsColumns,
 		PrimaryKey: []*schema.Column{SubjectsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "subjects_lesson_schedules_subjects",
+				Columns:    []*schema.Column{SubjectsColumns[3]},
+				RefColumns: []*schema.Column{LessonSchedulesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 		Indexes: []*schema.Index{
 			{
 				Name:    "subject_name",
@@ -394,8 +421,11 @@ var (
 )
 
 func init() {
+	EducationCategoriesTable.ForeignKeys[0].RefTable = LessonSchedulesTable
+	GradesTable.ForeignKeys[0].RefTable = LessonSchedulesTable
 	LessonPlansTable.ForeignKeys[0].RefTable = CompaniesTable
 	LessonSchedulesTable.ForeignKeys[0].RefTable = LessonPlansTable
+	SubjectsTable.ForeignKeys[0].RefTable = LessonSchedulesTable
 	UsersTable.ForeignKeys[0].RefTable = CompaniesTable
 	UsersTable.ForeignKeys[1].RefTable = SchoolsTable
 	LessonPlanGradesTable.ForeignKeys[0].RefTable = LessonPlansTable

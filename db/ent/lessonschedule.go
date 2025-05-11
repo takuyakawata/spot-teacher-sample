@@ -52,9 +52,15 @@ type LessonSchedule struct {
 type LessonScheduleEdges struct {
 	// Plan holds the value of the plan edge.
 	Plan *LessonPlan `json:"plan,omitempty"`
+	// Grades holds the value of the grades edge.
+	Grades []*Grade `json:"grades,omitempty"`
+	// Subjects holds the value of the subjects edge.
+	Subjects []*Subject `json:"subjects,omitempty"`
+	// EducationCategories holds the value of the education_categories edge.
+	EducationCategories []*EducationCategory `json:"education_categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [4]bool
 }
 
 // PlanOrErr returns the Plan value or an error if the edge
@@ -66,6 +72,33 @@ func (e LessonScheduleEdges) PlanOrErr() (*LessonPlan, error) {
 		return nil, &NotFoundError{label: lessonplan.Label}
 	}
 	return nil, &NotLoadedError{edge: "plan"}
+}
+
+// GradesOrErr returns the Grades value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonScheduleEdges) GradesOrErr() ([]*Grade, error) {
+	if e.loadedTypes[1] {
+		return e.Grades, nil
+	}
+	return nil, &NotLoadedError{edge: "grades"}
+}
+
+// SubjectsOrErr returns the Subjects value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonScheduleEdges) SubjectsOrErr() ([]*Subject, error) {
+	if e.loadedTypes[2] {
+		return e.Subjects, nil
+	}
+	return nil, &NotLoadedError{edge: "subjects"}
+}
+
+// EducationCategoriesOrErr returns the EducationCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonScheduleEdges) EducationCategoriesOrErr() ([]*EducationCategory, error) {
+	if e.loadedTypes[3] {
+		return e.EducationCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "education_categories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -188,6 +221,21 @@ func (ls *LessonSchedule) Value(name string) (ent.Value, error) {
 // QueryPlan queries the "plan" edge of the LessonSchedule entity.
 func (ls *LessonSchedule) QueryPlan() *LessonPlanQuery {
 	return NewLessonScheduleClient(ls.config).QueryPlan(ls)
+}
+
+// QueryGrades queries the "grades" edge of the LessonSchedule entity.
+func (ls *LessonSchedule) QueryGrades() *GradeQuery {
+	return NewLessonScheduleClient(ls.config).QueryGrades(ls)
+}
+
+// QuerySubjects queries the "subjects" edge of the LessonSchedule entity.
+func (ls *LessonSchedule) QuerySubjects() *SubjectQuery {
+	return NewLessonScheduleClient(ls.config).QuerySubjects(ls)
+}
+
+// QueryEducationCategories queries the "education_categories" edge of the LessonSchedule entity.
+func (ls *LessonSchedule) QueryEducationCategories() *EducationCategoryQuery {
+	return NewLessonScheduleClient(ls.config).QueryEducationCategories(ls)
 }
 
 // Update returns a builder for updating this LessonSchedule.

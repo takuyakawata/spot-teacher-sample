@@ -3652,27 +3652,36 @@ func (m *LessonPlanMutation) ResetEdge(name string) error {
 // LessonScheduleMutation represents an operation that mutates the LessonSchedule nodes in the graph.
 type LessonScheduleMutation struct {
 	config
-	op                       Op
-	typ                      string
-	id                       *int64
-	title                    *string
-	description              *string
-	location                 *string
-	lesson_type              *lessonschedule.LessonType
-	annual_max_executions    *int
-	addannual_max_executions *int
-	start_date               *time.Time
-	end_date                 *time.Time
-	start_time               *time.Time
-	end_time                 *time.Time
-	updated_at               *time.Time
-	created_at               *time.Time
-	clearedFields            map[string]struct{}
-	plan                     *int64
-	clearedplan              bool
-	done                     bool
-	oldValue                 func(context.Context) (*LessonSchedule, error)
-	predicates               []predicate.LessonSchedule
+	op                          Op
+	typ                         string
+	id                          *int64
+	title                       *string
+	description                 *string
+	location                    *string
+	lesson_type                 *lessonschedule.LessonType
+	annual_max_executions       *int
+	addannual_max_executions    *int
+	start_date                  *time.Time
+	end_date                    *time.Time
+	start_time                  *time.Time
+	end_time                    *time.Time
+	updated_at                  *time.Time
+	created_at                  *time.Time
+	clearedFields               map[string]struct{}
+	plan                        *int64
+	clearedplan                 bool
+	grades                      map[int]struct{}
+	removedgrades               map[int]struct{}
+	clearedgrades               bool
+	subjects                    map[int]struct{}
+	removedsubjects             map[int]struct{}
+	clearedsubjects             bool
+	education_categories        map[int]struct{}
+	removededucation_categories map[int]struct{}
+	clearededucation_categories bool
+	done                        bool
+	oldValue                    func(context.Context) (*LessonSchedule, error)
+	predicates                  []predicate.LessonSchedule
 }
 
 var _ ent.Mutation = (*LessonScheduleMutation)(nil)
@@ -4297,6 +4306,168 @@ func (m *LessonScheduleMutation) ResetPlan() {
 	m.clearedplan = false
 }
 
+// AddGradeIDs adds the "grades" edge to the Grade entity by ids.
+func (m *LessonScheduleMutation) AddGradeIDs(ids ...int) {
+	if m.grades == nil {
+		m.grades = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.grades[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGrades clears the "grades" edge to the Grade entity.
+func (m *LessonScheduleMutation) ClearGrades() {
+	m.clearedgrades = true
+}
+
+// GradesCleared reports if the "grades" edge to the Grade entity was cleared.
+func (m *LessonScheduleMutation) GradesCleared() bool {
+	return m.clearedgrades
+}
+
+// RemoveGradeIDs removes the "grades" edge to the Grade entity by IDs.
+func (m *LessonScheduleMutation) RemoveGradeIDs(ids ...int) {
+	if m.removedgrades == nil {
+		m.removedgrades = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.grades, ids[i])
+		m.removedgrades[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGrades returns the removed IDs of the "grades" edge to the Grade entity.
+func (m *LessonScheduleMutation) RemovedGradesIDs() (ids []int) {
+	for id := range m.removedgrades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GradesIDs returns the "grades" edge IDs in the mutation.
+func (m *LessonScheduleMutation) GradesIDs() (ids []int) {
+	for id := range m.grades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGrades resets all changes to the "grades" edge.
+func (m *LessonScheduleMutation) ResetGrades() {
+	m.grades = nil
+	m.clearedgrades = false
+	m.removedgrades = nil
+}
+
+// AddSubjectIDs adds the "subjects" edge to the Subject entity by ids.
+func (m *LessonScheduleMutation) AddSubjectIDs(ids ...int) {
+	if m.subjects == nil {
+		m.subjects = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.subjects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSubjects clears the "subjects" edge to the Subject entity.
+func (m *LessonScheduleMutation) ClearSubjects() {
+	m.clearedsubjects = true
+}
+
+// SubjectsCleared reports if the "subjects" edge to the Subject entity was cleared.
+func (m *LessonScheduleMutation) SubjectsCleared() bool {
+	return m.clearedsubjects
+}
+
+// RemoveSubjectIDs removes the "subjects" edge to the Subject entity by IDs.
+func (m *LessonScheduleMutation) RemoveSubjectIDs(ids ...int) {
+	if m.removedsubjects == nil {
+		m.removedsubjects = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.subjects, ids[i])
+		m.removedsubjects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSubjects returns the removed IDs of the "subjects" edge to the Subject entity.
+func (m *LessonScheduleMutation) RemovedSubjectsIDs() (ids []int) {
+	for id := range m.removedsubjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SubjectsIDs returns the "subjects" edge IDs in the mutation.
+func (m *LessonScheduleMutation) SubjectsIDs() (ids []int) {
+	for id := range m.subjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSubjects resets all changes to the "subjects" edge.
+func (m *LessonScheduleMutation) ResetSubjects() {
+	m.subjects = nil
+	m.clearedsubjects = false
+	m.removedsubjects = nil
+}
+
+// AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by ids.
+func (m *LessonScheduleMutation) AddEducationCategoryIDs(ids ...int) {
+	if m.education_categories == nil {
+		m.education_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.education_categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEducationCategories clears the "education_categories" edge to the EducationCategory entity.
+func (m *LessonScheduleMutation) ClearEducationCategories() {
+	m.clearededucation_categories = true
+}
+
+// EducationCategoriesCleared reports if the "education_categories" edge to the EducationCategory entity was cleared.
+func (m *LessonScheduleMutation) EducationCategoriesCleared() bool {
+	return m.clearededucation_categories
+}
+
+// RemoveEducationCategoryIDs removes the "education_categories" edge to the EducationCategory entity by IDs.
+func (m *LessonScheduleMutation) RemoveEducationCategoryIDs(ids ...int) {
+	if m.removededucation_categories == nil {
+		m.removededucation_categories = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.education_categories, ids[i])
+		m.removededucation_categories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEducationCategories returns the removed IDs of the "education_categories" edge to the EducationCategory entity.
+func (m *LessonScheduleMutation) RemovedEducationCategoriesIDs() (ids []int) {
+	for id := range m.removededucation_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EducationCategoriesIDs returns the "education_categories" edge IDs in the mutation.
+func (m *LessonScheduleMutation) EducationCategoriesIDs() (ids []int) {
+	for id := range m.education_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEducationCategories resets all changes to the "education_categories" edge.
+func (m *LessonScheduleMutation) ResetEducationCategories() {
+	m.education_categories = nil
+	m.clearededucation_categories = false
+	m.removededucation_categories = nil
+}
+
 // Where appends a list predicates to the LessonScheduleMutation builder.
 func (m *LessonScheduleMutation) Where(ps ...predicate.LessonSchedule) {
 	m.predicates = append(m.predicates, ps...)
@@ -4647,9 +4818,18 @@ func (m *LessonScheduleMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LessonScheduleMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.plan != nil {
 		edges = append(edges, lessonschedule.EdgePlan)
+	}
+	if m.grades != nil {
+		edges = append(edges, lessonschedule.EdgeGrades)
+	}
+	if m.subjects != nil {
+		edges = append(edges, lessonschedule.EdgeSubjects)
+	}
+	if m.education_categories != nil {
+		edges = append(edges, lessonschedule.EdgeEducationCategories)
 	}
 	return edges
 }
@@ -4662,27 +4842,83 @@ func (m *LessonScheduleMutation) AddedIDs(name string) []ent.Value {
 		if id := m.plan; id != nil {
 			return []ent.Value{*id}
 		}
+	case lessonschedule.EdgeGrades:
+		ids := make([]ent.Value, 0, len(m.grades))
+		for id := range m.grades {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonschedule.EdgeSubjects:
+		ids := make([]ent.Value, 0, len(m.subjects))
+		for id := range m.subjects {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonschedule.EdgeEducationCategories:
+		ids := make([]ent.Value, 0, len(m.education_categories))
+		for id := range m.education_categories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LessonScheduleMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
+	if m.removedgrades != nil {
+		edges = append(edges, lessonschedule.EdgeGrades)
+	}
+	if m.removedsubjects != nil {
+		edges = append(edges, lessonschedule.EdgeSubjects)
+	}
+	if m.removededucation_categories != nil {
+		edges = append(edges, lessonschedule.EdgeEducationCategories)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *LessonScheduleMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case lessonschedule.EdgeGrades:
+		ids := make([]ent.Value, 0, len(m.removedgrades))
+		for id := range m.removedgrades {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonschedule.EdgeSubjects:
+		ids := make([]ent.Value, 0, len(m.removedsubjects))
+		for id := range m.removedsubjects {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonschedule.EdgeEducationCategories:
+		ids := make([]ent.Value, 0, len(m.removededucation_categories))
+		for id := range m.removededucation_categories {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LessonScheduleMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 4)
 	if m.clearedplan {
 		edges = append(edges, lessonschedule.EdgePlan)
+	}
+	if m.clearedgrades {
+		edges = append(edges, lessonschedule.EdgeGrades)
+	}
+	if m.clearedsubjects {
+		edges = append(edges, lessonschedule.EdgeSubjects)
+	}
+	if m.clearededucation_categories {
+		edges = append(edges, lessonschedule.EdgeEducationCategories)
 	}
 	return edges
 }
@@ -4693,6 +4929,12 @@ func (m *LessonScheduleMutation) EdgeCleared(name string) bool {
 	switch name {
 	case lessonschedule.EdgePlan:
 		return m.clearedplan
+	case lessonschedule.EdgeGrades:
+		return m.clearedgrades
+	case lessonschedule.EdgeSubjects:
+		return m.clearedsubjects
+	case lessonschedule.EdgeEducationCategories:
+		return m.clearededucation_categories
 	}
 	return false
 }
@@ -4714,6 +4956,15 @@ func (m *LessonScheduleMutation) ResetEdge(name string) error {
 	switch name {
 	case lessonschedule.EdgePlan:
 		m.ResetPlan()
+		return nil
+	case lessonschedule.EdgeGrades:
+		m.ResetGrades()
+		return nil
+	case lessonschedule.EdgeSubjects:
+		m.ResetSubjects()
+		return nil
+	case lessonschedule.EdgeEducationCategories:
+		m.ResetEducationCategories()
 		return nil
 	}
 	return fmt.Errorf("unknown LessonSchedule edge %s", name)

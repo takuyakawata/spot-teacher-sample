@@ -668,6 +668,75 @@ func HasPlanWith(preds ...predicate.LessonPlan) predicate.LessonSchedule {
 	})
 }
 
+// HasGrades applies the HasEdge predicate on the "grades" edge.
+func HasGrades() predicate.LessonSchedule {
+	return predicate.LessonSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, GradesTable, GradesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGradesWith applies the HasEdge predicate on the "grades" edge with a given conditions (other predicates).
+func HasGradesWith(preds ...predicate.Grade) predicate.LessonSchedule {
+	return predicate.LessonSchedule(func(s *sql.Selector) {
+		step := newGradesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasSubjects applies the HasEdge predicate on the "subjects" edge.
+func HasSubjects() predicate.LessonSchedule {
+	return predicate.LessonSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, SubjectsTable, SubjectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasSubjectsWith applies the HasEdge predicate on the "subjects" edge with a given conditions (other predicates).
+func HasSubjectsWith(preds ...predicate.Subject) predicate.LessonSchedule {
+	return predicate.LessonSchedule(func(s *sql.Selector) {
+		step := newSubjectsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasEducationCategories applies the HasEdge predicate on the "education_categories" edge.
+func HasEducationCategories() predicate.LessonSchedule {
+	return predicate.LessonSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EducationCategoriesTable, EducationCategoriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasEducationCategoriesWith applies the HasEdge predicate on the "education_categories" edge with a given conditions (other predicates).
+func HasEducationCategoriesWith(preds ...predicate.EducationCategory) predicate.LessonSchedule {
+	return predicate.LessonSchedule(func(s *sql.Selector) {
+		step := newEducationCategoriesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.LessonSchedule) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.AndPredicates(predicates...))

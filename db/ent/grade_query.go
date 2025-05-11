@@ -25,6 +25,7 @@ type GradeQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Grade
 	withLessonPlans *LessonPlanQuery
+	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -370,11 +371,15 @@ func (gq *GradeQuery) prepareQuery(ctx context.Context) error {
 func (gq *GradeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Grade, error) {
 	var (
 		nodes       = []*Grade{}
+		withFKs     = gq.withFKs
 		_spec       = gq.querySpec()
 		loadedTypes = [1]bool{
 			gq.withLessonPlans != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, grade.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Grade).scanValues(nil, columns)
 	}

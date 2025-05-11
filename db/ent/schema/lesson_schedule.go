@@ -47,6 +47,10 @@ func (LessonSchedule) Edges() []ent.Edge {
 			Field("lesson_plan_id").
 			Unique().
 			Required(),
+
+		edge.To("grades", Grade.Type),
+		edge.To("subjects", Subject.Type),
+		edge.To("education_categories", EducationCategory.Type),
 	}
 }
 

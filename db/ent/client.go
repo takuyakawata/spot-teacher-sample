@@ -1071,6 +1071,54 @@ func (c *LessonScheduleClient) QueryPlan(ls *LessonSchedule) *LessonPlanQuery {
 	return query
 }
 
+// QueryGrades queries the grades edge of a LessonSchedule.
+func (c *LessonScheduleClient) QueryGrades(ls *LessonSchedule) *GradeQuery {
+	query := (&GradeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ls.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, id),
+			sqlgraph.To(grade.Table, grade.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.GradesTable, lessonschedule.GradesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ls.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySubjects queries the subjects edge of a LessonSchedule.
+func (c *LessonScheduleClient) QuerySubjects(ls *LessonSchedule) *SubjectQuery {
+	query := (&SubjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ls.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, id),
+			sqlgraph.To(subject.Table, subject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.SubjectsTable, lessonschedule.SubjectsColumn),
+		)
+		fromV = sqlgraph.Neighbors(ls.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEducationCategories queries the education_categories edge of a LessonSchedule.
+func (c *LessonScheduleClient) QueryEducationCategories(ls *LessonSchedule) *EducationCategoryQuery {
+	query := (&EducationCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ls.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, id),
+			sqlgraph.To(educationcategory.Table, educationcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.EducationCategoriesTable, lessonschedule.EducationCategoriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ls.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *LessonScheduleClient) Hooks() []Hook {
 	return c.hooks.LessonSchedule

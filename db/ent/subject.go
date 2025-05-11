@@ -22,8 +22,9 @@ type Subject struct {
 	Code string `json:"code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SubjectQuery when eager-loading is set.
-	Edges        SubjectEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges                    SubjectEdges `json:"edges"`
+	lesson_schedule_subjects *int64
+	selectValues             sql.SelectValues
 }
 
 // SubjectEdges holds the relations/edges for other nodes in the graph.
@@ -53,6 +54,8 @@ func (*Subject) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case subject.FieldName, subject.FieldCode:
 			values[i] = new(sql.NullString)
+		case subject.ForeignKeys[0]: // lesson_schedule_subjects
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -85,6 +88,13 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				s.Code = value.String
+			}
+		case subject.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_subjects", value)
+			} else if value.Valid {
+				s.lesson_schedule_subjects = new(int64)
+				*s.lesson_schedule_subjects = int64(value.Int64)
 			}
 		default:
 			s.selectValues.Set(columns[i], values[i])

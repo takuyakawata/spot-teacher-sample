@@ -10,8 +10,11 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 )
 
 // LessonScheduleCreate is the builder for creating a LessonSchedule entity.
@@ -140,6 +143,51 @@ func (lsc *LessonScheduleCreate) SetPlanID(id int64) *LessonScheduleCreate {
 // SetPlan sets the "plan" edge to the LessonPlan entity.
 func (lsc *LessonScheduleCreate) SetPlan(l *LessonPlan) *LessonScheduleCreate {
 	return lsc.SetPlanID(l.ID)
+}
+
+// AddGradeIDs adds the "grades" edge to the Grade entity by IDs.
+func (lsc *LessonScheduleCreate) AddGradeIDs(ids ...int) *LessonScheduleCreate {
+	lsc.mutation.AddGradeIDs(ids...)
+	return lsc
+}
+
+// AddGrades adds the "grades" edges to the Grade entity.
+func (lsc *LessonScheduleCreate) AddGrades(g ...*Grade) *LessonScheduleCreate {
+	ids := make([]int, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return lsc.AddGradeIDs(ids...)
+}
+
+// AddSubjectIDs adds the "subjects" edge to the Subject entity by IDs.
+func (lsc *LessonScheduleCreate) AddSubjectIDs(ids ...int) *LessonScheduleCreate {
+	lsc.mutation.AddSubjectIDs(ids...)
+	return lsc
+}
+
+// AddSubjects adds the "subjects" edges to the Subject entity.
+func (lsc *LessonScheduleCreate) AddSubjects(s ...*Subject) *LessonScheduleCreate {
+	ids := make([]int, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return lsc.AddSubjectIDs(ids...)
+}
+
+// AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by IDs.
+func (lsc *LessonScheduleCreate) AddEducationCategoryIDs(ids ...int) *LessonScheduleCreate {
+	lsc.mutation.AddEducationCategoryIDs(ids...)
+	return lsc
+}
+
+// AddEducationCategories adds the "education_categories" edges to the EducationCategory entity.
+func (lsc *LessonScheduleCreate) AddEducationCategories(e ...*EducationCategory) *LessonScheduleCreate {
+	ids := make([]int, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return lsc.AddEducationCategoryIDs(ids...)
 }
 
 // Mutation returns the LessonScheduleMutation object of the builder.
@@ -348,6 +396,54 @@ func (lsc *LessonScheduleCreate) createSpec() (*LessonSchedule, *sqlgraph.Create
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.LessonPlanID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lsc.mutation.GradesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.GradesTable,
+			Columns: []string{lessonschedule.GradesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(grade.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lsc.mutation.SubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.SubjectsTable,
+			Columns: []string{lessonschedule.SubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lsc.mutation.EducationCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.EducationCategoriesTable,
+			Columns: []string{lessonschedule.EducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

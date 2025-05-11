@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,19 +12,25 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 )
 
 // LessonScheduleQuery is the builder for querying LessonSchedule entities.
 type LessonScheduleQuery struct {
 	config
-	ctx        *QueryContext
-	order      []lessonschedule.OrderOption
-	inters     []Interceptor
-	predicates []predicate.LessonSchedule
-	withPlan   *LessonPlanQuery
+	ctx                     *QueryContext
+	order                   []lessonschedule.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.LessonSchedule
+	withPlan                *LessonPlanQuery
+	withGrades              *GradeQuery
+	withSubjects            *SubjectQuery
+	withEducationCategories *EducationCategoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -75,6 +82,72 @@ func (lsq *LessonScheduleQuery) QueryPlan() *LessonPlanQuery {
 			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, selector),
 			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, lessonschedule.PlanTable, lessonschedule.PlanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryGrades chains the current query on the "grades" edge.
+func (lsq *LessonScheduleQuery) QueryGrades() *GradeQuery {
+	query := (&GradeClient{config: lsq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, selector),
+			sqlgraph.To(grade.Table, grade.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.GradesTable, lessonschedule.GradesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySubjects chains the current query on the "subjects" edge.
+func (lsq *LessonScheduleQuery) QuerySubjects() *SubjectQuery {
+	query := (&SubjectClient{config: lsq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, selector),
+			sqlgraph.To(subject.Table, subject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.SubjectsTable, lessonschedule.SubjectsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryEducationCategories chains the current query on the "education_categories" edge.
+func (lsq *LessonScheduleQuery) QueryEducationCategories() *EducationCategoryQuery {
+	query := (&EducationCategoryClient{config: lsq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, selector),
+			sqlgraph.To(educationcategory.Table, educationcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.EducationCategoriesTable, lessonschedule.EducationCategoriesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(lsq.driver.Dialect(), step)
 		return fromU, nil
@@ -269,12 +342,15 @@ func (lsq *LessonScheduleQuery) Clone() *LessonScheduleQuery {
 		return nil
 	}
 	return &LessonScheduleQuery{
-		config:     lsq.config,
-		ctx:        lsq.ctx.Clone(),
-		order:      append([]lessonschedule.OrderOption{}, lsq.order...),
-		inters:     append([]Interceptor{}, lsq.inters...),
-		predicates: append([]predicate.LessonSchedule{}, lsq.predicates...),
-		withPlan:   lsq.withPlan.Clone(),
+		config:                  lsq.config,
+		ctx:                     lsq.ctx.Clone(),
+		order:                   append([]lessonschedule.OrderOption{}, lsq.order...),
+		inters:                  append([]Interceptor{}, lsq.inters...),
+		predicates:              append([]predicate.LessonSchedule{}, lsq.predicates...),
+		withPlan:                lsq.withPlan.Clone(),
+		withGrades:              lsq.withGrades.Clone(),
+		withSubjects:            lsq.withSubjects.Clone(),
+		withEducationCategories: lsq.withEducationCategories.Clone(),
 		// clone intermediate query.
 		sql:  lsq.sql.Clone(),
 		path: lsq.path,
@@ -289,6 +365,39 @@ func (lsq *LessonScheduleQuery) WithPlan(opts ...func(*LessonPlanQuery)) *Lesson
 		opt(query)
 	}
 	lsq.withPlan = query
+	return lsq
+}
+
+// WithGrades tells the query-builder to eager-load the nodes that are connected to
+// the "grades" edge. The optional arguments are used to configure the query builder of the edge.
+func (lsq *LessonScheduleQuery) WithGrades(opts ...func(*GradeQuery)) *LessonScheduleQuery {
+	query := (&GradeClient{config: lsq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lsq.withGrades = query
+	return lsq
+}
+
+// WithSubjects tells the query-builder to eager-load the nodes that are connected to
+// the "subjects" edge. The optional arguments are used to configure the query builder of the edge.
+func (lsq *LessonScheduleQuery) WithSubjects(opts ...func(*SubjectQuery)) *LessonScheduleQuery {
+	query := (&SubjectClient{config: lsq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lsq.withSubjects = query
+	return lsq
+}
+
+// WithEducationCategories tells the query-builder to eager-load the nodes that are connected to
+// the "education_categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (lsq *LessonScheduleQuery) WithEducationCategories(opts ...func(*EducationCategoryQuery)) *LessonScheduleQuery {
+	query := (&EducationCategoryClient{config: lsq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lsq.withEducationCategories = query
 	return lsq
 }
 
@@ -370,8 +479,11 @@ func (lsq *LessonScheduleQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*LessonSchedule{}
 		_spec       = lsq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [4]bool{
 			lsq.withPlan != nil,
+			lsq.withGrades != nil,
+			lsq.withSubjects != nil,
+			lsq.withEducationCategories != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -395,6 +507,29 @@ func (lsq *LessonScheduleQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	if query := lsq.withPlan; query != nil {
 		if err := lsq.loadPlan(ctx, query, nodes, nil,
 			func(n *LessonSchedule, e *LessonPlan) { n.Edges.Plan = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lsq.withGrades; query != nil {
+		if err := lsq.loadGrades(ctx, query, nodes,
+			func(n *LessonSchedule) { n.Edges.Grades = []*Grade{} },
+			func(n *LessonSchedule, e *Grade) { n.Edges.Grades = append(n.Edges.Grades, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lsq.withSubjects; query != nil {
+		if err := lsq.loadSubjects(ctx, query, nodes,
+			func(n *LessonSchedule) { n.Edges.Subjects = []*Subject{} },
+			func(n *LessonSchedule, e *Subject) { n.Edges.Subjects = append(n.Edges.Subjects, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lsq.withEducationCategories; query != nil {
+		if err := lsq.loadEducationCategories(ctx, query, nodes,
+			func(n *LessonSchedule) { n.Edges.EducationCategories = []*EducationCategory{} },
+			func(n *LessonSchedule, e *EducationCategory) {
+				n.Edges.EducationCategories = append(n.Edges.EducationCategories, e)
+			}); err != nil {
 			return nil, err
 		}
 	}
@@ -427,6 +562,99 @@ func (lsq *LessonScheduleQuery) loadPlan(ctx context.Context, query *LessonPlanQ
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (lsq *LessonScheduleQuery) loadGrades(ctx context.Context, query *GradeQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *Grade)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*LessonSchedule)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Grade(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonschedule.GradesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.lesson_schedule_grades
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "lesson_schedule_grades" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_schedule_grades" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (lsq *LessonScheduleQuery) loadSubjects(ctx context.Context, query *SubjectQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *Subject)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*LessonSchedule)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Subject(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonschedule.SubjectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.lesson_schedule_subjects
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "lesson_schedule_subjects" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_schedule_subjects" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (lsq *LessonScheduleQuery) loadEducationCategories(ctx context.Context, query *EducationCategoryQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *EducationCategory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*LessonSchedule)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.EducationCategory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonschedule.EducationCategoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.lesson_schedule_education_categories
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "lesson_schedule_education_categories" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_schedule_education_categories" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

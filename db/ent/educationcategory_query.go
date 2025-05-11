@@ -25,6 +25,7 @@ type EducationCategoryQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.EducationCategory
 	withLessonPlans *LessonPlanQuery
+	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -370,11 +371,15 @@ func (ecq *EducationCategoryQuery) prepareQuery(ctx context.Context) error {
 func (ecq *EducationCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*EducationCategory, error) {
 	var (
 		nodes       = []*EducationCategory{}
+		withFKs     = ecq.withFKs
 		_spec       = ecq.querySpec()
 		loadedTypes = [1]bool{
 			ecq.withLessonPlans != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, educationcategory.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*EducationCategory).scanValues(nil, columns)
 	}

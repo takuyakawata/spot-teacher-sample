@@ -22,8 +22,9 @@ type EducationCategory struct {
 	Code string `json:"code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EducationCategoryQuery when eager-loading is set.
-	Edges        EducationCategoryEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges                                EducationCategoryEdges `json:"edges"`
+	lesson_schedule_education_categories *int64
+	selectValues                         sql.SelectValues
 }
 
 // EducationCategoryEdges holds the relations/edges for other nodes in the graph.
@@ -53,6 +54,8 @@ func (*EducationCategory) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case educationcategory.FieldName, educationcategory.FieldCode:
 			values[i] = new(sql.NullString)
+		case educationcategory.ForeignKeys[0]: // lesson_schedule_education_categories
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -85,6 +88,13 @@ func (ec *EducationCategory) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				ec.Code = value.String
+			}
+		case educationcategory.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_education_categories", value)
+			} else if value.Valid {
+				ec.lesson_schedule_education_categories = new(int64)
+				*ec.lesson_schedule_education_categories = int64(value.Int64)
 			}
 		default:
 			ec.selectValues.Set(columns[i], values[i])

@@ -22,8 +22,9 @@ type Grade struct {
 	Code string `json:"code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GradeQuery when eager-loading is set.
-	Edges        GradeEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges                  GradeEdges `json:"edges"`
+	lesson_schedule_grades *int64
+	selectValues           sql.SelectValues
 }
 
 // GradeEdges holds the relations/edges for other nodes in the graph.
@@ -53,6 +54,8 @@ func (*Grade) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case grade.FieldName, grade.FieldCode:
 			values[i] = new(sql.NullString)
+		case grade.ForeignKeys[0]: // lesson_schedule_grades
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -85,6 +88,13 @@ func (gr *Grade) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field code", values[i])
 			} else if value.Valid {
 				gr.Code = value.String
+			}
+		case grade.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_grades", value)
+			} else if value.Valid {
+				gr.lesson_schedule_grades = new(int64)
+				*gr.lesson_schedule_grades = int64(value.Int64)
 			}
 		default:
 			gr.selectValues.Set(columns[i], values[i])

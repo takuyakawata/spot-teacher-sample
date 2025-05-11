@@ -41,6 +41,12 @@ const (
 	FieldCreatedAt = "created_at"
 	// EdgePlan holds the string denoting the plan edge name in mutations.
 	EdgePlan = "plan"
+	// EdgeGrades holds the string denoting the grades edge name in mutations.
+	EdgeGrades = "grades"
+	// EdgeSubjects holds the string denoting the subjects edge name in mutations.
+	EdgeSubjects = "subjects"
+	// EdgeEducationCategories holds the string denoting the education_categories edge name in mutations.
+	EdgeEducationCategories = "education_categories"
 	// Table holds the table name of the lessonschedule in the database.
 	Table = "lesson_schedules"
 	// PlanTable is the table that holds the plan relation/edge.
@@ -50,6 +56,27 @@ const (
 	PlanInverseTable = "lesson_plans"
 	// PlanColumn is the table column denoting the plan relation/edge.
 	PlanColumn = "lesson_plan_id"
+	// GradesTable is the table that holds the grades relation/edge.
+	GradesTable = "grades"
+	// GradesInverseTable is the table name for the Grade entity.
+	// It exists in this package in order to avoid circular dependency with the "grade" package.
+	GradesInverseTable = "grades"
+	// GradesColumn is the table column denoting the grades relation/edge.
+	GradesColumn = "lesson_schedule_grades"
+	// SubjectsTable is the table that holds the subjects relation/edge.
+	SubjectsTable = "subjects"
+	// SubjectsInverseTable is the table name for the Subject entity.
+	// It exists in this package in order to avoid circular dependency with the "subject" package.
+	SubjectsInverseTable = "subjects"
+	// SubjectsColumn is the table column denoting the subjects relation/edge.
+	SubjectsColumn = "lesson_schedule_subjects"
+	// EducationCategoriesTable is the table that holds the education_categories relation/edge.
+	EducationCategoriesTable = "education_categories"
+	// EducationCategoriesInverseTable is the table name for the EducationCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "educationcategory" package.
+	EducationCategoriesInverseTable = "education_categories"
+	// EducationCategoriesColumn is the table column denoting the education_categories relation/edge.
+	EducationCategoriesColumn = "lesson_schedule_education_categories"
 )
 
 // Columns holds all SQL columns for lessonschedule fields.
@@ -198,10 +225,73 @@ func ByPlanField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newPlanStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByGradesCount orders the results by grades count.
+func ByGradesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGradesStep(), opts...)
+	}
+}
+
+// ByGrades orders the results by grades terms.
+func ByGrades(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGradesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// BySubjectsCount orders the results by subjects count.
+func BySubjectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newSubjectsStep(), opts...)
+	}
+}
+
+// BySubjects orders the results by subjects terms.
+func BySubjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSubjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByEducationCategoriesCount orders the results by education_categories count.
+func ByEducationCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newEducationCategoriesStep(), opts...)
+	}
+}
+
+// ByEducationCategories orders the results by education_categories terms.
+func ByEducationCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newEducationCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPlanStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(PlanInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, PlanTable, PlanColumn),
+	)
+}
+func newGradesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GradesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, GradesTable, GradesColumn),
+	)
+}
+func newSubjectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SubjectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SubjectsTable, SubjectsColumn),
+	)
+}
+func newEducationCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(EducationCategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, EducationCategoriesTable, EducationCategoriesColumn),
 	)
 }

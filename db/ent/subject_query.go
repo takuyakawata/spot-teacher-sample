@@ -25,6 +25,7 @@ type SubjectQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.Subject
 	withLessonPlans *LessonPlanQuery
+	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -370,11 +371,15 @@ func (sq *SubjectQuery) prepareQuery(ctx context.Context) error {
 func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subject, error) {
 	var (
 		nodes       = []*Subject{}
+		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
 		loadedTypes = [1]bool{
 			sq.withLessonPlans != nil,
 		}
 	)
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, subject.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Subject).scanValues(nil, columns)
 	}
