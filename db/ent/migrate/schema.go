@@ -100,6 +100,71 @@ var (
 			},
 		},
 	}
+	// InquiriesColumns holds the columns for the "inquiries" table.
+	InquiriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "category", Type: field.TypeEnum, Enums: []string{"LESSON", "RESERVATION", "CANCELLATION", "OTHER"}, Default: "OTHER"},
+		{Name: "inquiry_detail", Type: field.TypeString, Size: 2147483647},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "lesson_schedule_id", Type: field.TypeInt64},
+		{Name: "school_id", Type: field.TypeInt64},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// InquiriesTable holds the schema information for the "inquiries" table.
+	InquiriesTable = &schema.Table{
+		Name:       "inquiries",
+		Columns:    InquiriesColumns,
+		PrimaryKey: []*schema.Column{InquiriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "inquiries_lesson_plans_lesson",
+				Columns:    []*schema.Column{InquiriesColumns[6]},
+				RefColumns: []*schema.Column{LessonPlansColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "inquiries_schools_school",
+				Columns:    []*schema.Column{InquiriesColumns[7]},
+				RefColumns: []*schema.Column{SchoolsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "inquiries_users_teacher",
+				Columns:    []*schema.Column{InquiriesColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "inquiry_lesson_schedule_id",
+				Unique:  false,
+				Columns: []*schema.Column{InquiriesColumns[6]},
+			},
+			{
+				Name:    "inquiry_school_id",
+				Unique:  false,
+				Columns: []*schema.Column{InquiriesColumns[7]},
+			},
+			{
+				Name:    "inquiry_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{InquiriesColumns[8]},
+			},
+			{
+				Name:    "inquiry_category",
+				Unique:  false,
+				Columns: []*schema.Column{InquiriesColumns[1]},
+			},
+			{
+				Name:    "inquiry_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{InquiriesColumns[4]},
+			},
+		},
+	}
 	// LessonPlansColumns holds the columns for the "lesson_plans" table.
 	LessonPlansColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -408,6 +473,7 @@ var (
 		CompaniesTable,
 		EducationCategoriesTable,
 		GradesTable,
+		InquiriesTable,
 		LessonPlansTable,
 		LessonSchedulesTable,
 		ProductsTable,
@@ -423,6 +489,9 @@ var (
 func init() {
 	EducationCategoriesTable.ForeignKeys[0].RefTable = LessonSchedulesTable
 	GradesTable.ForeignKeys[0].RefTable = LessonSchedulesTable
+	InquiriesTable.ForeignKeys[0].RefTable = LessonPlansTable
+	InquiriesTable.ForeignKeys[1].RefTable = SchoolsTable
+	InquiriesTable.ForeignKeys[2].RefTable = UsersTable
 	LessonPlansTable.ForeignKeys[0].RefTable = CompaniesTable
 	LessonSchedulesTable.ForeignKeys[0].RefTable = LessonPlansTable
 	SubjectsTable.ForeignKeys[0].RefTable = LessonSchedulesTable

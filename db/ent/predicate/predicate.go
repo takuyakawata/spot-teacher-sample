@@ -15,6 +15,9 @@ type EducationCategory func(*sql.Selector)
 // Grade is the predicate function for grade builders.
 type Grade func(*sql.Selector)
 
+// Inquiry is the predicate function for inquiry builders.
+type Inquiry func(*sql.Selector)
+
 // LessonPlan is the predicate function for lessonplan builders.
 type LessonPlan func(*sql.Selector)
 

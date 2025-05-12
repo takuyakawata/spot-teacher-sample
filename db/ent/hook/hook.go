@@ -45,6 +45,18 @@ func (f GradeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GradeMutation", m)
 }
 
+// The InquiryFunc type is an adapter to allow the use of ordinary
+// function as Inquiry mutator.
+type InquiryFunc func(context.Context, *ent.InquiryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f InquiryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.InquiryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InquiryMutation", m)
+}
+
 // The LessonPlanFunc type is an adapter to allow the use of ordinary
 // function as LessonPlan mutator.
 type LessonPlanFunc func(context.Context, *ent.LessonPlanMutation) (ent.Value, error)

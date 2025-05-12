@@ -14,6 +14,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
@@ -35,6 +36,7 @@ const (
 	TypeCompany           = "Company"
 	TypeEducationCategory = "EducationCategory"
 	TypeGrade             = "Grade"
+	TypeInquiry           = "Inquiry"
 	TypeLessonPlan        = "LessonPlan"
 	TypeLessonSchedule    = "LessonSchedule"
 	TypeProduct           = "Product"
@@ -2016,6 +2018,913 @@ func (m *GradeMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Grade edge %s", name)
+}
+
+// InquiryMutation represents an operation that mutates the Inquiry nodes in the graph.
+type InquiryMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int64
+	category       *inquiry.Category
+	inquiry_detail *string
+	deleted_at     *time.Time
+	created_at     *time.Time
+	updated_at     *time.Time
+	clearedFields  map[string]struct{}
+	lesson         *int64
+	clearedlesson  bool
+	school         *int64
+	clearedschool  bool
+	teacher        *int64
+	clearedteacher bool
+	done           bool
+	oldValue       func(context.Context) (*Inquiry, error)
+	predicates     []predicate.Inquiry
+}
+
+var _ ent.Mutation = (*InquiryMutation)(nil)
+
+// inquiryOption allows management of the mutation configuration using functional options.
+type inquiryOption func(*InquiryMutation)
+
+// newInquiryMutation creates new mutation for the Inquiry entity.
+func newInquiryMutation(c config, op Op, opts ...inquiryOption) *InquiryMutation {
+	m := &InquiryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeInquiry,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withInquiryID sets the ID field of the mutation.
+func withInquiryID(id int64) inquiryOption {
+	return func(m *InquiryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Inquiry
+		)
+		m.oldValue = func(ctx context.Context) (*Inquiry, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Inquiry.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withInquiry sets the old Inquiry of the mutation.
+func withInquiry(node *Inquiry) inquiryOption {
+	return func(m *InquiryMutation) {
+		m.oldValue = func(context.Context) (*Inquiry, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m InquiryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m InquiryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Inquiry entities.
+func (m *InquiryMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *InquiryMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *InquiryMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Inquiry.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetLessonScheduleID sets the "lesson_schedule_id" field.
+func (m *InquiryMutation) SetLessonScheduleID(i int64) {
+	m.lesson = &i
+}
+
+// LessonScheduleID returns the value of the "lesson_schedule_id" field in the mutation.
+func (m *InquiryMutation) LessonScheduleID() (r int64, exists bool) {
+	v := m.lesson
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLessonScheduleID returns the old "lesson_schedule_id" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldLessonScheduleID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLessonScheduleID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLessonScheduleID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLessonScheduleID: %w", err)
+	}
+	return oldValue.LessonScheduleID, nil
+}
+
+// ResetLessonScheduleID resets all changes to the "lesson_schedule_id" field.
+func (m *InquiryMutation) ResetLessonScheduleID() {
+	m.lesson = nil
+}
+
+// SetSchoolID sets the "school_id" field.
+func (m *InquiryMutation) SetSchoolID(i int64) {
+	m.school = &i
+}
+
+// SchoolID returns the value of the "school_id" field in the mutation.
+func (m *InquiryMutation) SchoolID() (r int64, exists bool) {
+	v := m.school
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSchoolID returns the old "school_id" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldSchoolID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSchoolID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSchoolID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSchoolID: %w", err)
+	}
+	return oldValue.SchoolID, nil
+}
+
+// ResetSchoolID resets all changes to the "school_id" field.
+func (m *InquiryMutation) ResetSchoolID() {
+	m.school = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *InquiryMutation) SetUserID(i int64) {
+	m.teacher = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *InquiryMutation) UserID() (r int64, exists bool) {
+	v := m.teacher
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *InquiryMutation) ResetUserID() {
+	m.teacher = nil
+}
+
+// SetCategory sets the "category" field.
+func (m *InquiryMutation) SetCategory(i inquiry.Category) {
+	m.category = &i
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *InquiryMutation) Category() (r inquiry.Category, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldCategory(ctx context.Context) (v inquiry.Category, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *InquiryMutation) ResetCategory() {
+	m.category = nil
+}
+
+// SetInquiryDetail sets the "inquiry_detail" field.
+func (m *InquiryMutation) SetInquiryDetail(s string) {
+	m.inquiry_detail = &s
+}
+
+// InquiryDetail returns the value of the "inquiry_detail" field in the mutation.
+func (m *InquiryMutation) InquiryDetail() (r string, exists bool) {
+	v := m.inquiry_detail
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInquiryDetail returns the old "inquiry_detail" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldInquiryDetail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInquiryDetail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInquiryDetail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInquiryDetail: %w", err)
+	}
+	return oldValue.InquiryDetail, nil
+}
+
+// ResetInquiryDetail resets all changes to the "inquiry_detail" field.
+func (m *InquiryMutation) ResetInquiryDetail() {
+	m.inquiry_detail = nil
+}
+
+// SetDeletedAt sets the "deleted_at" field.
+func (m *InquiryMutation) SetDeletedAt(t time.Time) {
+	m.deleted_at = &t
+}
+
+// DeletedAt returns the value of the "deleted_at" field in the mutation.
+func (m *InquiryMutation) DeletedAt() (r time.Time, exists bool) {
+	v := m.deleted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletedAt returns the old "deleted_at" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldDeletedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletedAt: %w", err)
+	}
+	return oldValue.DeletedAt, nil
+}
+
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (m *InquiryMutation) ClearDeletedAt() {
+	m.deleted_at = nil
+	m.clearedFields[inquiry.FieldDeletedAt] = struct{}{}
+}
+
+// DeletedAtCleared returns if the "deleted_at" field was cleared in this mutation.
+func (m *InquiryMutation) DeletedAtCleared() bool {
+	_, ok := m.clearedFields[inquiry.FieldDeletedAt]
+	return ok
+}
+
+// ResetDeletedAt resets all changes to the "deleted_at" field.
+func (m *InquiryMutation) ResetDeletedAt() {
+	m.deleted_at = nil
+	delete(m.clearedFields, inquiry.FieldDeletedAt)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *InquiryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *InquiryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *InquiryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *InquiryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *InquiryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Inquiry entity.
+// If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *InquiryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *InquiryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetLessonID sets the "lesson" edge to the LessonPlan entity by id.
+func (m *InquiryMutation) SetLessonID(id int64) {
+	m.lesson = &id
+}
+
+// ClearLesson clears the "lesson" edge to the LessonPlan entity.
+func (m *InquiryMutation) ClearLesson() {
+	m.clearedlesson = true
+	m.clearedFields[inquiry.FieldLessonScheduleID] = struct{}{}
+}
+
+// LessonCleared reports if the "lesson" edge to the LessonPlan entity was cleared.
+func (m *InquiryMutation) LessonCleared() bool {
+	return m.clearedlesson
+}
+
+// LessonID returns the "lesson" edge ID in the mutation.
+func (m *InquiryMutation) LessonID() (id int64, exists bool) {
+	if m.lesson != nil {
+		return *m.lesson, true
+	}
+	return
+}
+
+// LessonIDs returns the "lesson" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LessonID instead. It exists only for internal usage by the builders.
+func (m *InquiryMutation) LessonIDs() (ids []int64) {
+	if id := m.lesson; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLesson resets all changes to the "lesson" edge.
+func (m *InquiryMutation) ResetLesson() {
+	m.lesson = nil
+	m.clearedlesson = false
+}
+
+// ClearSchool clears the "school" edge to the School entity.
+func (m *InquiryMutation) ClearSchool() {
+	m.clearedschool = true
+	m.clearedFields[inquiry.FieldSchoolID] = struct{}{}
+}
+
+// SchoolCleared reports if the "school" edge to the School entity was cleared.
+func (m *InquiryMutation) SchoolCleared() bool {
+	return m.clearedschool
+}
+
+// SchoolIDs returns the "school" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SchoolID instead. It exists only for internal usage by the builders.
+func (m *InquiryMutation) SchoolIDs() (ids []int64) {
+	if id := m.school; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSchool resets all changes to the "school" edge.
+func (m *InquiryMutation) ResetSchool() {
+	m.school = nil
+	m.clearedschool = false
+}
+
+// SetTeacherID sets the "teacher" edge to the User entity by id.
+func (m *InquiryMutation) SetTeacherID(id int64) {
+	m.teacher = &id
+}
+
+// ClearTeacher clears the "teacher" edge to the User entity.
+func (m *InquiryMutation) ClearTeacher() {
+	m.clearedteacher = true
+	m.clearedFields[inquiry.FieldUserID] = struct{}{}
+}
+
+// TeacherCleared reports if the "teacher" edge to the User entity was cleared.
+func (m *InquiryMutation) TeacherCleared() bool {
+	return m.clearedteacher
+}
+
+// TeacherID returns the "teacher" edge ID in the mutation.
+func (m *InquiryMutation) TeacherID() (id int64, exists bool) {
+	if m.teacher != nil {
+		return *m.teacher, true
+	}
+	return
+}
+
+// TeacherIDs returns the "teacher" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TeacherID instead. It exists only for internal usage by the builders.
+func (m *InquiryMutation) TeacherIDs() (ids []int64) {
+	if id := m.teacher; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTeacher resets all changes to the "teacher" edge.
+func (m *InquiryMutation) ResetTeacher() {
+	m.teacher = nil
+	m.clearedteacher = false
+}
+
+// Where appends a list predicates to the InquiryMutation builder.
+func (m *InquiryMutation) Where(ps ...predicate.Inquiry) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the InquiryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *InquiryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Inquiry, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *InquiryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *InquiryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Inquiry).
+func (m *InquiryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *InquiryMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.lesson != nil {
+		fields = append(fields, inquiry.FieldLessonScheduleID)
+	}
+	if m.school != nil {
+		fields = append(fields, inquiry.FieldSchoolID)
+	}
+	if m.teacher != nil {
+		fields = append(fields, inquiry.FieldUserID)
+	}
+	if m.category != nil {
+		fields = append(fields, inquiry.FieldCategory)
+	}
+	if m.inquiry_detail != nil {
+		fields = append(fields, inquiry.FieldInquiryDetail)
+	}
+	if m.deleted_at != nil {
+		fields = append(fields, inquiry.FieldDeletedAt)
+	}
+	if m.created_at != nil {
+		fields = append(fields, inquiry.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, inquiry.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *InquiryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case inquiry.FieldLessonScheduleID:
+		return m.LessonScheduleID()
+	case inquiry.FieldSchoolID:
+		return m.SchoolID()
+	case inquiry.FieldUserID:
+		return m.UserID()
+	case inquiry.FieldCategory:
+		return m.Category()
+	case inquiry.FieldInquiryDetail:
+		return m.InquiryDetail()
+	case inquiry.FieldDeletedAt:
+		return m.DeletedAt()
+	case inquiry.FieldCreatedAt:
+		return m.CreatedAt()
+	case inquiry.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *InquiryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case inquiry.FieldLessonScheduleID:
+		return m.OldLessonScheduleID(ctx)
+	case inquiry.FieldSchoolID:
+		return m.OldSchoolID(ctx)
+	case inquiry.FieldUserID:
+		return m.OldUserID(ctx)
+	case inquiry.FieldCategory:
+		return m.OldCategory(ctx)
+	case inquiry.FieldInquiryDetail:
+		return m.OldInquiryDetail(ctx)
+	case inquiry.FieldDeletedAt:
+		return m.OldDeletedAt(ctx)
+	case inquiry.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case inquiry.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown Inquiry field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InquiryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case inquiry.FieldLessonScheduleID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLessonScheduleID(v)
+		return nil
+	case inquiry.FieldSchoolID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSchoolID(v)
+		return nil
+	case inquiry.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case inquiry.FieldCategory:
+		v, ok := value.(inquiry.Category)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
+		return nil
+	case inquiry.FieldInquiryDetail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInquiryDetail(v)
+		return nil
+	case inquiry.FieldDeletedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletedAt(v)
+		return nil
+	case inquiry.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case inquiry.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Inquiry field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *InquiryMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *InquiryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *InquiryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Inquiry numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *InquiryMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(inquiry.FieldDeletedAt) {
+		fields = append(fields, inquiry.FieldDeletedAt)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *InquiryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *InquiryMutation) ClearField(name string) error {
+	switch name {
+	case inquiry.FieldDeletedAt:
+		m.ClearDeletedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Inquiry nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *InquiryMutation) ResetField(name string) error {
+	switch name {
+	case inquiry.FieldLessonScheduleID:
+		m.ResetLessonScheduleID()
+		return nil
+	case inquiry.FieldSchoolID:
+		m.ResetSchoolID()
+		return nil
+	case inquiry.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case inquiry.FieldCategory:
+		m.ResetCategory()
+		return nil
+	case inquiry.FieldInquiryDetail:
+		m.ResetInquiryDetail()
+		return nil
+	case inquiry.FieldDeletedAt:
+		m.ResetDeletedAt()
+		return nil
+	case inquiry.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case inquiry.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown Inquiry field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *InquiryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.lesson != nil {
+		edges = append(edges, inquiry.EdgeLesson)
+	}
+	if m.school != nil {
+		edges = append(edges, inquiry.EdgeSchool)
+	}
+	if m.teacher != nil {
+		edges = append(edges, inquiry.EdgeTeacher)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *InquiryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case inquiry.EdgeLesson:
+		if id := m.lesson; id != nil {
+			return []ent.Value{*id}
+		}
+	case inquiry.EdgeSchool:
+		if id := m.school; id != nil {
+			return []ent.Value{*id}
+		}
+	case inquiry.EdgeTeacher:
+		if id := m.teacher; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *InquiryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *InquiryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *InquiryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedlesson {
+		edges = append(edges, inquiry.EdgeLesson)
+	}
+	if m.clearedschool {
+		edges = append(edges, inquiry.EdgeSchool)
+	}
+	if m.clearedteacher {
+		edges = append(edges, inquiry.EdgeTeacher)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *InquiryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case inquiry.EdgeLesson:
+		return m.clearedlesson
+	case inquiry.EdgeSchool:
+		return m.clearedschool
+	case inquiry.EdgeTeacher:
+		return m.clearedteacher
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *InquiryMutation) ClearEdge(name string) error {
+	switch name {
+	case inquiry.EdgeLesson:
+		m.ClearLesson()
+		return nil
+	case inquiry.EdgeSchool:
+		m.ClearSchool()
+		return nil
+	case inquiry.EdgeTeacher:
+		m.ClearTeacher()
+		return nil
+	}
+	return fmt.Errorf("unknown Inquiry unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *InquiryMutation) ResetEdge(name string) error {
+	switch name {
+	case inquiry.EdgeLesson:
+		m.ResetLesson()
+		return nil
+	case inquiry.EdgeSchool:
+		m.ResetSchool()
+		return nil
+	case inquiry.EdgeTeacher:
+		m.ResetTeacher()
+		return nil
+	}
+	return fmt.Errorf("unknown Inquiry edge %s", name)
 }
 
 // LessonPlanMutation represents an operation that mutates the LessonPlan nodes in the graph.

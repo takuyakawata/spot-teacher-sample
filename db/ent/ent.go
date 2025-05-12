@@ -15,6 +15,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
@@ -84,6 +85,7 @@ func checkColumn(table, column string) error {
 			company.Table:           company.ValidColumn,
 			educationcategory.Table: educationcategory.ValidColumn,
 			grade.Table:             grade.ValidColumn,
+			inquiry.Table:           inquiry.ValidColumn,
 			lessonplan.Table:        lessonplan.ValidColumn,
 			lessonschedule.Table:    lessonschedule.ValidColumn,
 			product.Table:           product.ValidColumn,

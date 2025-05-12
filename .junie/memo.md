@@ -15,10 +15,10 @@ go work sync
 ```
 
 ```bash
-cd ../db
+
 ```
 ```bash
-GOWORK=off atlas migrate diff create_base_tables_and_add_columns2 --dir file://ent/migrate/migrations --to ent://ent/schema --dev-url "docker://mysql/8/ent" # 開発DBのURLを正確に指定
+cd ./db & GOWORK=off atlas migrate diff create_inqueries_tables --dir file://ent/migrate/migrations --to ent://ent/schema --dev-url "docker://mysql/8/ent"
 ```
 
 test api

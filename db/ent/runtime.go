@@ -8,6 +8,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
@@ -123,6 +124,34 @@ func init() {
 	gradeDescID := gradeFields[0].Descriptor()
 	// grade.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	grade.IDValidator = gradeDescID.Validators[0].(func(int) error)
+	inquiryFields := schema.Inquiry{}.Fields()
+	_ = inquiryFields
+	// inquiryDescLessonScheduleID is the schema descriptor for lesson_schedule_id field.
+	inquiryDescLessonScheduleID := inquiryFields[1].Descriptor()
+	// inquiry.LessonScheduleIDValidator is a validator for the "lesson_schedule_id" field. It is called by the builders before save.
+	inquiry.LessonScheduleIDValidator = inquiryDescLessonScheduleID.Validators[0].(func(int64) error)
+	// inquiryDescSchoolID is the schema descriptor for school_id field.
+	inquiryDescSchoolID := inquiryFields[2].Descriptor()
+	// inquiry.SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
+	inquiry.SchoolIDValidator = inquiryDescSchoolID.Validators[0].(func(int64) error)
+	// inquiryDescUserID is the schema descriptor for user_id field.
+	inquiryDescUserID := inquiryFields[3].Descriptor()
+	// inquiry.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	inquiry.UserIDValidator = inquiryDescUserID.Validators[0].(func(int64) error)
+	// inquiryDescCreatedAt is the schema descriptor for created_at field.
+	inquiryDescCreatedAt := inquiryFields[7].Descriptor()
+	// inquiry.DefaultCreatedAt holds the default value on creation for the created_at field.
+	inquiry.DefaultCreatedAt = inquiryDescCreatedAt.Default.(func() time.Time)
+	// inquiryDescUpdatedAt is the schema descriptor for updated_at field.
+	inquiryDescUpdatedAt := inquiryFields[8].Descriptor()
+	// inquiry.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	inquiry.DefaultUpdatedAt = inquiryDescUpdatedAt.Default.(func() time.Time)
+	// inquiry.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	inquiry.UpdateDefaultUpdatedAt = inquiryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// inquiryDescID is the schema descriptor for id field.
+	inquiryDescID := inquiryFields[0].Descriptor()
+	// inquiry.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	inquiry.IDValidator = inquiryDescID.Validators[0].(func(int64) error)
 	lessonplanFields := schema.LessonPlan{}.Fields()
 	_ = lessonplanFields
 	// lessonplanDescCompanyID is the schema descriptor for company_id field.

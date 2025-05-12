@@ -18,6 +18,8 @@ type Tx struct {
 	EducationCategory *EducationCategoryClient
 	// Grade is the client for interacting with the Grade builders.
 	Grade *GradeClient
+	// Inquiry is the client for interacting with the Inquiry builders.
+	Inquiry *InquiryClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
 	// LessonSchedule is the client for interacting with the LessonSchedule builders.
@@ -164,6 +166,7 @@ func (tx *Tx) init() {
 	tx.Company = NewCompanyClient(tx.config)
 	tx.EducationCategory = NewEducationCategoryClient(tx.config)
 	tx.Grade = NewGradeClient(tx.config)
+	tx.Inquiry = NewInquiryClient(tx.config)
 	tx.LessonPlan = NewLessonPlanClient(tx.config)
 	tx.LessonSchedule = NewLessonScheduleClient(tx.config)
 	tx.Product = NewProductClient(tx.config)

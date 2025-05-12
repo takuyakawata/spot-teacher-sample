@@ -18,6 +18,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
@@ -37,6 +38,8 @@ type Client struct {
 	EducationCategory *EducationCategoryClient
 	// Grade is the client for interacting with the Grade builders.
 	Grade *GradeClient
+	// Inquiry is the client for interacting with the Inquiry builders.
+	Inquiry *InquiryClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
 	// LessonSchedule is the client for interacting with the LessonSchedule builders.
@@ -63,6 +66,7 @@ func (c *Client) init() {
 	c.Company = NewCompanyClient(c.config)
 	c.EducationCategory = NewEducationCategoryClient(c.config)
 	c.Grade = NewGradeClient(c.config)
+	c.Inquiry = NewInquiryClient(c.config)
 	c.LessonPlan = NewLessonPlanClient(c.config)
 	c.LessonSchedule = NewLessonScheduleClient(c.config)
 	c.Product = NewProductClient(c.config)
@@ -164,6 +168,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Company:           NewCompanyClient(cfg),
 		EducationCategory: NewEducationCategoryClient(cfg),
 		Grade:             NewGradeClient(cfg),
+		Inquiry:           NewInquiryClient(cfg),
 		LessonPlan:        NewLessonPlanClient(cfg),
 		LessonSchedule:    NewLessonScheduleClient(cfg),
 		Product:           NewProductClient(cfg),
@@ -192,6 +197,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Company:           NewCompanyClient(cfg),
 		EducationCategory: NewEducationCategoryClient(cfg),
 		Grade:             NewGradeClient(cfg),
+		Inquiry:           NewInquiryClient(cfg),
 		LessonPlan:        NewLessonPlanClient(cfg),
 		LessonSchedule:    NewLessonScheduleClient(cfg),
 		Product:           NewProductClient(cfg),
@@ -227,8 +233,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Company, c.EducationCategory, c.Grade, c.LessonPlan, c.LessonSchedule,
-		c.Product, c.School, c.Subject, c.User,
+		c.Company, c.EducationCategory, c.Grade, c.Inquiry, c.LessonPlan,
+		c.LessonSchedule, c.Product, c.School, c.Subject, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -238,8 +244,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Company, c.EducationCategory, c.Grade, c.LessonPlan, c.LessonSchedule,
-		c.Product, c.School, c.Subject, c.User,
+		c.Company, c.EducationCategory, c.Grade, c.Inquiry, c.LessonPlan,
+		c.LessonSchedule, c.Product, c.School, c.Subject, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -254,6 +260,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.EducationCategory.mutate(ctx, m)
 	case *GradeMutation:
 		return c.Grade.mutate(ctx, m)
+	case *InquiryMutation:
+		return c.Inquiry.mutate(ctx, m)
 	case *LessonPlanMutation:
 		return c.LessonPlan.mutate(ctx, m)
 	case *LessonScheduleMutation:
@@ -731,6 +739,187 @@ func (c *GradeClient) mutate(ctx context.Context, m *GradeMutation) (Value, erro
 		return (&GradeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Grade mutation op: %q", m.Op())
+	}
+}
+
+// InquiryClient is a client for the Inquiry schema.
+type InquiryClient struct {
+	config
+}
+
+// NewInquiryClient returns a client for the Inquiry from the given config.
+func NewInquiryClient(c config) *InquiryClient {
+	return &InquiryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `inquiry.Hooks(f(g(h())))`.
+func (c *InquiryClient) Use(hooks ...Hook) {
+	c.hooks.Inquiry = append(c.hooks.Inquiry, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `inquiry.Intercept(f(g(h())))`.
+func (c *InquiryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Inquiry = append(c.inters.Inquiry, interceptors...)
+}
+
+// Create returns a builder for creating a Inquiry entity.
+func (c *InquiryClient) Create() *InquiryCreate {
+	mutation := newInquiryMutation(c.config, OpCreate)
+	return &InquiryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Inquiry entities.
+func (c *InquiryClient) CreateBulk(builders ...*InquiryCreate) *InquiryCreateBulk {
+	return &InquiryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InquiryClient) MapCreateBulk(slice any, setFunc func(*InquiryCreate, int)) *InquiryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InquiryCreateBulk{err: fmt.Errorf("calling to InquiryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InquiryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InquiryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Inquiry.
+func (c *InquiryClient) Update() *InquiryUpdate {
+	mutation := newInquiryMutation(c.config, OpUpdate)
+	return &InquiryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InquiryClient) UpdateOne(i *Inquiry) *InquiryUpdateOne {
+	mutation := newInquiryMutation(c.config, OpUpdateOne, withInquiry(i))
+	return &InquiryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InquiryClient) UpdateOneID(id int64) *InquiryUpdateOne {
+	mutation := newInquiryMutation(c.config, OpUpdateOne, withInquiryID(id))
+	return &InquiryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Inquiry.
+func (c *InquiryClient) Delete() *InquiryDelete {
+	mutation := newInquiryMutation(c.config, OpDelete)
+	return &InquiryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InquiryClient) DeleteOne(i *Inquiry) *InquiryDeleteOne {
+	return c.DeleteOneID(i.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InquiryClient) DeleteOneID(id int64) *InquiryDeleteOne {
+	builder := c.Delete().Where(inquiry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InquiryDeleteOne{builder}
+}
+
+// Query returns a query builder for Inquiry.
+func (c *InquiryClient) Query() *InquiryQuery {
+	return &InquiryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInquiry},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Inquiry entity by its id.
+func (c *InquiryClient) Get(ctx context.Context, id int64) (*Inquiry, error) {
+	return c.Query().Where(inquiry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InquiryClient) GetX(ctx context.Context, id int64) *Inquiry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLesson queries the lesson edge of a Inquiry.
+func (c *InquiryClient) QueryLesson(i *Inquiry) *LessonPlanQuery {
+	query := (&LessonPlanClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inquiry.Table, inquiry.FieldID, id),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, inquiry.LessonTable, inquiry.LessonColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySchool queries the school edge of a Inquiry.
+func (c *InquiryClient) QuerySchool(i *Inquiry) *SchoolQuery {
+	query := (&SchoolClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inquiry.Table, inquiry.FieldID, id),
+			sqlgraph.To(school.Table, school.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, inquiry.SchoolTable, inquiry.SchoolColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTeacher queries the teacher edge of a Inquiry.
+func (c *InquiryClient) QueryTeacher(i *Inquiry) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := i.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(inquiry.Table, inquiry.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, inquiry.TeacherTable, inquiry.TeacherColumn),
+		)
+		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *InquiryClient) Hooks() []Hook {
+	return c.hooks.Inquiry
+}
+
+// Interceptors returns the client interceptors.
+func (c *InquiryClient) Interceptors() []Interceptor {
+	return c.inters.Inquiry
+}
+
+func (c *InquiryClient) mutate(ctx context.Context, m *InquiryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InquiryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InquiryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InquiryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InquiryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Inquiry mutation op: %q", m.Op())
 	}
 }
 
@@ -1743,11 +1932,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Company, EducationCategory, Grade, LessonPlan, LessonSchedule, Product, School,
-		Subject, User []ent.Hook
+		Company, EducationCategory, Grade, Inquiry, LessonPlan, LessonSchedule, Product,
+		School, Subject, User []ent.Hook
 	}
 	inters struct {
-		Company, EducationCategory, Grade, LessonPlan, LessonSchedule, Product, School,
-		Subject, User []ent.Interceptor
+		Company, EducationCategory, Grade, Inquiry, LessonPlan, LessonSchedule, Product,
+		School, Subject, User []ent.Interceptor
 	}
 )
