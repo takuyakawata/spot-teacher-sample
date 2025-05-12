@@ -5,7 +5,17 @@
 
 /terraform/envs/dev/.terraform.lock.hcl
 /terraform/envs/dev/.terraform/**
+/terraform/envs/dev/terraform.tfstate
+/terraform/envs/dev/terraform.tfstate.backup
 
 /node_modules/**
 
 .DS_Store
+
+
+/terraform/envs/stag/.terraform.lock.hcl
+/terraform/envs/prod/.terraform.lock.hcl
+/terraform/envs/global/vercel/.terraform.lock.hcl
+/terraform/envs/prod/.terraform/**
+/terraform/envs/stag/.terraform/**
+/terraform/envs/global/vercel/.terraform/**

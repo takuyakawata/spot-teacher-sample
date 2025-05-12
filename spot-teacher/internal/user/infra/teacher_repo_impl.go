@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
+	schoolDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/school/domain"
 	sharedDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/user/domain"
 	"time"
@@ -35,7 +36,7 @@ func (r *TeacherRepoImpl) Create(ctx context.Context, t *domain.Teacher) error {
 }
 
 func (r *TeacherRepoImpl) FindByID(ctx context.Context, id domain.TeacherID) (*domain.Teacher, error) {
-	t, err := r.client.User.Get(ctx, int(id.Value()))
+	t, err := r.client.User.Get(ctx, int64(int(id.Value())))
 	if err != nil {
 		return nil, err
 	}
@@ -64,12 +65,32 @@ func (r *TeacherRepoImpl) FindByEmail(ctx context.Context, email sharedDomain.Em
 }
 
 func ToEntity(user *ent.User) (*domain.Teacher, error) {
+	var teacherPassword sharedDomain.Password
+	if user.Password != nil {
+		var err error
+		teacherPassword, err = sharedDomain.NewPassword(*user.Password)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	var teacherPhoneNumber *sharedDomain.PhoneNumber
+	if user.PhoneNumber != "" {
+		phoneNumber, err := sharedDomain.NewPhoneNumber(user.PhoneNumber)
+		if err != nil {
+			return nil, err
+		}
+		teacherPhoneNumber = &phoneNumber
+	}
+
 	teacher := domain.Teacher{
-		FamilyName: domain.TeacherName(user.FamilyName),
-		FirstName:  domain.TeacherName(user.FirstName),
-		Email:      sharedDomain.EmailAddress(user.Email),
-		Password:   sharedDomain.Password(user.Password),
-		// Add additional fields here when necessary (e.g., PhoneNumber)
+		ID:          domain.TeacherID(user.ID),
+		SchoolID:    schoolDomain.SchoolID(*user.SchoolID),
+		FirstName:   domain.TeacherName(user.FirstName),
+		FamilyName:  domain.TeacherName(user.FamilyName),
+		Email:       sharedDomain.EmailAddress(user.Email),
+		PhoneNumber: teacherPhoneNumber,
+		Password:    teacherPassword,
 	}
 	return &teacher, nil
 }
