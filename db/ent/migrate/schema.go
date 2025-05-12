@@ -67,6 +67,38 @@ var (
 			},
 		},
 	}
+	// EmailVerificationsColumns holds the columns for the "email_verifications" table.
+	EmailVerificationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "token", Type: field.TypeString, Unique: true},
+		{Name: "expired_at", Type: field.TypeTime},
+	}
+	// EmailVerificationsTable holds the schema information for the "email_verifications" table.
+	EmailVerificationsTable = &schema.Table{
+		Name:       "email_verifications",
+		Columns:    EmailVerificationsColumns,
+		PrimaryKey: []*schema.Column{EmailVerificationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "emailverification_expired_at",
+				Unique:  false,
+				Columns: []*schema.Column{EmailVerificationsColumns[5]},
+			},
+			{
+				Name:    "emailverification_token",
+				Unique:  false,
+				Columns: []*schema.Column{EmailVerificationsColumns[4]},
+			},
+			{
+				Name:    "emailverification_email",
+				Unique:  false,
+				Columns: []*schema.Column{EmailVerificationsColumns[3]},
+			},
+		},
+	}
 	// GradesColumns holds the columns for the "grades" table.
 	GradesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -209,6 +241,55 @@ var (
 			},
 		},
 	}
+	// LessonReservationsColumns holds the columns for the "lesson_reservations" table.
+	LessonReservationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt64, Increment: true},
+		{Name: "lesson_schedule_id", Type: field.TypeInt64},
+		{Name: "school_id", Type: field.TypeInt64},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "reservation_status", Type: field.TypeEnum, Enums: []string{"PENDING", "APPROVED", "CANCELED"}},
+		{Name: "count_student", Type: field.TypeString},
+		{Name: "graduate", Type: field.TypeString},
+		{Name: "subject", Type: field.TypeString},
+		{Name: "remarks", Type: field.TypeString, Nullable: true},
+		{Name: "reservation_confirm_at", Type: field.TypeTime, Nullable: true},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "created_at", Type: field.TypeTime},
+	}
+	// LessonReservationsTable holds the schema information for the "lesson_reservations" table.
+	LessonReservationsTable = &schema.Table{
+		Name:       "lesson_reservations",
+		Columns:    LessonReservationsColumns,
+		PrimaryKey: []*schema.Column{LessonReservationsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "lessonreservation_lesson_schedule_id",
+				Unique:  false,
+				Columns: []*schema.Column{LessonReservationsColumns[1]},
+			},
+			{
+				Name:    "lessonreservation_school_id",
+				Unique:  false,
+				Columns: []*schema.Column{LessonReservationsColumns[2]},
+			},
+			{
+				Name:    "lessonreservation_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{LessonReservationsColumns[3]},
+			},
+			{
+				Name:    "lessonreservation_reservation_status",
+				Unique:  false,
+				Columns: []*schema.Column{LessonReservationsColumns[4]},
+			},
+			{
+				Name:    "lessonreservation_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{LessonReservationsColumns[12]},
+			},
+		},
+	}
 	// LessonSchedulesColumns holds the columns for the "lesson_schedules" table.
 	LessonSchedulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt64, Increment: true},
@@ -329,6 +410,27 @@ var (
 				Name:    "subject_code",
 				Unique:  false,
 				Columns: []*schema.Column{SubjectsColumns[2]},
+			},
+		},
+	}
+	// UploadFilesColumns holds the columns for the "upload_files" table.
+	UploadFilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "photo_key", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeInt64},
+	}
+	// UploadFilesTable holds the schema information for the "upload_files" table.
+	UploadFilesTable = &schema.Table{
+		Name:       "upload_files",
+		Columns:    UploadFilesColumns,
+		PrimaryKey: []*schema.Column{UploadFilesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "uploadfile_photo_key",
+				Unique:  false,
+				Columns: []*schema.Column{UploadFilesColumns[3]},
 			},
 		},
 	}
@@ -472,13 +574,16 @@ var (
 	Tables = []*schema.Table{
 		CompaniesTable,
 		EducationCategoriesTable,
+		EmailVerificationsTable,
 		GradesTable,
 		InquiriesTable,
 		LessonPlansTable,
+		LessonReservationsTable,
 		LessonSchedulesTable,
 		ProductsTable,
 		SchoolsTable,
 		SubjectsTable,
+		UploadFilesTable,
 		UsersTable,
 		LessonPlanGradesTable,
 		LessonPlanSubjectsTable,

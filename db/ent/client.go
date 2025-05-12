@@ -17,13 +17,16 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/emailverification"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
@@ -36,12 +39,16 @@ type Client struct {
 	Company *CompanyClient
 	// EducationCategory is the client for interacting with the EducationCategory builders.
 	EducationCategory *EducationCategoryClient
+	// EmailVerification is the client for interacting with the EmailVerification builders.
+	EmailVerification *EmailVerificationClient
 	// Grade is the client for interacting with the Grade builders.
 	Grade *GradeClient
 	// Inquiry is the client for interacting with the Inquiry builders.
 	Inquiry *InquiryClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
+	// LessonReservation is the client for interacting with the LessonReservation builders.
+	LessonReservation *LessonReservationClient
 	// LessonSchedule is the client for interacting with the LessonSchedule builders.
 	LessonSchedule *LessonScheduleClient
 	// Product is the client for interacting with the Product builders.
@@ -50,6 +57,8 @@ type Client struct {
 	School *SchoolClient
 	// Subject is the client for interacting with the Subject builders.
 	Subject *SubjectClient
+	// UploadFile is the client for interacting with the UploadFile builders.
+	UploadFile *UploadFileClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -65,13 +74,16 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Company = NewCompanyClient(c.config)
 	c.EducationCategory = NewEducationCategoryClient(c.config)
+	c.EmailVerification = NewEmailVerificationClient(c.config)
 	c.Grade = NewGradeClient(c.config)
 	c.Inquiry = NewInquiryClient(c.config)
 	c.LessonPlan = NewLessonPlanClient(c.config)
+	c.LessonReservation = NewLessonReservationClient(c.config)
 	c.LessonSchedule = NewLessonScheduleClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.School = NewSchoolClient(c.config)
 	c.Subject = NewSubjectClient(c.config)
+	c.UploadFile = NewUploadFileClient(c.config)
 	c.User = NewUserClient(c.config)
 }
 
@@ -167,13 +179,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:            cfg,
 		Company:           NewCompanyClient(cfg),
 		EducationCategory: NewEducationCategoryClient(cfg),
+		EmailVerification: NewEmailVerificationClient(cfg),
 		Grade:             NewGradeClient(cfg),
 		Inquiry:           NewInquiryClient(cfg),
 		LessonPlan:        NewLessonPlanClient(cfg),
+		LessonReservation: NewLessonReservationClient(cfg),
 		LessonSchedule:    NewLessonScheduleClient(cfg),
 		Product:           NewProductClient(cfg),
 		School:            NewSchoolClient(cfg),
 		Subject:           NewSubjectClient(cfg),
+		UploadFile:        NewUploadFileClient(cfg),
 		User:              NewUserClient(cfg),
 	}, nil
 }
@@ -196,13 +211,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:            cfg,
 		Company:           NewCompanyClient(cfg),
 		EducationCategory: NewEducationCategoryClient(cfg),
+		EmailVerification: NewEmailVerificationClient(cfg),
 		Grade:             NewGradeClient(cfg),
 		Inquiry:           NewInquiryClient(cfg),
 		LessonPlan:        NewLessonPlanClient(cfg),
+		LessonReservation: NewLessonReservationClient(cfg),
 		LessonSchedule:    NewLessonScheduleClient(cfg),
 		Product:           NewProductClient(cfg),
 		School:            NewSchoolClient(cfg),
 		Subject:           NewSubjectClient(cfg),
+		UploadFile:        NewUploadFileClient(cfg),
 		User:              NewUserClient(cfg),
 	}, nil
 }
@@ -233,8 +251,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Company, c.EducationCategory, c.Grade, c.Inquiry, c.LessonPlan,
-		c.LessonSchedule, c.Product, c.School, c.Subject, c.User,
+		c.Company, c.EducationCategory, c.EmailVerification, c.Grade, c.Inquiry,
+		c.LessonPlan, c.LessonReservation, c.LessonSchedule, c.Product, c.School,
+		c.Subject, c.UploadFile, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -244,8 +263,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Company, c.EducationCategory, c.Grade, c.Inquiry, c.LessonPlan,
-		c.LessonSchedule, c.Product, c.School, c.Subject, c.User,
+		c.Company, c.EducationCategory, c.EmailVerification, c.Grade, c.Inquiry,
+		c.LessonPlan, c.LessonReservation, c.LessonSchedule, c.Product, c.School,
+		c.Subject, c.UploadFile, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -258,12 +278,16 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Company.mutate(ctx, m)
 	case *EducationCategoryMutation:
 		return c.EducationCategory.mutate(ctx, m)
+	case *EmailVerificationMutation:
+		return c.EmailVerification.mutate(ctx, m)
 	case *GradeMutation:
 		return c.Grade.mutate(ctx, m)
 	case *InquiryMutation:
 		return c.Inquiry.mutate(ctx, m)
 	case *LessonPlanMutation:
 		return c.LessonPlan.mutate(ctx, m)
+	case *LessonReservationMutation:
+		return c.LessonReservation.mutate(ctx, m)
 	case *LessonScheduleMutation:
 		return c.LessonSchedule.mutate(ctx, m)
 	case *ProductMutation:
@@ -272,6 +296,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.School.mutate(ctx, m)
 	case *SubjectMutation:
 		return c.Subject.mutate(ctx, m)
+	case *UploadFileMutation:
+		return c.UploadFile.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
@@ -590,6 +616,139 @@ func (c *EducationCategoryClient) mutate(ctx context.Context, m *EducationCatego
 		return (&EducationCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown EducationCategory mutation op: %q", m.Op())
+	}
+}
+
+// EmailVerificationClient is a client for the EmailVerification schema.
+type EmailVerificationClient struct {
+	config
+}
+
+// NewEmailVerificationClient returns a client for the EmailVerification from the given config.
+func NewEmailVerificationClient(c config) *EmailVerificationClient {
+	return &EmailVerificationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `emailverification.Hooks(f(g(h())))`.
+func (c *EmailVerificationClient) Use(hooks ...Hook) {
+	c.hooks.EmailVerification = append(c.hooks.EmailVerification, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `emailverification.Intercept(f(g(h())))`.
+func (c *EmailVerificationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.EmailVerification = append(c.inters.EmailVerification, interceptors...)
+}
+
+// Create returns a builder for creating a EmailVerification entity.
+func (c *EmailVerificationClient) Create() *EmailVerificationCreate {
+	mutation := newEmailVerificationMutation(c.config, OpCreate)
+	return &EmailVerificationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of EmailVerification entities.
+func (c *EmailVerificationClient) CreateBulk(builders ...*EmailVerificationCreate) *EmailVerificationCreateBulk {
+	return &EmailVerificationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *EmailVerificationClient) MapCreateBulk(slice any, setFunc func(*EmailVerificationCreate, int)) *EmailVerificationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &EmailVerificationCreateBulk{err: fmt.Errorf("calling to EmailVerificationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*EmailVerificationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &EmailVerificationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for EmailVerification.
+func (c *EmailVerificationClient) Update() *EmailVerificationUpdate {
+	mutation := newEmailVerificationMutation(c.config, OpUpdate)
+	return &EmailVerificationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *EmailVerificationClient) UpdateOne(ev *EmailVerification) *EmailVerificationUpdateOne {
+	mutation := newEmailVerificationMutation(c.config, OpUpdateOne, withEmailVerification(ev))
+	return &EmailVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *EmailVerificationClient) UpdateOneID(id int) *EmailVerificationUpdateOne {
+	mutation := newEmailVerificationMutation(c.config, OpUpdateOne, withEmailVerificationID(id))
+	return &EmailVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for EmailVerification.
+func (c *EmailVerificationClient) Delete() *EmailVerificationDelete {
+	mutation := newEmailVerificationMutation(c.config, OpDelete)
+	return &EmailVerificationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *EmailVerificationClient) DeleteOne(ev *EmailVerification) *EmailVerificationDeleteOne {
+	return c.DeleteOneID(ev.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *EmailVerificationClient) DeleteOneID(id int) *EmailVerificationDeleteOne {
+	builder := c.Delete().Where(emailverification.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &EmailVerificationDeleteOne{builder}
+}
+
+// Query returns a query builder for EmailVerification.
+func (c *EmailVerificationClient) Query() *EmailVerificationQuery {
+	return &EmailVerificationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeEmailVerification},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a EmailVerification entity by its id.
+func (c *EmailVerificationClient) Get(ctx context.Context, id int) (*EmailVerification, error) {
+	return c.Query().Where(emailverification.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *EmailVerificationClient) GetX(ctx context.Context, id int) *EmailVerification {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *EmailVerificationClient) Hooks() []Hook {
+	return c.hooks.EmailVerification
+}
+
+// Interceptors returns the client interceptors.
+func (c *EmailVerificationClient) Interceptors() []Interceptor {
+	return c.inters.EmailVerification
+}
+
+func (c *EmailVerificationClient) mutate(ctx context.Context, m *EmailVerificationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&EmailVerificationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&EmailVerificationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&EmailVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&EmailVerificationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown EmailVerification mutation op: %q", m.Op())
 	}
 }
 
@@ -1133,6 +1292,139 @@ func (c *LessonPlanClient) mutate(ctx context.Context, m *LessonPlanMutation) (V
 		return (&LessonPlanDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown LessonPlan mutation op: %q", m.Op())
+	}
+}
+
+// LessonReservationClient is a client for the LessonReservation schema.
+type LessonReservationClient struct {
+	config
+}
+
+// NewLessonReservationClient returns a client for the LessonReservation from the given config.
+func NewLessonReservationClient(c config) *LessonReservationClient {
+	return &LessonReservationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonreservation.Hooks(f(g(h())))`.
+func (c *LessonReservationClient) Use(hooks ...Hook) {
+	c.hooks.LessonReservation = append(c.hooks.LessonReservation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonreservation.Intercept(f(g(h())))`.
+func (c *LessonReservationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonReservation = append(c.inters.LessonReservation, interceptors...)
+}
+
+// Create returns a builder for creating a LessonReservation entity.
+func (c *LessonReservationClient) Create() *LessonReservationCreate {
+	mutation := newLessonReservationMutation(c.config, OpCreate)
+	return &LessonReservationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonReservation entities.
+func (c *LessonReservationClient) CreateBulk(builders ...*LessonReservationCreate) *LessonReservationCreateBulk {
+	return &LessonReservationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonReservationClient) MapCreateBulk(slice any, setFunc func(*LessonReservationCreate, int)) *LessonReservationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonReservationCreateBulk{err: fmt.Errorf("calling to LessonReservationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonReservationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonReservationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonReservation.
+func (c *LessonReservationClient) Update() *LessonReservationUpdate {
+	mutation := newLessonReservationMutation(c.config, OpUpdate)
+	return &LessonReservationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonReservationClient) UpdateOne(lr *LessonReservation) *LessonReservationUpdateOne {
+	mutation := newLessonReservationMutation(c.config, OpUpdateOne, withLessonReservation(lr))
+	return &LessonReservationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonReservationClient) UpdateOneID(id int64) *LessonReservationUpdateOne {
+	mutation := newLessonReservationMutation(c.config, OpUpdateOne, withLessonReservationID(id))
+	return &LessonReservationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonReservation.
+func (c *LessonReservationClient) Delete() *LessonReservationDelete {
+	mutation := newLessonReservationMutation(c.config, OpDelete)
+	return &LessonReservationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonReservationClient) DeleteOne(lr *LessonReservation) *LessonReservationDeleteOne {
+	return c.DeleteOneID(lr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonReservationClient) DeleteOneID(id int64) *LessonReservationDeleteOne {
+	builder := c.Delete().Where(lessonreservation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonReservationDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonReservation.
+func (c *LessonReservationClient) Query() *LessonReservationQuery {
+	return &LessonReservationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonReservation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonReservation entity by its id.
+func (c *LessonReservationClient) Get(ctx context.Context, id int64) (*LessonReservation, error) {
+	return c.Query().Where(lessonreservation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonReservationClient) GetX(ctx context.Context, id int64) *LessonReservation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *LessonReservationClient) Hooks() []Hook {
+	return c.hooks.LessonReservation
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonReservationClient) Interceptors() []Interceptor {
+	return c.inters.LessonReservation
+}
+
+func (c *LessonReservationClient) mutate(ctx context.Context, m *LessonReservationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonReservationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonReservationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonReservationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonReservationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonReservation mutation op: %q", m.Op())
 	}
 }
 
@@ -1764,6 +2056,139 @@ func (c *SubjectClient) mutate(ctx context.Context, m *SubjectMutation) (Value, 
 	}
 }
 
+// UploadFileClient is a client for the UploadFile schema.
+type UploadFileClient struct {
+	config
+}
+
+// NewUploadFileClient returns a client for the UploadFile from the given config.
+func NewUploadFileClient(c config) *UploadFileClient {
+	return &UploadFileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `uploadfile.Hooks(f(g(h())))`.
+func (c *UploadFileClient) Use(hooks ...Hook) {
+	c.hooks.UploadFile = append(c.hooks.UploadFile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `uploadfile.Intercept(f(g(h())))`.
+func (c *UploadFileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UploadFile = append(c.inters.UploadFile, interceptors...)
+}
+
+// Create returns a builder for creating a UploadFile entity.
+func (c *UploadFileClient) Create() *UploadFileCreate {
+	mutation := newUploadFileMutation(c.config, OpCreate)
+	return &UploadFileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UploadFile entities.
+func (c *UploadFileClient) CreateBulk(builders ...*UploadFileCreate) *UploadFileCreateBulk {
+	return &UploadFileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UploadFileClient) MapCreateBulk(slice any, setFunc func(*UploadFileCreate, int)) *UploadFileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UploadFileCreateBulk{err: fmt.Errorf("calling to UploadFileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UploadFileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UploadFileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UploadFile.
+func (c *UploadFileClient) Update() *UploadFileUpdate {
+	mutation := newUploadFileMutation(c.config, OpUpdate)
+	return &UploadFileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UploadFileClient) UpdateOne(uf *UploadFile) *UploadFileUpdateOne {
+	mutation := newUploadFileMutation(c.config, OpUpdateOne, withUploadFile(uf))
+	return &UploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UploadFileClient) UpdateOneID(id int) *UploadFileUpdateOne {
+	mutation := newUploadFileMutation(c.config, OpUpdateOne, withUploadFileID(id))
+	return &UploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UploadFile.
+func (c *UploadFileClient) Delete() *UploadFileDelete {
+	mutation := newUploadFileMutation(c.config, OpDelete)
+	return &UploadFileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UploadFileClient) DeleteOne(uf *UploadFile) *UploadFileDeleteOne {
+	return c.DeleteOneID(uf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UploadFileClient) DeleteOneID(id int) *UploadFileDeleteOne {
+	builder := c.Delete().Where(uploadfile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UploadFileDeleteOne{builder}
+}
+
+// Query returns a query builder for UploadFile.
+func (c *UploadFileClient) Query() *UploadFileQuery {
+	return &UploadFileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUploadFile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UploadFile entity by its id.
+func (c *UploadFileClient) Get(ctx context.Context, id int) (*UploadFile, error) {
+	return c.Query().Where(uploadfile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UploadFileClient) GetX(ctx context.Context, id int) *UploadFile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UploadFileClient) Hooks() []Hook {
+	return c.hooks.UploadFile
+}
+
+// Interceptors returns the client interceptors.
+func (c *UploadFileClient) Interceptors() []Interceptor {
+	return c.inters.UploadFile
+}
+
+func (c *UploadFileClient) mutate(ctx context.Context, m *UploadFileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UploadFileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UploadFileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UploadFileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UploadFile mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1932,11 +2357,13 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Company, EducationCategory, Grade, Inquiry, LessonPlan, LessonSchedule, Product,
-		School, Subject, User []ent.Hook
+		Company, EducationCategory, EmailVerification, Grade, Inquiry, LessonPlan,
+		LessonReservation, LessonSchedule, Product, School, Subject, UploadFile,
+		User []ent.Hook
 	}
 	inters struct {
-		Company, EducationCategory, Grade, Inquiry, LessonPlan, LessonSchedule, Product,
-		School, Subject, User []ent.Interceptor
+		Company, EducationCategory, EmailVerification, Grade, Inquiry, LessonPlan,
+		LessonReservation, LessonSchedule, Product, School, Subject, UploadFile,
+		User []ent.Interceptor
 	}
 )

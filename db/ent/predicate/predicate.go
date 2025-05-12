@@ -12,6 +12,9 @@ type Company func(*sql.Selector)
 // EducationCategory is the predicate function for educationcategory builders.
 type EducationCategory func(*sql.Selector)
 
+// EmailVerification is the predicate function for emailverification builders.
+type EmailVerification func(*sql.Selector)
+
 // Grade is the predicate function for grade builders.
 type Grade func(*sql.Selector)
 
@@ -20,6 +23,9 @@ type Inquiry func(*sql.Selector)
 
 // LessonPlan is the predicate function for lessonplan builders.
 type LessonPlan func(*sql.Selector)
+
+// LessonReservation is the predicate function for lessonreservation builders.
+type LessonReservation func(*sql.Selector)
 
 // LessonSchedule is the predicate function for lessonschedule builders.
 type LessonSchedule func(*sql.Selector)
@@ -32,6 +38,9 @@ type School func(*sql.Selector)
 
 // Subject is the predicate function for subject builders.
 type Subject func(*sql.Selector)
+
+// UploadFile is the predicate function for uploadfile builders.
+type UploadFile func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

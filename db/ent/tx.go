@@ -16,12 +16,16 @@ type Tx struct {
 	Company *CompanyClient
 	// EducationCategory is the client for interacting with the EducationCategory builders.
 	EducationCategory *EducationCategoryClient
+	// EmailVerification is the client for interacting with the EmailVerification builders.
+	EmailVerification *EmailVerificationClient
 	// Grade is the client for interacting with the Grade builders.
 	Grade *GradeClient
 	// Inquiry is the client for interacting with the Inquiry builders.
 	Inquiry *InquiryClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
+	// LessonReservation is the client for interacting with the LessonReservation builders.
+	LessonReservation *LessonReservationClient
 	// LessonSchedule is the client for interacting with the LessonSchedule builders.
 	LessonSchedule *LessonScheduleClient
 	// Product is the client for interacting with the Product builders.
@@ -30,6 +34,8 @@ type Tx struct {
 	School *SchoolClient
 	// Subject is the client for interacting with the Subject builders.
 	Subject *SubjectClient
+	// UploadFile is the client for interacting with the UploadFile builders.
+	UploadFile *UploadFileClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -165,13 +171,16 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Company = NewCompanyClient(tx.config)
 	tx.EducationCategory = NewEducationCategoryClient(tx.config)
+	tx.EmailVerification = NewEmailVerificationClient(tx.config)
 	tx.Grade = NewGradeClient(tx.config)
 	tx.Inquiry = NewInquiryClient(tx.config)
 	tx.LessonPlan = NewLessonPlanClient(tx.config)
+	tx.LessonReservation = NewLessonReservationClient(tx.config)
 	tx.LessonSchedule = NewLessonScheduleClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.School = NewSchoolClient(tx.config)
 	tx.Subject = NewSubjectClient(tx.config)
+	tx.UploadFile = NewUploadFileClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 

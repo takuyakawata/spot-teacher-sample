@@ -55,6 +55,10 @@ func (LessonPlan) Edges() []ent.Edge {
 		edge.To("grades", Grade.Type),
 		edge.To("subjects", Subject.Type),
 		edge.To("education_categories", EducationCategory.Type),
+
+		//edge.From("uploadFile", UploadFile.Type).
+		//	Ref("lessonPlans").
+		//	Unique(),
 	}
 }
 

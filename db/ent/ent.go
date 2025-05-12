@@ -14,13 +14,16 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/emailverification"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
@@ -84,13 +87,16 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			company.Table:           company.ValidColumn,
 			educationcategory.Table: educationcategory.ValidColumn,
+			emailverification.Table: emailverification.ValidColumn,
 			grade.Table:             grade.ValidColumn,
 			inquiry.Table:           inquiry.ValidColumn,
 			lessonplan.Table:        lessonplan.ValidColumn,
+			lessonreservation.Table: lessonreservation.ValidColumn,
 			lessonschedule.Table:    lessonschedule.ValidColumn,
 			product.Table:           product.ValidColumn,
 			school.Table:            school.ValidColumn,
 			subject.Table:           subject.ValidColumn,
+			uploadfile.Table:        uploadfile.ValidColumn,
 			user.Table:              user.ValidColumn,
 		})
 	})

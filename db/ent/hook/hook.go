@@ -33,6 +33,18 @@ func (f EducationCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EducationCategoryMutation", m)
 }
 
+// The EmailVerificationFunc type is an adapter to allow the use of ordinary
+// function as EmailVerification mutator.
+type EmailVerificationFunc func(context.Context, *ent.EmailVerificationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f EmailVerificationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.EmailVerificationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.EmailVerificationMutation", m)
+}
+
 // The GradeFunc type is an adapter to allow the use of ordinary
 // function as Grade mutator.
 type GradeFunc func(context.Context, *ent.GradeMutation) (ent.Value, error)
@@ -67,6 +79,18 @@ func (f LessonPlanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanMutation", m)
+}
+
+// The LessonReservationFunc type is an adapter to allow the use of ordinary
+// function as LessonReservation mutator.
+type LessonReservationFunc func(context.Context, *ent.LessonReservationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonReservationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonReservationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonReservationMutation", m)
 }
 
 // The LessonScheduleFunc type is an adapter to allow the use of ordinary
@@ -115,6 +139,18 @@ func (f SubjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SubjectMutation", m)
+}
+
+// The UploadFileFunc type is an adapter to allow the use of ordinary
+// function as UploadFile mutator.
+type UploadFileFunc func(context.Context, *ent.UploadFileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UploadFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UploadFileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UploadFileMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
