@@ -1,2 +1,0 @@
--- Create "users" table
-CREATE TABLE `users` (`id` bigint NOT NULL AUTO_INCREMENT, `first_name` varchar(100) NOT NULL, `family_name` varchar(100) NOT NULL, `email` varchar(100) NOT NULL, `password` varchar(255) NOT NULL, `updated_at` timestamp NOT NULL, `created_at` timestamp NOT NULL, PRIMARY KEY (`id`), UNIQUE INDEX `email` (`email`), INDEX `user_first_name_family_name` (`first_name`, `family_name`)) CHARSET utf8mb4 COLLATE utf8mb4_bin;
