@@ -14,8 +14,9 @@ import (
 )
 
 func setupInMemoryClient(t *testing.T) *ent.Client {
-	// SQLite のインメモリ DSN
-	drv, err := sql.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	// SQLite のインメモリ DSN - use unique database name for each test to ensure isolation
+	dbName := "file:ent_" + t.Name() + "?mode=memory&_fk=1"
+	drv, err := sql.Open("sqlite3", dbName)
 	require.NoError(t, err)
 
 	c := ent.NewClient(ent.Driver(drv))
