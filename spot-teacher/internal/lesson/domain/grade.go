@@ -3,17 +3,18 @@ package domain
 type Grade int
 
 const (
-	elementaryOne Grade = iota
-	elementaryTwo
-	elementaryThree
-	elementaryFour
-	elementaryFive
-	juniorHighOne
-	juniorHighTwo
-	juniorHighThree
-	highSchoolOne
-	highSchoolTwo
-	highSchoolThree
+	ElementaryOne Grade = iota
+	ElementaryTwo
+	ElementaryThree
+	ElementaryFour
+	ElementaryFive
+	ElementarySix
+	JuniorHighOne
+	JuniorHighTwo
+	JuniorHighThree
+	HighSchoolOne
+	HighSchoolTwo
+	HighSchoolThree
 )
 
 var gradeNames = [...]string{

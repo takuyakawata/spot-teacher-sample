@@ -2,13 +2,11 @@ package infra_test
 
 import (
 	"context"
-	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/user/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/user/infra"
 	"testing"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
@@ -18,8 +16,8 @@ import (
 )
 
 func setupInMemoryClient(t *testing.T) *ent.Client {
-	// SQLite のインメモリ DSN - use a unique database name for each test to avoid conflicts
-	dbName := fmt.Sprintf("file:ent_%d?mode=memory&cache=shared&_fk=1", time.Now().UnixNano())
+	// SQLite のインメモリ DSN - use unique database name for each test to ensure isolation
+	dbName := "file:ent_" + t.Name() + "?mode=memory&_fk=1"
 	drv, err := sql.Open("sqlite3", dbName)
 	require.NoError(t, err)
 
