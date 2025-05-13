@@ -6,14 +6,36 @@ import (
 	"strings"
 )
 
-type school struct {
+// School represents a school entity
+type School struct {
 	ID          SchoolID
 	SchoolType  SchoolType
 	Name        SchoolName
 	Email       *domain.EmailAddress
 	PhoneNumber domain.PhoneNumber
 	Address     domain.Address
-	url         domain.URL
+	URL         domain.URL
+}
+
+// NewSchool creates a new School entity with the given parameters
+func NewSchool(
+	id SchoolID,
+	schoolType SchoolType,
+	name SchoolName,
+	email *domain.EmailAddress,
+	phoneNumber domain.PhoneNumber,
+	address domain.Address,
+	url domain.URL,
+) (*School, error) {
+	return &School{
+		ID:          id,
+		SchoolType:  schoolType,
+		Name:        name,
+		Email:       email,
+		PhoneNumber: phoneNumber,
+		Address:     address,
+		URL:         url,
+	}, nil
 }
 
 type SchoolID int64

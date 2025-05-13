@@ -10,21 +10,23 @@ import (
 	"time"
 )
 
-type TeacherRepoImpl struct {
+type TeacherRepositoryImpl struct {
 	client *ent.Client
 }
 
-func NewTeacherRepoImpl(client *ent.Client) domain.TeacherRepository {
-	return &TeacherRepoImpl{client: client}
+func NewTeacherRepositoryImpl(client *ent.Client) domain.TeacherRepository {
+	return &TeacherRepositoryImpl{client: client}
 }
 
-func (r *TeacherRepoImpl) Create(ctx context.Context, t *domain.Teacher) error {
+func (r *TeacherRepositoryImpl) Create(ctx context.Context, t *domain.Teacher) error {
 	createCmd := r.client.User.Create()
 	createCmd.SetFamilyName(t.FamilyName.Value())
 	createCmd.SetFirstName(t.FirstName.Value())
 	createCmd.SetEmail(t.Email.Value())
 	createCmd.SetPassword(t.Password.Value())
-	//todo Phone Numberの追加
+	if t.PhoneNumber != nil {
+		createCmd.SetPhoneNumber(t.PhoneNumber.Value())
+	}
 	createCmd.SetCreatedAt(time.Now())
 	createCmd.SetUpdatedAt(time.Now())
 	_, err := createCmd.Save(ctx)
@@ -35,8 +37,8 @@ func (r *TeacherRepoImpl) Create(ctx context.Context, t *domain.Teacher) error {
 	return nil
 }
 
-func (r *TeacherRepoImpl) FindByID(ctx context.Context, id domain.TeacherID) (*domain.Teacher, error) {
-	t, err := r.client.User.Get(ctx, int64(int(id.Value())))
+func (r *TeacherRepositoryImpl) FindByID(ctx context.Context, id domain.TeacherID) (*domain.Teacher, error) {
+	t, err := r.client.User.Get(ctx, int(id.Value()))
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +51,7 @@ func (r *TeacherRepoImpl) FindByID(ctx context.Context, id domain.TeacherID) (*d
 	return teacher, nil
 }
 
-func (r *TeacherRepoImpl) FindByEmail(ctx context.Context, email sharedDomain.EmailAddress) (*domain.Teacher, error) {
+func (r *TeacherRepositoryImpl) FindByEmail(ctx context.Context, email sharedDomain.EmailAddress) (*domain.Teacher, error) {
 	user, err := r.client.User.Query().Where(user.Email(email.Value())).Only(ctx)
 	if err != nil {
 		// Handle the case where no matching records are found or a general query error occurs
@@ -83,9 +85,14 @@ func ToEntity(user *ent.User) (*domain.Teacher, error) {
 		teacherPhoneNumber = &phoneNumber
 	}
 
+	var schoolID schoolDomain.SchoolID
+	if user.SchoolID != nil {
+		schoolID = schoolDomain.SchoolID(*user.SchoolID)
+	}
+
 	teacher := domain.Teacher{
 		ID:          domain.TeacherID(user.ID),
-		SchoolID:    schoolDomain.SchoolID(*user.SchoolID),
+		SchoolID:    schoolID,
 		FirstName:   domain.TeacherName(user.FirstName),
 		FamilyName:  domain.TeacherName(user.FamilyName),
 		Email:       sharedDomain.EmailAddress(user.Email),

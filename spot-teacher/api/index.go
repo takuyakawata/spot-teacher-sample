@@ -3,8 +3,8 @@ package api
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/product/inject"
-	"github.com/takuyakawta/spot-teacher-sample/backend/spot-teacher/internal/router"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/inject"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/router"
 	"log"
 	"net/http"
 	"sync"
