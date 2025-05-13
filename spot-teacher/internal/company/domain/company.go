@@ -16,6 +16,22 @@ type Company struct {
 	URL         domain.URL
 }
 
+func NewCompany(
+	id CompanyID,
+	name CompanyName,
+	address domain.Address,
+	phoneNumber domain.PhoneNumber,
+	url domain.URL,
+) (*Company, error) {
+	return &Company{
+		ID:          id,
+		Name:        name,
+		Address:     address,
+		PhoneNumber: phoneNumber,
+		URL:         url,
+	}, nil
+}
+
 type CompanyID int64
 
 func NewCompanyID(value int64) (CompanyID, error) {
