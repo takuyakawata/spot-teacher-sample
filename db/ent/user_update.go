@@ -12,6 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
@@ -30,6 +32,12 @@ func (uu *UserUpdate) Where(ps ...predicate.User) *UserUpdate {
 	return uu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetUpdatedAt(t)
+	return uu
+}
+
 // SetUserType sets the "user_type" field.
 func (uu *UserUpdate) SetUserType(ut user.UserType) *UserUpdate {
 	uu.mutation.SetUserType(ut)
@@ -45,13 +53,13 @@ func (uu *UserUpdate) SetNillableUserType(ut *user.UserType) *UserUpdate {
 }
 
 // SetSchoolID sets the "school_id" field.
-func (uu *UserUpdate) SetSchoolID(i int64) *UserUpdate {
+func (uu *UserUpdate) SetSchoolID(i int) *UserUpdate {
 	uu.mutation.SetSchoolID(i)
 	return uu
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableSchoolID(i *int64) *UserUpdate {
+func (uu *UserUpdate) SetNillableSchoolID(i *int) *UserUpdate {
 	if i != nil {
 		uu.SetSchoolID(*i)
 	}
@@ -65,13 +73,13 @@ func (uu *UserUpdate) ClearSchoolID() *UserUpdate {
 }
 
 // SetCompanyID sets the "company_id" field.
-func (uu *UserUpdate) SetCompanyID(i int64) *UserUpdate {
+func (uu *UserUpdate) SetCompanyID(i int) *UserUpdate {
 	uu.mutation.SetCompanyID(i)
 	return uu
 }
 
 // SetNillableCompanyID sets the "company_id" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableCompanyID(i *int64) *UserUpdate {
+func (uu *UserUpdate) SetNillableCompanyID(i *int) *UserUpdate {
 	if i != nil {
 		uu.SetCompanyID(*i)
 	}
@@ -160,12 +168,6 @@ func (uu *UserUpdate) ClearPassword() *UserUpdate {
 	return uu
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
-	uu.mutation.SetUpdatedAt(t)
-	return uu
-}
-
 // SetSchool sets the "school" edge to the School entity.
 func (uu *UserUpdate) SetSchool(s *School) *UserUpdate {
 	return uu.SetSchoolID(s.ID)
@@ -174,6 +176,36 @@ func (uu *UserUpdate) SetSchool(s *School) *UserUpdate {
 // SetCompany sets the "company" edge to the Company entity.
 func (uu *UserUpdate) SetCompany(c *Company) *UserUpdate {
 	return uu.SetCompanyID(c.ID)
+}
+
+// AddInquiryIDs adds the "inquiries" edge to the Inquiry entity by IDs.
+func (uu *UserUpdate) AddInquiryIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddInquiryIDs(ids...)
+	return uu
+}
+
+// AddInquiries adds the "inquiries" edges to the Inquiry entity.
+func (uu *UserUpdate) AddInquiries(i ...*Inquiry) *UserUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uu.AddInquiryIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (uu *UserUpdate) AddLessonReservationIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddLessonReservationIDs(ids...)
+	return uu
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (uu *UserUpdate) AddLessonReservations(l ...*LessonReservation) *UserUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uu.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -191,6 +223,48 @@ func (uu *UserUpdate) ClearSchool() *UserUpdate {
 func (uu *UserUpdate) ClearCompany() *UserUpdate {
 	uu.mutation.ClearCompany()
 	return uu
+}
+
+// ClearInquiries clears all "inquiries" edges to the Inquiry entity.
+func (uu *UserUpdate) ClearInquiries() *UserUpdate {
+	uu.mutation.ClearInquiries()
+	return uu
+}
+
+// RemoveInquiryIDs removes the "inquiries" edge to Inquiry entities by IDs.
+func (uu *UserUpdate) RemoveInquiryIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveInquiryIDs(ids...)
+	return uu
+}
+
+// RemoveInquiries removes "inquiries" edges to Inquiry entities.
+func (uu *UserUpdate) RemoveInquiries(i ...*Inquiry) *UserUpdate {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uu.RemoveInquiryIDs(ids...)
+}
+
+// ClearLessonReservations clears all "lesson_reservations" edges to the LessonReservation entity.
+func (uu *UserUpdate) ClearLessonReservations() *UserUpdate {
+	uu.mutation.ClearLessonReservations()
+	return uu
+}
+
+// RemoveLessonReservationIDs removes the "lesson_reservations" edge to LessonReservation entities by IDs.
+func (uu *UserUpdate) RemoveLessonReservationIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveLessonReservationIDs(ids...)
+	return uu
+}
+
+// RemoveLessonReservations removes "lesson_reservations" edges to LessonReservation entities.
+func (uu *UserUpdate) RemoveLessonReservations(l ...*LessonReservation) *UserUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uu.RemoveLessonReservationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -273,13 +347,16 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := uu.mutation.UpdatedAt(); ok {
+		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := uu.mutation.UserType(); ok {
 		_spec.SetField(user.FieldUserType, field.TypeEnum, value)
@@ -302,9 +379,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
 	}
-	if value, ok := uu.mutation.UpdatedAt(); ok {
-		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if uu.mutation.SchoolCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -313,7 +387,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -326,7 +400,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -342,7 +416,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.CompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -355,7 +429,97 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{user.CompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.InquiriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.InquiriesTable,
+			Columns: []string{user.InquiriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedInquiriesIDs(); len(nodes) > 0 && !uu.mutation.InquiriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.InquiriesTable,
+			Columns: []string{user.InquiriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.InquiriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.InquiriesTable,
+			Columns: []string{user.InquiriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LessonReservationsTable,
+			Columns: []string{user.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RemovedLessonReservationsIDs(); len(nodes) > 0 && !uu.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LessonReservationsTable,
+			Columns: []string{user.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LessonReservationsTable,
+			Columns: []string{user.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -383,6 +547,12 @@ type UserUpdateOne struct {
 	mutation *UserMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetUpdatedAt(t)
+	return uuo
+}
+
 // SetUserType sets the "user_type" field.
 func (uuo *UserUpdateOne) SetUserType(ut user.UserType) *UserUpdateOne {
 	uuo.mutation.SetUserType(ut)
@@ -398,13 +568,13 @@ func (uuo *UserUpdateOne) SetNillableUserType(ut *user.UserType) *UserUpdateOne 
 }
 
 // SetSchoolID sets the "school_id" field.
-func (uuo *UserUpdateOne) SetSchoolID(i int64) *UserUpdateOne {
+func (uuo *UserUpdateOne) SetSchoolID(i int) *UserUpdateOne {
 	uuo.mutation.SetSchoolID(i)
 	return uuo
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableSchoolID(i *int64) *UserUpdateOne {
+func (uuo *UserUpdateOne) SetNillableSchoolID(i *int) *UserUpdateOne {
 	if i != nil {
 		uuo.SetSchoolID(*i)
 	}
@@ -418,13 +588,13 @@ func (uuo *UserUpdateOne) ClearSchoolID() *UserUpdateOne {
 }
 
 // SetCompanyID sets the "company_id" field.
-func (uuo *UserUpdateOne) SetCompanyID(i int64) *UserUpdateOne {
+func (uuo *UserUpdateOne) SetCompanyID(i int) *UserUpdateOne {
 	uuo.mutation.SetCompanyID(i)
 	return uuo
 }
 
 // SetNillableCompanyID sets the "company_id" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableCompanyID(i *int64) *UserUpdateOne {
+func (uuo *UserUpdateOne) SetNillableCompanyID(i *int) *UserUpdateOne {
 	if i != nil {
 		uuo.SetCompanyID(*i)
 	}
@@ -513,12 +683,6 @@ func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
 	return uuo
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
-	uuo.mutation.SetUpdatedAt(t)
-	return uuo
-}
-
 // SetSchool sets the "school" edge to the School entity.
 func (uuo *UserUpdateOne) SetSchool(s *School) *UserUpdateOne {
 	return uuo.SetSchoolID(s.ID)
@@ -527,6 +691,36 @@ func (uuo *UserUpdateOne) SetSchool(s *School) *UserUpdateOne {
 // SetCompany sets the "company" edge to the Company entity.
 func (uuo *UserUpdateOne) SetCompany(c *Company) *UserUpdateOne {
 	return uuo.SetCompanyID(c.ID)
+}
+
+// AddInquiryIDs adds the "inquiries" edge to the Inquiry entity by IDs.
+func (uuo *UserUpdateOne) AddInquiryIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddInquiryIDs(ids...)
+	return uuo
+}
+
+// AddInquiries adds the "inquiries" edges to the Inquiry entity.
+func (uuo *UserUpdateOne) AddInquiries(i ...*Inquiry) *UserUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uuo.AddInquiryIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (uuo *UserUpdateOne) AddLessonReservationIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddLessonReservationIDs(ids...)
+	return uuo
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (uuo *UserUpdateOne) AddLessonReservations(l ...*LessonReservation) *UserUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uuo.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -544,6 +738,48 @@ func (uuo *UserUpdateOne) ClearSchool() *UserUpdateOne {
 func (uuo *UserUpdateOne) ClearCompany() *UserUpdateOne {
 	uuo.mutation.ClearCompany()
 	return uuo
+}
+
+// ClearInquiries clears all "inquiries" edges to the Inquiry entity.
+func (uuo *UserUpdateOne) ClearInquiries() *UserUpdateOne {
+	uuo.mutation.ClearInquiries()
+	return uuo
+}
+
+// RemoveInquiryIDs removes the "inquiries" edge to Inquiry entities by IDs.
+func (uuo *UserUpdateOne) RemoveInquiryIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveInquiryIDs(ids...)
+	return uuo
+}
+
+// RemoveInquiries removes "inquiries" edges to Inquiry entities.
+func (uuo *UserUpdateOne) RemoveInquiries(i ...*Inquiry) *UserUpdateOne {
+	ids := make([]int, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return uuo.RemoveInquiryIDs(ids...)
+}
+
+// ClearLessonReservations clears all "lesson_reservations" edges to the LessonReservation entity.
+func (uuo *UserUpdateOne) ClearLessonReservations() *UserUpdateOne {
+	uuo.mutation.ClearLessonReservations()
+	return uuo
+}
+
+// RemoveLessonReservationIDs removes the "lesson_reservations" edge to LessonReservation entities by IDs.
+func (uuo *UserUpdateOne) RemoveLessonReservationIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveLessonReservationIDs(ids...)
+	return uuo
+}
+
+// RemoveLessonReservations removes "lesson_reservations" edges to LessonReservation entities.
+func (uuo *UserUpdateOne) RemoveLessonReservations(l ...*LessonReservation) *UserUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return uuo.RemoveLessonReservationIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -639,7 +875,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
@@ -664,6 +900,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			}
 		}
 	}
+	if value, ok := uuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := uuo.mutation.UserType(); ok {
 		_spec.SetField(user.FieldUserType, field.TypeEnum, value)
 	}
@@ -685,9 +924,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if uuo.mutation.PasswordCleared() {
 		_spec.ClearField(user.FieldPassword, field.TypeString)
 	}
-	if value, ok := uuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if uuo.mutation.SchoolCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -696,7 +932,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -709,7 +945,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -725,7 +961,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.CompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -738,7 +974,97 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Columns: []string{user.CompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.InquiriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.InquiriesTable,
+			Columns: []string{user.InquiriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedInquiriesIDs(); len(nodes) > 0 && !uuo.mutation.InquiriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.InquiriesTable,
+			Columns: []string{user.InquiriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.InquiriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.InquiriesTable,
+			Columns: []string{user.InquiriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LessonReservationsTable,
+			Columns: []string{user.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RemovedLessonReservationsIDs(); len(nodes) > 0 && !uuo.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LessonReservationsTable,
+			Columns: []string{user.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.LessonReservationsTable,
+			Columns: []string{user.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

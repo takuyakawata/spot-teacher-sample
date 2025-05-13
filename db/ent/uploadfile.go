@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
 
@@ -17,15 +18,39 @@ type UploadFile struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// CreateTime holds the value of the "create_time" field.
-	CreateTime time.Time `json:"create_time,omitempty"`
-	// UpdateTime holds the value of the "update_time" field.
-	UpdateTime time.Time `json:"update_time,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// ファイルのユニークキー
 	PhotoKey string `json:"photo_key,omitempty"`
 	// 写真をアップロードしたユーザーのID
-	UserID       int64 `json:"user_id,omitempty"`
-	selectValues sql.SelectValues
+	UserID int `json:"user_id,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UploadFileQuery when eager-loading is set.
+	Edges                    UploadFileEdges `json:"edges"`
+	lesson_plan_upload_files *int
+	selectValues             sql.SelectValues
+}
+
+// UploadFileEdges holds the relations/edges for other nodes in the graph.
+type UploadFileEdges struct {
+	// LessonPlan holds the value of the LessonPlan edge.
+	LessonPlan *LessonPlan `json:"LessonPlan,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// LessonPlanOrErr returns the LessonPlan value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UploadFileEdges) LessonPlanOrErr() (*LessonPlan, error) {
+	if e.LessonPlan != nil {
+		return e.LessonPlan, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: lessonplan.Label}
+	}
+	return nil, &NotLoadedError{edge: "LessonPlan"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -37,8 +62,10 @@ func (*UploadFile) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case uploadfile.FieldPhotoKey:
 			values[i] = new(sql.NullString)
-		case uploadfile.FieldCreateTime, uploadfile.FieldUpdateTime:
+		case uploadfile.FieldCreatedAt, uploadfile.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
+		case uploadfile.ForeignKeys[0]: // lesson_plan_upload_files
+			values[i] = new(sql.NullInt64)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -60,17 +87,17 @@ func (uf *UploadFile) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			uf.ID = int(value.Int64)
-		case uploadfile.FieldCreateTime:
+		case uploadfile.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				uf.CreateTime = value.Time
+				uf.CreatedAt = value.Time
 			}
-		case uploadfile.FieldUpdateTime:
+		case uploadfile.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				uf.UpdateTime = value.Time
+				uf.UpdatedAt = value.Time
 			}
 		case uploadfile.FieldPhotoKey:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -82,7 +109,14 @@ func (uf *UploadFile) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				uf.UserID = value.Int64
+				uf.UserID = int(value.Int64)
+			}
+		case uploadfile.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for edge-field lesson_plan_upload_files", value)
+			} else if value.Valid {
+				uf.lesson_plan_upload_files = new(int)
+				*uf.lesson_plan_upload_files = int(value.Int64)
 			}
 		default:
 			uf.selectValues.Set(columns[i], values[i])
@@ -95,6 +129,11 @@ func (uf *UploadFile) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (uf *UploadFile) Value(name string) (ent.Value, error) {
 	return uf.selectValues.Get(name)
+}
+
+// QueryLessonPlan queries the "LessonPlan" edge of the UploadFile entity.
+func (uf *UploadFile) QueryLessonPlan() *LessonPlanQuery {
+	return NewUploadFileClient(uf.config).QueryLessonPlan(uf)
 }
 
 // Update returns a builder for updating this UploadFile.
@@ -120,11 +159,11 @@ func (uf *UploadFile) String() string {
 	var builder strings.Builder
 	builder.WriteString("UploadFile(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", uf.ID))
-	builder.WriteString("create_time=")
-	builder.WriteString(uf.CreateTime.Format(time.ANSIC))
+	builder.WriteString("created_at=")
+	builder.WriteString(uf.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("update_time=")
-	builder.WriteString(uf.UpdateTime.Format(time.ANSIC))
+	builder.WriteString("updated_at=")
+	builder.WriteString(uf.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("photo_key=")
 	builder.WriteString(uf.PhotoKey)

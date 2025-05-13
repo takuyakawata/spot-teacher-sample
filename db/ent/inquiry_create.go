@@ -23,58 +23,6 @@ type InquiryCreate struct {
 	hooks    []Hook
 }
 
-// SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (ic *InquiryCreate) SetLessonScheduleID(i int64) *InquiryCreate {
-	ic.mutation.SetLessonScheduleID(i)
-	return ic
-}
-
-// SetSchoolID sets the "school_id" field.
-func (ic *InquiryCreate) SetSchoolID(i int64) *InquiryCreate {
-	ic.mutation.SetSchoolID(i)
-	return ic
-}
-
-// SetUserID sets the "user_id" field.
-func (ic *InquiryCreate) SetUserID(i int64) *InquiryCreate {
-	ic.mutation.SetUserID(i)
-	return ic
-}
-
-// SetCategory sets the "category" field.
-func (ic *InquiryCreate) SetCategory(i inquiry.Category) *InquiryCreate {
-	ic.mutation.SetCategory(i)
-	return ic
-}
-
-// SetNillableCategory sets the "category" field if the given value is not nil.
-func (ic *InquiryCreate) SetNillableCategory(i *inquiry.Category) *InquiryCreate {
-	if i != nil {
-		ic.SetCategory(*i)
-	}
-	return ic
-}
-
-// SetInquiryDetail sets the "inquiry_detail" field.
-func (ic *InquiryCreate) SetInquiryDetail(s string) *InquiryCreate {
-	ic.mutation.SetInquiryDetail(s)
-	return ic
-}
-
-// SetDeletedAt sets the "deleted_at" field.
-func (ic *InquiryCreate) SetDeletedAt(t time.Time) *InquiryCreate {
-	ic.mutation.SetDeletedAt(t)
-	return ic
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (ic *InquiryCreate) SetNillableDeletedAt(t *time.Time) *InquiryCreate {
-	if t != nil {
-		ic.SetDeletedAt(*t)
-	}
-	return ic
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (ic *InquiryCreate) SetCreatedAt(t time.Time) *InquiryCreate {
 	ic.mutation.SetCreatedAt(t)
@@ -103,14 +51,46 @@ func (ic *InquiryCreate) SetNillableUpdatedAt(t *time.Time) *InquiryCreate {
 	return ic
 }
 
-// SetID sets the "id" field.
-func (ic *InquiryCreate) SetID(i int64) *InquiryCreate {
-	ic.mutation.SetID(i)
+// SetLessonScheduleID sets the "lesson_schedule_id" field.
+func (ic *InquiryCreate) SetLessonScheduleID(i int) *InquiryCreate {
+	ic.mutation.SetLessonScheduleID(i)
+	return ic
+}
+
+// SetSchoolID sets the "school_id" field.
+func (ic *InquiryCreate) SetSchoolID(i int) *InquiryCreate {
+	ic.mutation.SetSchoolID(i)
+	return ic
+}
+
+// SetUserID sets the "user_id" field.
+func (ic *InquiryCreate) SetUserID(i int) *InquiryCreate {
+	ic.mutation.SetUserID(i)
+	return ic
+}
+
+// SetCategory sets the "category" field.
+func (ic *InquiryCreate) SetCategory(i inquiry.Category) *InquiryCreate {
+	ic.mutation.SetCategory(i)
+	return ic
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (ic *InquiryCreate) SetNillableCategory(i *inquiry.Category) *InquiryCreate {
+	if i != nil {
+		ic.SetCategory(*i)
+	}
+	return ic
+}
+
+// SetInquiryDetail sets the "inquiry_detail" field.
+func (ic *InquiryCreate) SetInquiryDetail(s string) *InquiryCreate {
+	ic.mutation.SetInquiryDetail(s)
 	return ic
 }
 
 // SetLessonID sets the "lesson" edge to the LessonPlan entity by ID.
-func (ic *InquiryCreate) SetLessonID(id int64) *InquiryCreate {
+func (ic *InquiryCreate) SetLessonID(id int) *InquiryCreate {
 	ic.mutation.SetLessonID(id)
 	return ic
 }
@@ -126,7 +106,7 @@ func (ic *InquiryCreate) SetSchool(s *School) *InquiryCreate {
 }
 
 // SetTeacherID sets the "teacher" edge to the User entity by ID.
-func (ic *InquiryCreate) SetTeacherID(id int64) *InquiryCreate {
+func (ic *InquiryCreate) SetTeacherID(id int) *InquiryCreate {
 	ic.mutation.SetTeacherID(id)
 	return ic
 }
@@ -171,10 +151,6 @@ func (ic *InquiryCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ic *InquiryCreate) defaults() {
-	if _, ok := ic.mutation.Category(); !ok {
-		v := inquiry.DefaultCategory
-		ic.mutation.SetCategory(v)
-	}
 	if _, ok := ic.mutation.CreatedAt(); !ok {
 		v := inquiry.DefaultCreatedAt()
 		ic.mutation.SetCreatedAt(v)
@@ -183,10 +159,20 @@ func (ic *InquiryCreate) defaults() {
 		v := inquiry.DefaultUpdatedAt()
 		ic.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := ic.mutation.Category(); !ok {
+		v := inquiry.DefaultCategory
+		ic.mutation.SetCategory(v)
+	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (ic *InquiryCreate) check() error {
+	if _, ok := ic.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Inquiry.created_at"`)}
+	}
+	if _, ok := ic.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Inquiry.updated_at"`)}
+	}
 	if _, ok := ic.mutation.LessonScheduleID(); !ok {
 		return &ValidationError{Name: "lesson_schedule_id", err: errors.New(`ent: missing required field "Inquiry.lesson_schedule_id"`)}
 	}
@@ -222,17 +208,6 @@ func (ic *InquiryCreate) check() error {
 	if _, ok := ic.mutation.InquiryDetail(); !ok {
 		return &ValidationError{Name: "inquiry_detail", err: errors.New(`ent: missing required field "Inquiry.inquiry_detail"`)}
 	}
-	if _, ok := ic.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Inquiry.created_at"`)}
-	}
-	if _, ok := ic.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Inquiry.updated_at"`)}
-	}
-	if v, ok := ic.mutation.ID(); ok {
-		if err := inquiry.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Inquiry.id": %w`, err)}
-		}
-	}
 	if len(ic.mutation.LessonIDs()) == 0 {
 		return &ValidationError{Name: "lesson", err: errors.New(`ent: missing required edge "Inquiry.lesson"`)}
 	}
@@ -256,10 +231,8 @@ func (ic *InquiryCreate) sqlSave(ctx context.Context) (*Inquiry, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int64(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	ic.mutation.id = &_node.ID
 	ic.mutation.done = true
 	return _node, nil
@@ -268,11 +241,15 @@ func (ic *InquiryCreate) sqlSave(ctx context.Context) (*Inquiry, error) {
 func (ic *InquiryCreate) createSpec() (*Inquiry, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Inquiry{config: ic.config}
-		_spec = sqlgraph.NewCreateSpec(inquiry.Table, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(inquiry.Table, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt))
 	)
-	if id, ok := ic.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := ic.mutation.CreatedAt(); ok {
+		_spec.SetField(inquiry.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := ic.mutation.UpdatedAt(); ok {
+		_spec.SetField(inquiry.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := ic.mutation.Category(); ok {
 		_spec.SetField(inquiry.FieldCategory, field.TypeEnum, value)
@@ -282,18 +259,6 @@ func (ic *InquiryCreate) createSpec() (*Inquiry, *sqlgraph.CreateSpec) {
 		_spec.SetField(inquiry.FieldInquiryDetail, field.TypeString, value)
 		_node.InquiryDetail = value
 	}
-	if value, ok := ic.mutation.DeletedAt(); ok {
-		_spec.SetField(inquiry.FieldDeletedAt, field.TypeTime, value)
-		_node.DeletedAt = &value
-	}
-	if value, ok := ic.mutation.CreatedAt(); ok {
-		_spec.SetField(inquiry.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := ic.mutation.UpdatedAt(); ok {
-		_spec.SetField(inquiry.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
 	if nodes := ic.mutation.LessonIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -302,7 +267,7 @@ func (ic *InquiryCreate) createSpec() (*Inquiry, *sqlgraph.CreateSpec) {
 			Columns: []string{inquiry.LessonColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -319,7 +284,7 @@ func (ic *InquiryCreate) createSpec() (*Inquiry, *sqlgraph.CreateSpec) {
 			Columns: []string{inquiry.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -331,12 +296,12 @@ func (ic *InquiryCreate) createSpec() (*Inquiry, *sqlgraph.CreateSpec) {
 	if nodes := ic.mutation.TeacherIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   inquiry.TeacherTable,
 			Columns: []string{inquiry.TeacherColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -393,9 +358,9 @@ func (icb *InquiryCreateBulk) Save(ctx context.Context) ([]*Inquiry, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int64(id)
+					nodes[i].ID = int(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

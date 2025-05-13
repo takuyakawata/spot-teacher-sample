@@ -11,8 +11,13 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonconfirmation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservationpreferreddate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 // LessonReservationUpdate is the builder for updating LessonReservation entities.
@@ -29,65 +34,44 @@ func (lru *LessonReservationUpdate) Where(ps ...predicate.LessonReservation) *Le
 }
 
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (lru *LessonReservationUpdate) SetLessonScheduleID(i int64) *LessonReservationUpdate {
-	lru.mutation.ResetLessonScheduleID()
+func (lru *LessonReservationUpdate) SetLessonScheduleID(i int) *LessonReservationUpdate {
 	lru.mutation.SetLessonScheduleID(i)
 	return lru
 }
 
 // SetNillableLessonScheduleID sets the "lesson_schedule_id" field if the given value is not nil.
-func (lru *LessonReservationUpdate) SetNillableLessonScheduleID(i *int64) *LessonReservationUpdate {
+func (lru *LessonReservationUpdate) SetNillableLessonScheduleID(i *int) *LessonReservationUpdate {
 	if i != nil {
 		lru.SetLessonScheduleID(*i)
 	}
 	return lru
 }
 
-// AddLessonScheduleID adds i to the "lesson_schedule_id" field.
-func (lru *LessonReservationUpdate) AddLessonScheduleID(i int64) *LessonReservationUpdate {
-	lru.mutation.AddLessonScheduleID(i)
-	return lru
-}
-
 // SetSchoolID sets the "school_id" field.
-func (lru *LessonReservationUpdate) SetSchoolID(i int64) *LessonReservationUpdate {
-	lru.mutation.ResetSchoolID()
+func (lru *LessonReservationUpdate) SetSchoolID(i int) *LessonReservationUpdate {
 	lru.mutation.SetSchoolID(i)
 	return lru
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (lru *LessonReservationUpdate) SetNillableSchoolID(i *int64) *LessonReservationUpdate {
+func (lru *LessonReservationUpdate) SetNillableSchoolID(i *int) *LessonReservationUpdate {
 	if i != nil {
 		lru.SetSchoolID(*i)
 	}
 	return lru
 }
 
-// AddSchoolID adds i to the "school_id" field.
-func (lru *LessonReservationUpdate) AddSchoolID(i int64) *LessonReservationUpdate {
-	lru.mutation.AddSchoolID(i)
-	return lru
-}
-
 // SetUserID sets the "user_id" field.
-func (lru *LessonReservationUpdate) SetUserID(i int64) *LessonReservationUpdate {
-	lru.mutation.ResetUserID()
+func (lru *LessonReservationUpdate) SetUserID(i int) *LessonReservationUpdate {
 	lru.mutation.SetUserID(i)
 	return lru
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (lru *LessonReservationUpdate) SetNillableUserID(i *int64) *LessonReservationUpdate {
+func (lru *LessonReservationUpdate) SetNillableUserID(i *int) *LessonReservationUpdate {
 	if i != nil {
 		lru.SetUserID(*i)
 	}
-	return lru
-}
-
-// AddUserID adds i to the "user_id" field.
-func (lru *LessonReservationUpdate) AddUserID(i int64) *LessonReservationUpdate {
-	lru.mutation.AddUserID(i)
 	return lru
 }
 
@@ -187,30 +171,49 @@ func (lru *LessonReservationUpdate) ClearReservationConfirmAt() *LessonReservati
 	return lru
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (lru *LessonReservationUpdate) SetDeletedAt(t time.Time) *LessonReservationUpdate {
-	lru.mutation.SetDeletedAt(t)
+// SetLessonSchedule sets the "lesson_schedule" edge to the LessonSchedule entity.
+func (lru *LessonReservationUpdate) SetLessonSchedule(l *LessonSchedule) *LessonReservationUpdate {
+	return lru.SetLessonScheduleID(l.ID)
+}
+
+// SetSchool sets the "school" edge to the School entity.
+func (lru *LessonReservationUpdate) SetSchool(s *School) *LessonReservationUpdate {
+	return lru.SetSchoolID(s.ID)
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (lru *LessonReservationUpdate) SetUser(u *User) *LessonReservationUpdate {
+	return lru.SetUserID(u.ID)
+}
+
+// AddLessonReservationPreferredDateIDs adds the "lesson_reservation_preferred_dates" edge to the LessonReservationPreferredDate entity by IDs.
+func (lru *LessonReservationUpdate) AddLessonReservationPreferredDateIDs(ids ...int) *LessonReservationUpdate {
+	lru.mutation.AddLessonReservationPreferredDateIDs(ids...)
 	return lru
 }
 
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (lru *LessonReservationUpdate) SetNillableDeletedAt(t *time.Time) *LessonReservationUpdate {
-	if t != nil {
-		lru.SetDeletedAt(*t)
+// AddLessonReservationPreferredDates adds the "lesson_reservation_preferred_dates" edges to the LessonReservationPreferredDate entity.
+func (lru *LessonReservationUpdate) AddLessonReservationPreferredDates(l ...*LessonReservationPreferredDate) *LessonReservationUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
+	return lru.AddLessonReservationPreferredDateIDs(ids...)
+}
+
+// AddLessonConfirmationIDs adds the "lesson_confirmation" edge to the LessonConfirmation entity by IDs.
+func (lru *LessonReservationUpdate) AddLessonConfirmationIDs(ids ...int) *LessonReservationUpdate {
+	lru.mutation.AddLessonConfirmationIDs(ids...)
 	return lru
 }
 
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (lru *LessonReservationUpdate) ClearDeletedAt() *LessonReservationUpdate {
-	lru.mutation.ClearDeletedAt()
-	return lru
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (lru *LessonReservationUpdate) SetUpdatedAt(t time.Time) *LessonReservationUpdate {
-	lru.mutation.SetUpdatedAt(t)
-	return lru
+// AddLessonConfirmation adds the "lesson_confirmation" edges to the LessonConfirmation entity.
+func (lru *LessonReservationUpdate) AddLessonConfirmation(l ...*LessonConfirmation) *LessonReservationUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lru.AddLessonConfirmationIDs(ids...)
 }
 
 // Mutation returns the LessonReservationMutation object of the builder.
@@ -218,9 +221,68 @@ func (lru *LessonReservationUpdate) Mutation() *LessonReservationMutation {
 	return lru.mutation
 }
 
+// ClearLessonSchedule clears the "lesson_schedule" edge to the LessonSchedule entity.
+func (lru *LessonReservationUpdate) ClearLessonSchedule() *LessonReservationUpdate {
+	lru.mutation.ClearLessonSchedule()
+	return lru
+}
+
+// ClearSchool clears the "school" edge to the School entity.
+func (lru *LessonReservationUpdate) ClearSchool() *LessonReservationUpdate {
+	lru.mutation.ClearSchool()
+	return lru
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (lru *LessonReservationUpdate) ClearUser() *LessonReservationUpdate {
+	lru.mutation.ClearUser()
+	return lru
+}
+
+// ClearLessonReservationPreferredDates clears all "lesson_reservation_preferred_dates" edges to the LessonReservationPreferredDate entity.
+func (lru *LessonReservationUpdate) ClearLessonReservationPreferredDates() *LessonReservationUpdate {
+	lru.mutation.ClearLessonReservationPreferredDates()
+	return lru
+}
+
+// RemoveLessonReservationPreferredDateIDs removes the "lesson_reservation_preferred_dates" edge to LessonReservationPreferredDate entities by IDs.
+func (lru *LessonReservationUpdate) RemoveLessonReservationPreferredDateIDs(ids ...int) *LessonReservationUpdate {
+	lru.mutation.RemoveLessonReservationPreferredDateIDs(ids...)
+	return lru
+}
+
+// RemoveLessonReservationPreferredDates removes "lesson_reservation_preferred_dates" edges to LessonReservationPreferredDate entities.
+func (lru *LessonReservationUpdate) RemoveLessonReservationPreferredDates(l ...*LessonReservationPreferredDate) *LessonReservationUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lru.RemoveLessonReservationPreferredDateIDs(ids...)
+}
+
+// ClearLessonConfirmation clears all "lesson_confirmation" edges to the LessonConfirmation entity.
+func (lru *LessonReservationUpdate) ClearLessonConfirmation() *LessonReservationUpdate {
+	lru.mutation.ClearLessonConfirmation()
+	return lru
+}
+
+// RemoveLessonConfirmationIDs removes the "lesson_confirmation" edge to LessonConfirmation entities by IDs.
+func (lru *LessonReservationUpdate) RemoveLessonConfirmationIDs(ids ...int) *LessonReservationUpdate {
+	lru.mutation.RemoveLessonConfirmationIDs(ids...)
+	return lru
+}
+
+// RemoveLessonConfirmation removes "lesson_confirmation" edges to LessonConfirmation entities.
+func (lru *LessonReservationUpdate) RemoveLessonConfirmation(l ...*LessonConfirmation) *LessonReservationUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lru.RemoveLessonConfirmationIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (lru *LessonReservationUpdate) Save(ctx context.Context) (int, error) {
-	lru.defaults()
 	return withHooks(ctx, lru.sqlSave, lru.mutation, lru.hooks)
 }
 
@@ -246,14 +308,6 @@ func (lru *LessonReservationUpdate) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (lru *LessonReservationUpdate) defaults() {
-	if _, ok := lru.mutation.UpdatedAt(); !ok {
-		v := lessonreservation.UpdateDefaultUpdatedAt()
-		lru.mutation.SetUpdatedAt(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (lru *LessonReservationUpdate) check() error {
 	if v, ok := lru.mutation.LessonScheduleID(); ok {
@@ -276,6 +330,15 @@ func (lru *LessonReservationUpdate) check() error {
 			return &ValidationError{Name: "reservation_status", err: fmt.Errorf(`ent: validator failed for field "LessonReservation.reservation_status": %w`, err)}
 		}
 	}
+	if lru.mutation.LessonScheduleCleared() && len(lru.mutation.LessonScheduleIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LessonReservation.lesson_schedule"`)
+	}
+	if lru.mutation.SchoolCleared() && len(lru.mutation.SchoolIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LessonReservation.school"`)
+	}
+	if lru.mutation.UserCleared() && len(lru.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LessonReservation.user"`)
+	}
 	return nil
 }
 
@@ -283,31 +346,13 @@ func (lru *LessonReservationUpdate) sqlSave(ctx context.Context) (n int, err err
 	if err := lru.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt))
 	if ps := lru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := lru.mutation.LessonScheduleID(); ok {
-		_spec.SetField(lessonreservation.FieldLessonScheduleID, field.TypeInt64, value)
-	}
-	if value, ok := lru.mutation.AddedLessonScheduleID(); ok {
-		_spec.AddField(lessonreservation.FieldLessonScheduleID, field.TypeInt64, value)
-	}
-	if value, ok := lru.mutation.SchoolID(); ok {
-		_spec.SetField(lessonreservation.FieldSchoolID, field.TypeInt64, value)
-	}
-	if value, ok := lru.mutation.AddedSchoolID(); ok {
-		_spec.AddField(lessonreservation.FieldSchoolID, field.TypeInt64, value)
-	}
-	if value, ok := lru.mutation.UserID(); ok {
-		_spec.SetField(lessonreservation.FieldUserID, field.TypeInt64, value)
-	}
-	if value, ok := lru.mutation.AddedUserID(); ok {
-		_spec.AddField(lessonreservation.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := lru.mutation.ReservationStatus(); ok {
 		_spec.SetField(lessonreservation.FieldReservationStatus, field.TypeEnum, value)
@@ -333,14 +378,182 @@ func (lru *LessonReservationUpdate) sqlSave(ctx context.Context) (n int, err err
 	if lru.mutation.ReservationConfirmAtCleared() {
 		_spec.ClearField(lessonreservation.FieldReservationConfirmAt, field.TypeTime)
 	}
-	if value, ok := lru.mutation.DeletedAt(); ok {
-		_spec.SetField(lessonreservation.FieldDeletedAt, field.TypeTime, value)
+	if lru.mutation.LessonScheduleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.LessonScheduleTable,
+			Columns: []string{lessonreservation.LessonScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if lru.mutation.DeletedAtCleared() {
-		_spec.ClearField(lessonreservation.FieldDeletedAt, field.TypeTime)
+	if nodes := lru.mutation.LessonScheduleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.LessonScheduleTable,
+			Columns: []string{lessonreservation.LessonScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if value, ok := lru.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonreservation.FieldUpdatedAt, field.TypeTime, value)
+	if lru.mutation.SchoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.SchoolTable,
+			Columns: []string{lessonreservation.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lru.mutation.SchoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.SchoolTable,
+			Columns: []string{lessonreservation.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lru.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.UserTable,
+			Columns: []string{lessonreservation.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lru.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.UserTable,
+			Columns: []string{lessonreservation.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lru.mutation.LessonReservationPreferredDatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonReservationPreferredDatesTable,
+			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lru.mutation.RemovedLessonReservationPreferredDatesIDs(); len(nodes) > 0 && !lru.mutation.LessonReservationPreferredDatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonReservationPreferredDatesTable,
+			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lru.mutation.LessonReservationPreferredDatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonReservationPreferredDatesTable,
+			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lru.mutation.LessonConfirmationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonConfirmationTable,
+			Columns: []string{lessonreservation.LessonConfirmationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lru.mutation.RemovedLessonConfirmationIDs(); len(nodes) > 0 && !lru.mutation.LessonConfirmationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonConfirmationTable,
+			Columns: []string{lessonreservation.LessonConfirmationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lru.mutation.LessonConfirmationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonConfirmationTable,
+			Columns: []string{lessonreservation.LessonConfirmationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, lru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -363,65 +576,44 @@ type LessonReservationUpdateOne struct {
 }
 
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (lruo *LessonReservationUpdateOne) SetLessonScheduleID(i int64) *LessonReservationUpdateOne {
-	lruo.mutation.ResetLessonScheduleID()
+func (lruo *LessonReservationUpdateOne) SetLessonScheduleID(i int) *LessonReservationUpdateOne {
 	lruo.mutation.SetLessonScheduleID(i)
 	return lruo
 }
 
 // SetNillableLessonScheduleID sets the "lesson_schedule_id" field if the given value is not nil.
-func (lruo *LessonReservationUpdateOne) SetNillableLessonScheduleID(i *int64) *LessonReservationUpdateOne {
+func (lruo *LessonReservationUpdateOne) SetNillableLessonScheduleID(i *int) *LessonReservationUpdateOne {
 	if i != nil {
 		lruo.SetLessonScheduleID(*i)
 	}
 	return lruo
 }
 
-// AddLessonScheduleID adds i to the "lesson_schedule_id" field.
-func (lruo *LessonReservationUpdateOne) AddLessonScheduleID(i int64) *LessonReservationUpdateOne {
-	lruo.mutation.AddLessonScheduleID(i)
-	return lruo
-}
-
 // SetSchoolID sets the "school_id" field.
-func (lruo *LessonReservationUpdateOne) SetSchoolID(i int64) *LessonReservationUpdateOne {
-	lruo.mutation.ResetSchoolID()
+func (lruo *LessonReservationUpdateOne) SetSchoolID(i int) *LessonReservationUpdateOne {
 	lruo.mutation.SetSchoolID(i)
 	return lruo
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (lruo *LessonReservationUpdateOne) SetNillableSchoolID(i *int64) *LessonReservationUpdateOne {
+func (lruo *LessonReservationUpdateOne) SetNillableSchoolID(i *int) *LessonReservationUpdateOne {
 	if i != nil {
 		lruo.SetSchoolID(*i)
 	}
 	return lruo
 }
 
-// AddSchoolID adds i to the "school_id" field.
-func (lruo *LessonReservationUpdateOne) AddSchoolID(i int64) *LessonReservationUpdateOne {
-	lruo.mutation.AddSchoolID(i)
-	return lruo
-}
-
 // SetUserID sets the "user_id" field.
-func (lruo *LessonReservationUpdateOne) SetUserID(i int64) *LessonReservationUpdateOne {
-	lruo.mutation.ResetUserID()
+func (lruo *LessonReservationUpdateOne) SetUserID(i int) *LessonReservationUpdateOne {
 	lruo.mutation.SetUserID(i)
 	return lruo
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (lruo *LessonReservationUpdateOne) SetNillableUserID(i *int64) *LessonReservationUpdateOne {
+func (lruo *LessonReservationUpdateOne) SetNillableUserID(i *int) *LessonReservationUpdateOne {
 	if i != nil {
 		lruo.SetUserID(*i)
 	}
-	return lruo
-}
-
-// AddUserID adds i to the "user_id" field.
-func (lruo *LessonReservationUpdateOne) AddUserID(i int64) *LessonReservationUpdateOne {
-	lruo.mutation.AddUserID(i)
 	return lruo
 }
 
@@ -521,35 +713,114 @@ func (lruo *LessonReservationUpdateOne) ClearReservationConfirmAt() *LessonReser
 	return lruo
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (lruo *LessonReservationUpdateOne) SetDeletedAt(t time.Time) *LessonReservationUpdateOne {
-	lruo.mutation.SetDeletedAt(t)
+// SetLessonSchedule sets the "lesson_schedule" edge to the LessonSchedule entity.
+func (lruo *LessonReservationUpdateOne) SetLessonSchedule(l *LessonSchedule) *LessonReservationUpdateOne {
+	return lruo.SetLessonScheduleID(l.ID)
+}
+
+// SetSchool sets the "school" edge to the School entity.
+func (lruo *LessonReservationUpdateOne) SetSchool(s *School) *LessonReservationUpdateOne {
+	return lruo.SetSchoolID(s.ID)
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (lruo *LessonReservationUpdateOne) SetUser(u *User) *LessonReservationUpdateOne {
+	return lruo.SetUserID(u.ID)
+}
+
+// AddLessonReservationPreferredDateIDs adds the "lesson_reservation_preferred_dates" edge to the LessonReservationPreferredDate entity by IDs.
+func (lruo *LessonReservationUpdateOne) AddLessonReservationPreferredDateIDs(ids ...int) *LessonReservationUpdateOne {
+	lruo.mutation.AddLessonReservationPreferredDateIDs(ids...)
 	return lruo
 }
 
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (lruo *LessonReservationUpdateOne) SetNillableDeletedAt(t *time.Time) *LessonReservationUpdateOne {
-	if t != nil {
-		lruo.SetDeletedAt(*t)
+// AddLessonReservationPreferredDates adds the "lesson_reservation_preferred_dates" edges to the LessonReservationPreferredDate entity.
+func (lruo *LessonReservationUpdateOne) AddLessonReservationPreferredDates(l ...*LessonReservationPreferredDate) *LessonReservationUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
 	}
+	return lruo.AddLessonReservationPreferredDateIDs(ids...)
+}
+
+// AddLessonConfirmationIDs adds the "lesson_confirmation" edge to the LessonConfirmation entity by IDs.
+func (lruo *LessonReservationUpdateOne) AddLessonConfirmationIDs(ids ...int) *LessonReservationUpdateOne {
+	lruo.mutation.AddLessonConfirmationIDs(ids...)
 	return lruo
 }
 
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (lruo *LessonReservationUpdateOne) ClearDeletedAt() *LessonReservationUpdateOne {
-	lruo.mutation.ClearDeletedAt()
-	return lruo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (lruo *LessonReservationUpdateOne) SetUpdatedAt(t time.Time) *LessonReservationUpdateOne {
-	lruo.mutation.SetUpdatedAt(t)
-	return lruo
+// AddLessonConfirmation adds the "lesson_confirmation" edges to the LessonConfirmation entity.
+func (lruo *LessonReservationUpdateOne) AddLessonConfirmation(l ...*LessonConfirmation) *LessonReservationUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lruo.AddLessonConfirmationIDs(ids...)
 }
 
 // Mutation returns the LessonReservationMutation object of the builder.
 func (lruo *LessonReservationUpdateOne) Mutation() *LessonReservationMutation {
 	return lruo.mutation
+}
+
+// ClearLessonSchedule clears the "lesson_schedule" edge to the LessonSchedule entity.
+func (lruo *LessonReservationUpdateOne) ClearLessonSchedule() *LessonReservationUpdateOne {
+	lruo.mutation.ClearLessonSchedule()
+	return lruo
+}
+
+// ClearSchool clears the "school" edge to the School entity.
+func (lruo *LessonReservationUpdateOne) ClearSchool() *LessonReservationUpdateOne {
+	lruo.mutation.ClearSchool()
+	return lruo
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (lruo *LessonReservationUpdateOne) ClearUser() *LessonReservationUpdateOne {
+	lruo.mutation.ClearUser()
+	return lruo
+}
+
+// ClearLessonReservationPreferredDates clears all "lesson_reservation_preferred_dates" edges to the LessonReservationPreferredDate entity.
+func (lruo *LessonReservationUpdateOne) ClearLessonReservationPreferredDates() *LessonReservationUpdateOne {
+	lruo.mutation.ClearLessonReservationPreferredDates()
+	return lruo
+}
+
+// RemoveLessonReservationPreferredDateIDs removes the "lesson_reservation_preferred_dates" edge to LessonReservationPreferredDate entities by IDs.
+func (lruo *LessonReservationUpdateOne) RemoveLessonReservationPreferredDateIDs(ids ...int) *LessonReservationUpdateOne {
+	lruo.mutation.RemoveLessonReservationPreferredDateIDs(ids...)
+	return lruo
+}
+
+// RemoveLessonReservationPreferredDates removes "lesson_reservation_preferred_dates" edges to LessonReservationPreferredDate entities.
+func (lruo *LessonReservationUpdateOne) RemoveLessonReservationPreferredDates(l ...*LessonReservationPreferredDate) *LessonReservationUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lruo.RemoveLessonReservationPreferredDateIDs(ids...)
+}
+
+// ClearLessonConfirmation clears all "lesson_confirmation" edges to the LessonConfirmation entity.
+func (lruo *LessonReservationUpdateOne) ClearLessonConfirmation() *LessonReservationUpdateOne {
+	lruo.mutation.ClearLessonConfirmation()
+	return lruo
+}
+
+// RemoveLessonConfirmationIDs removes the "lesson_confirmation" edge to LessonConfirmation entities by IDs.
+func (lruo *LessonReservationUpdateOne) RemoveLessonConfirmationIDs(ids ...int) *LessonReservationUpdateOne {
+	lruo.mutation.RemoveLessonConfirmationIDs(ids...)
+	return lruo
+}
+
+// RemoveLessonConfirmation removes "lesson_confirmation" edges to LessonConfirmation entities.
+func (lruo *LessonReservationUpdateOne) RemoveLessonConfirmation(l ...*LessonConfirmation) *LessonReservationUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lruo.RemoveLessonConfirmationIDs(ids...)
 }
 
 // Where appends a list predicates to the LessonReservationUpdate builder.
@@ -567,7 +838,6 @@ func (lruo *LessonReservationUpdateOne) Select(field string, fields ...string) *
 
 // Save executes the query and returns the updated LessonReservation entity.
 func (lruo *LessonReservationUpdateOne) Save(ctx context.Context) (*LessonReservation, error) {
-	lruo.defaults()
 	return withHooks(ctx, lruo.sqlSave, lruo.mutation, lruo.hooks)
 }
 
@@ -593,14 +863,6 @@ func (lruo *LessonReservationUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
-// defaults sets the default values of the builder before save.
-func (lruo *LessonReservationUpdateOne) defaults() {
-	if _, ok := lruo.mutation.UpdatedAt(); !ok {
-		v := lessonreservation.UpdateDefaultUpdatedAt()
-		lruo.mutation.SetUpdatedAt(v)
-	}
-}
-
 // check runs all checks and user-defined validators on the builder.
 func (lruo *LessonReservationUpdateOne) check() error {
 	if v, ok := lruo.mutation.LessonScheduleID(); ok {
@@ -623,6 +885,15 @@ func (lruo *LessonReservationUpdateOne) check() error {
 			return &ValidationError{Name: "reservation_status", err: fmt.Errorf(`ent: validator failed for field "LessonReservation.reservation_status": %w`, err)}
 		}
 	}
+	if lruo.mutation.LessonScheduleCleared() && len(lruo.mutation.LessonScheduleIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LessonReservation.lesson_schedule"`)
+	}
+	if lruo.mutation.SchoolCleared() && len(lruo.mutation.SchoolIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LessonReservation.school"`)
+	}
+	if lruo.mutation.UserCleared() && len(lruo.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "LessonReservation.user"`)
+	}
 	return nil
 }
 
@@ -630,7 +901,7 @@ func (lruo *LessonReservationUpdateOne) sqlSave(ctx context.Context) (_node *Les
 	if err := lruo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt))
 	id, ok := lruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LessonReservation.id" for update`)}
@@ -654,24 +925,6 @@ func (lruo *LessonReservationUpdateOne) sqlSave(ctx context.Context) (_node *Les
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := lruo.mutation.LessonScheduleID(); ok {
-		_spec.SetField(lessonreservation.FieldLessonScheduleID, field.TypeInt64, value)
-	}
-	if value, ok := lruo.mutation.AddedLessonScheduleID(); ok {
-		_spec.AddField(lessonreservation.FieldLessonScheduleID, field.TypeInt64, value)
-	}
-	if value, ok := lruo.mutation.SchoolID(); ok {
-		_spec.SetField(lessonreservation.FieldSchoolID, field.TypeInt64, value)
-	}
-	if value, ok := lruo.mutation.AddedSchoolID(); ok {
-		_spec.AddField(lessonreservation.FieldSchoolID, field.TypeInt64, value)
-	}
-	if value, ok := lruo.mutation.UserID(); ok {
-		_spec.SetField(lessonreservation.FieldUserID, field.TypeInt64, value)
-	}
-	if value, ok := lruo.mutation.AddedUserID(); ok {
-		_spec.AddField(lessonreservation.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := lruo.mutation.ReservationStatus(); ok {
 		_spec.SetField(lessonreservation.FieldReservationStatus, field.TypeEnum, value)
@@ -697,14 +950,182 @@ func (lruo *LessonReservationUpdateOne) sqlSave(ctx context.Context) (_node *Les
 	if lruo.mutation.ReservationConfirmAtCleared() {
 		_spec.ClearField(lessonreservation.FieldReservationConfirmAt, field.TypeTime)
 	}
-	if value, ok := lruo.mutation.DeletedAt(); ok {
-		_spec.SetField(lessonreservation.FieldDeletedAt, field.TypeTime, value)
+	if lruo.mutation.LessonScheduleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.LessonScheduleTable,
+			Columns: []string{lessonreservation.LessonScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if lruo.mutation.DeletedAtCleared() {
-		_spec.ClearField(lessonreservation.FieldDeletedAt, field.TypeTime)
+	if nodes := lruo.mutation.LessonScheduleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.LessonScheduleTable,
+			Columns: []string{lessonreservation.LessonScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if value, ok := lruo.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonreservation.FieldUpdatedAt, field.TypeTime, value)
+	if lruo.mutation.SchoolCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.SchoolTable,
+			Columns: []string{lessonreservation.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lruo.mutation.SchoolIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.SchoolTable,
+			Columns: []string{lessonreservation.SchoolColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lruo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.UserTable,
+			Columns: []string{lessonreservation.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lruo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonreservation.UserTable,
+			Columns: []string{lessonreservation.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lruo.mutation.LessonReservationPreferredDatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonReservationPreferredDatesTable,
+			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lruo.mutation.RemovedLessonReservationPreferredDatesIDs(); len(nodes) > 0 && !lruo.mutation.LessonReservationPreferredDatesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonReservationPreferredDatesTable,
+			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lruo.mutation.LessonReservationPreferredDatesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonReservationPreferredDatesTable,
+			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lruo.mutation.LessonConfirmationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonConfirmationTable,
+			Columns: []string{lessonreservation.LessonConfirmationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lruo.mutation.RemovedLessonConfirmationIDs(); len(nodes) > 0 && !lruo.mutation.LessonConfirmationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonConfirmationTable,
+			Columns: []string{lessonreservation.LessonConfirmationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lruo.mutation.LessonConfirmationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonreservation.LessonConfirmationTable,
+			Columns: []string{lessonreservation.LessonConfirmationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &LessonReservation{config: lruo.config}
 	_spec.Assign = _node.assignValues

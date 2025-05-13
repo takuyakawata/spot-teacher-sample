@@ -31,14 +31,20 @@ func (iu *InquiryUpdate) Where(ps ...predicate.Inquiry) *InquiryUpdate {
 	return iu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (iu *InquiryUpdate) SetUpdatedAt(t time.Time) *InquiryUpdate {
+	iu.mutation.SetUpdatedAt(t)
+	return iu
+}
+
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (iu *InquiryUpdate) SetLessonScheduleID(i int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetLessonScheduleID(i int) *InquiryUpdate {
 	iu.mutation.SetLessonScheduleID(i)
 	return iu
 }
 
 // SetNillableLessonScheduleID sets the "lesson_schedule_id" field if the given value is not nil.
-func (iu *InquiryUpdate) SetNillableLessonScheduleID(i *int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetNillableLessonScheduleID(i *int) *InquiryUpdate {
 	if i != nil {
 		iu.SetLessonScheduleID(*i)
 	}
@@ -46,13 +52,13 @@ func (iu *InquiryUpdate) SetNillableLessonScheduleID(i *int64) *InquiryUpdate {
 }
 
 // SetSchoolID sets the "school_id" field.
-func (iu *InquiryUpdate) SetSchoolID(i int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetSchoolID(i int) *InquiryUpdate {
 	iu.mutation.SetSchoolID(i)
 	return iu
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (iu *InquiryUpdate) SetNillableSchoolID(i *int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetNillableSchoolID(i *int) *InquiryUpdate {
 	if i != nil {
 		iu.SetSchoolID(*i)
 	}
@@ -60,13 +66,13 @@ func (iu *InquiryUpdate) SetNillableSchoolID(i *int64) *InquiryUpdate {
 }
 
 // SetUserID sets the "user_id" field.
-func (iu *InquiryUpdate) SetUserID(i int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetUserID(i int) *InquiryUpdate {
 	iu.mutation.SetUserID(i)
 	return iu
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (iu *InquiryUpdate) SetNillableUserID(i *int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetNillableUserID(i *int) *InquiryUpdate {
 	if i != nil {
 		iu.SetUserID(*i)
 	}
@@ -101,34 +107,8 @@ func (iu *InquiryUpdate) SetNillableInquiryDetail(s *string) *InquiryUpdate {
 	return iu
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (iu *InquiryUpdate) SetDeletedAt(t time.Time) *InquiryUpdate {
-	iu.mutation.SetDeletedAt(t)
-	return iu
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (iu *InquiryUpdate) SetNillableDeletedAt(t *time.Time) *InquiryUpdate {
-	if t != nil {
-		iu.SetDeletedAt(*t)
-	}
-	return iu
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (iu *InquiryUpdate) ClearDeletedAt() *InquiryUpdate {
-	iu.mutation.ClearDeletedAt()
-	return iu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (iu *InquiryUpdate) SetUpdatedAt(t time.Time) *InquiryUpdate {
-	iu.mutation.SetUpdatedAt(t)
-	return iu
-}
-
 // SetLessonID sets the "lesson" edge to the LessonPlan entity by ID.
-func (iu *InquiryUpdate) SetLessonID(id int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetLessonID(id int) *InquiryUpdate {
 	iu.mutation.SetLessonID(id)
 	return iu
 }
@@ -144,7 +124,7 @@ func (iu *InquiryUpdate) SetSchool(s *School) *InquiryUpdate {
 }
 
 // SetTeacherID sets the "teacher" edge to the User entity by ID.
-func (iu *InquiryUpdate) SetTeacherID(id int64) *InquiryUpdate {
+func (iu *InquiryUpdate) SetTeacherID(id int) *InquiryUpdate {
 	iu.mutation.SetTeacherID(id)
 	return iu
 }
@@ -251,7 +231,7 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := iu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(inquiry.Table, inquiry.Columns, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(inquiry.Table, inquiry.Columns, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt))
 	if ps := iu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -259,20 +239,14 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := iu.mutation.UpdatedAt(); ok {
+		_spec.SetField(inquiry.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := iu.mutation.Category(); ok {
 		_spec.SetField(inquiry.FieldCategory, field.TypeEnum, value)
 	}
 	if value, ok := iu.mutation.InquiryDetail(); ok {
 		_spec.SetField(inquiry.FieldInquiryDetail, field.TypeString, value)
-	}
-	if value, ok := iu.mutation.DeletedAt(); ok {
-		_spec.SetField(inquiry.FieldDeletedAt, field.TypeTime, value)
-	}
-	if iu.mutation.DeletedAtCleared() {
-		_spec.ClearField(inquiry.FieldDeletedAt, field.TypeTime)
-	}
-	if value, ok := iu.mutation.UpdatedAt(); ok {
-		_spec.SetField(inquiry.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if iu.mutation.LessonCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -282,7 +256,7 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{inquiry.LessonColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -295,7 +269,7 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{inquiry.LessonColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -311,7 +285,7 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{inquiry.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -324,7 +298,7 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{inquiry.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -335,12 +309,12 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if iu.mutation.TeacherCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   inquiry.TeacherTable,
 			Columns: []string{inquiry.TeacherColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -348,12 +322,12 @@ func (iu *InquiryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := iu.mutation.TeacherIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   inquiry.TeacherTable,
 			Columns: []string{inquiry.TeacherColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -381,14 +355,20 @@ type InquiryUpdateOne struct {
 	mutation *InquiryMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (iuo *InquiryUpdateOne) SetUpdatedAt(t time.Time) *InquiryUpdateOne {
+	iuo.mutation.SetUpdatedAt(t)
+	return iuo
+}
+
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (iuo *InquiryUpdateOne) SetLessonScheduleID(i int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetLessonScheduleID(i int) *InquiryUpdateOne {
 	iuo.mutation.SetLessonScheduleID(i)
 	return iuo
 }
 
 // SetNillableLessonScheduleID sets the "lesson_schedule_id" field if the given value is not nil.
-func (iuo *InquiryUpdateOne) SetNillableLessonScheduleID(i *int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetNillableLessonScheduleID(i *int) *InquiryUpdateOne {
 	if i != nil {
 		iuo.SetLessonScheduleID(*i)
 	}
@@ -396,13 +376,13 @@ func (iuo *InquiryUpdateOne) SetNillableLessonScheduleID(i *int64) *InquiryUpdat
 }
 
 // SetSchoolID sets the "school_id" field.
-func (iuo *InquiryUpdateOne) SetSchoolID(i int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetSchoolID(i int) *InquiryUpdateOne {
 	iuo.mutation.SetSchoolID(i)
 	return iuo
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (iuo *InquiryUpdateOne) SetNillableSchoolID(i *int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetNillableSchoolID(i *int) *InquiryUpdateOne {
 	if i != nil {
 		iuo.SetSchoolID(*i)
 	}
@@ -410,13 +390,13 @@ func (iuo *InquiryUpdateOne) SetNillableSchoolID(i *int64) *InquiryUpdateOne {
 }
 
 // SetUserID sets the "user_id" field.
-func (iuo *InquiryUpdateOne) SetUserID(i int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetUserID(i int) *InquiryUpdateOne {
 	iuo.mutation.SetUserID(i)
 	return iuo
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (iuo *InquiryUpdateOne) SetNillableUserID(i *int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetNillableUserID(i *int) *InquiryUpdateOne {
 	if i != nil {
 		iuo.SetUserID(*i)
 	}
@@ -451,34 +431,8 @@ func (iuo *InquiryUpdateOne) SetNillableInquiryDetail(s *string) *InquiryUpdateO
 	return iuo
 }
 
-// SetDeletedAt sets the "deleted_at" field.
-func (iuo *InquiryUpdateOne) SetDeletedAt(t time.Time) *InquiryUpdateOne {
-	iuo.mutation.SetDeletedAt(t)
-	return iuo
-}
-
-// SetNillableDeletedAt sets the "deleted_at" field if the given value is not nil.
-func (iuo *InquiryUpdateOne) SetNillableDeletedAt(t *time.Time) *InquiryUpdateOne {
-	if t != nil {
-		iuo.SetDeletedAt(*t)
-	}
-	return iuo
-}
-
-// ClearDeletedAt clears the value of the "deleted_at" field.
-func (iuo *InquiryUpdateOne) ClearDeletedAt() *InquiryUpdateOne {
-	iuo.mutation.ClearDeletedAt()
-	return iuo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (iuo *InquiryUpdateOne) SetUpdatedAt(t time.Time) *InquiryUpdateOne {
-	iuo.mutation.SetUpdatedAt(t)
-	return iuo
-}
-
 // SetLessonID sets the "lesson" edge to the LessonPlan entity by ID.
-func (iuo *InquiryUpdateOne) SetLessonID(id int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetLessonID(id int) *InquiryUpdateOne {
 	iuo.mutation.SetLessonID(id)
 	return iuo
 }
@@ -494,7 +448,7 @@ func (iuo *InquiryUpdateOne) SetSchool(s *School) *InquiryUpdateOne {
 }
 
 // SetTeacherID sets the "teacher" edge to the User entity by ID.
-func (iuo *InquiryUpdateOne) SetTeacherID(id int64) *InquiryUpdateOne {
+func (iuo *InquiryUpdateOne) SetTeacherID(id int) *InquiryUpdateOne {
 	iuo.mutation.SetTeacherID(id)
 	return iuo
 }
@@ -614,7 +568,7 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 	if err := iuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(inquiry.Table, inquiry.Columns, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(inquiry.Table, inquiry.Columns, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt))
 	id, ok := iuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Inquiry.id" for update`)}
@@ -639,20 +593,14 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 			}
 		}
 	}
+	if value, ok := iuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(inquiry.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := iuo.mutation.Category(); ok {
 		_spec.SetField(inquiry.FieldCategory, field.TypeEnum, value)
 	}
 	if value, ok := iuo.mutation.InquiryDetail(); ok {
 		_spec.SetField(inquiry.FieldInquiryDetail, field.TypeString, value)
-	}
-	if value, ok := iuo.mutation.DeletedAt(); ok {
-		_spec.SetField(inquiry.FieldDeletedAt, field.TypeTime, value)
-	}
-	if iuo.mutation.DeletedAtCleared() {
-		_spec.ClearField(inquiry.FieldDeletedAt, field.TypeTime)
-	}
-	if value, ok := iuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(inquiry.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if iuo.mutation.LessonCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -662,7 +610,7 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 			Columns: []string{inquiry.LessonColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -675,7 +623,7 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 			Columns: []string{inquiry.LessonColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -691,7 +639,7 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 			Columns: []string{inquiry.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -704,7 +652,7 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 			Columns: []string{inquiry.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -715,12 +663,12 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 	if iuo.mutation.TeacherCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   inquiry.TeacherTable,
 			Columns: []string{inquiry.TeacherColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -728,12 +676,12 @@ func (iuo *InquiryUpdateOne) sqlSave(ctx context.Context) (_node *Inquiry, err e
 	if nodes := iuo.mutation.TeacherIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   inquiry.TeacherTable,
 			Columns: []string{inquiry.TeacherColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

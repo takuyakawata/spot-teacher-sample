@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +17,10 @@ type Subject struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Code holds the value of the "code" field.
@@ -23,7 +28,7 @@ type Subject struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SubjectQuery when eager-loading is set.
 	Edges                    SubjectEdges `json:"edges"`
-	lesson_schedule_subjects *int64
+	lesson_schedule_subjects *int
 	selectValues             sql.SelectValues
 }
 
@@ -54,6 +59,8 @@ func (*Subject) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case subject.FieldName, subject.FieldCode:
 			values[i] = new(sql.NullString)
+		case subject.FieldCreatedAt, subject.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		case subject.ForeignKeys[0]: // lesson_schedule_subjects
 			values[i] = new(sql.NullInt64)
 		default:
@@ -77,6 +84,18 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			s.ID = int(value.Int64)
+		case subject.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				s.CreatedAt = value.Time
+			}
+		case subject.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				s.UpdatedAt = value.Time
+			}
 		case subject.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -93,8 +112,8 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_subjects", value)
 			} else if value.Valid {
-				s.lesson_schedule_subjects = new(int64)
-				*s.lesson_schedule_subjects = int64(value.Int64)
+				s.lesson_schedule_subjects = new(int)
+				*s.lesson_schedule_subjects = int(value.Int64)
 			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
@@ -137,6 +156,12 @@ func (s *Subject) String() string {
 	var builder strings.Builder
 	builder.WriteString("Subject(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(s.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(s.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(s.Name)
 	builder.WriteString(", ")

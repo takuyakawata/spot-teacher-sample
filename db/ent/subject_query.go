@@ -300,12 +300,12 @@ func (sq *SubjectQuery) WithLessonPlans(opts ...func(*LessonPlanQuery)) *Subject
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Subject.Query().
-//		GroupBy(subject.FieldName).
+//		GroupBy(subject.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (sq *SubjectQuery) GroupBy(field string, fields ...string) *SubjectGroupBy {
@@ -323,11 +323,11 @@ func (sq *SubjectQuery) GroupBy(field string, fields ...string) *SubjectGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Subject.Query().
-//		Select(subject.FieldName).
+//		Select(subject.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (sq *SubjectQuery) Select(fields ...string) *SubjectSelect {
 	sq.ctx.Fields = append(sq.ctx.Fields, fields...)
@@ -411,7 +411,7 @@ func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subj
 func (sq *SubjectQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *LessonPlan)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*Subject)
-	nids := make(map[int64]map[*Subject]struct{})
+	nids := make(map[int]map[*Subject]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -444,7 +444,7 @@ func (sq *SubjectQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQu
 			}
 			spec.Assign = func(columns []string, values []any) error {
 				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := values[1].(*sql.NullInt64).Int64
+				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
 					nids[inValue] = map[*Subject]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])

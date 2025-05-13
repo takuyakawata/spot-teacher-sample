@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
@@ -28,9 +29,9 @@ func (ufu *UploadFileUpdate) Where(ps ...predicate.UploadFile) *UploadFileUpdate
 	return ufu
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (ufu *UploadFileUpdate) SetUpdateTime(t time.Time) *UploadFileUpdate {
-	ufu.mutation.SetUpdateTime(t)
+// SetUpdatedAt sets the "updated_at" field.
+func (ufu *UploadFileUpdate) SetUpdatedAt(t time.Time) *UploadFileUpdate {
+	ufu.mutation.SetUpdatedAt(t)
 	return ufu
 }
 
@@ -49,14 +50,14 @@ func (ufu *UploadFileUpdate) SetNillablePhotoKey(s *string) *UploadFileUpdate {
 }
 
 // SetUserID sets the "user_id" field.
-func (ufu *UploadFileUpdate) SetUserID(i int64) *UploadFileUpdate {
+func (ufu *UploadFileUpdate) SetUserID(i int) *UploadFileUpdate {
 	ufu.mutation.ResetUserID()
 	ufu.mutation.SetUserID(i)
 	return ufu
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (ufu *UploadFileUpdate) SetNillableUserID(i *int64) *UploadFileUpdate {
+func (ufu *UploadFileUpdate) SetNillableUserID(i *int) *UploadFileUpdate {
 	if i != nil {
 		ufu.SetUserID(*i)
 	}
@@ -64,14 +65,31 @@ func (ufu *UploadFileUpdate) SetNillableUserID(i *int64) *UploadFileUpdate {
 }
 
 // AddUserID adds i to the "user_id" field.
-func (ufu *UploadFileUpdate) AddUserID(i int64) *UploadFileUpdate {
+func (ufu *UploadFileUpdate) AddUserID(i int) *UploadFileUpdate {
 	ufu.mutation.AddUserID(i)
 	return ufu
+}
+
+// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by ID.
+func (ufu *UploadFileUpdate) SetLessonPlanID(id int) *UploadFileUpdate {
+	ufu.mutation.SetLessonPlanID(id)
+	return ufu
+}
+
+// SetLessonPlan sets the "LessonPlan" edge to the LessonPlan entity.
+func (ufu *UploadFileUpdate) SetLessonPlan(l *LessonPlan) *UploadFileUpdate {
+	return ufu.SetLessonPlanID(l.ID)
 }
 
 // Mutation returns the UploadFileMutation object of the builder.
 func (ufu *UploadFileUpdate) Mutation() *UploadFileMutation {
 	return ufu.mutation
+}
+
+// ClearLessonPlan clears the "LessonPlan" edge to the LessonPlan entity.
+func (ufu *UploadFileUpdate) ClearLessonPlan() *UploadFileUpdate {
+	ufu.mutation.ClearLessonPlan()
+	return ufu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -104,9 +122,9 @@ func (ufu *UploadFileUpdate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ufu *UploadFileUpdate) defaults() {
-	if _, ok := ufu.mutation.UpdateTime(); !ok {
-		v := uploadfile.UpdateDefaultUpdateTime()
-		ufu.mutation.SetUpdateTime(v)
+	if _, ok := ufu.mutation.UpdatedAt(); !ok {
+		v := uploadfile.UpdateDefaultUpdatedAt()
+		ufu.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -121,6 +139,9 @@ func (ufu *UploadFileUpdate) check() error {
 		if err := uploadfile.UserIDValidator(v); err != nil {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.user_id": %w`, err)}
 		}
+	}
+	if ufu.mutation.LessonPlanCleared() && len(ufu.mutation.LessonPlanIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "UploadFile.LessonPlan"`)
 	}
 	return nil
 }
@@ -137,17 +158,46 @@ func (ufu *UploadFileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := ufu.mutation.UpdateTime(); ok {
-		_spec.SetField(uploadfile.FieldUpdateTime, field.TypeTime, value)
+	if value, ok := ufu.mutation.UpdatedAt(); ok {
+		_spec.SetField(uploadfile.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := ufu.mutation.PhotoKey(); ok {
 		_spec.SetField(uploadfile.FieldPhotoKey, field.TypeString, value)
 	}
 	if value, ok := ufu.mutation.UserID(); ok {
-		_spec.SetField(uploadfile.FieldUserID, field.TypeInt64, value)
+		_spec.SetField(uploadfile.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := ufu.mutation.AddedUserID(); ok {
-		_spec.AddField(uploadfile.FieldUserID, field.TypeInt64, value)
+		_spec.AddField(uploadfile.FieldUserID, field.TypeInt, value)
+	}
+	if ufu.mutation.LessonPlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: []string{uploadfile.LessonPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufu.mutation.LessonPlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: []string{uploadfile.LessonPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ufu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -169,9 +219,9 @@ type UploadFileUpdateOne struct {
 	mutation *UploadFileMutation
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (ufuo *UploadFileUpdateOne) SetUpdateTime(t time.Time) *UploadFileUpdateOne {
-	ufuo.mutation.SetUpdateTime(t)
+// SetUpdatedAt sets the "updated_at" field.
+func (ufuo *UploadFileUpdateOne) SetUpdatedAt(t time.Time) *UploadFileUpdateOne {
+	ufuo.mutation.SetUpdatedAt(t)
 	return ufuo
 }
 
@@ -190,14 +240,14 @@ func (ufuo *UploadFileUpdateOne) SetNillablePhotoKey(s *string) *UploadFileUpdat
 }
 
 // SetUserID sets the "user_id" field.
-func (ufuo *UploadFileUpdateOne) SetUserID(i int64) *UploadFileUpdateOne {
+func (ufuo *UploadFileUpdateOne) SetUserID(i int) *UploadFileUpdateOne {
 	ufuo.mutation.ResetUserID()
 	ufuo.mutation.SetUserID(i)
 	return ufuo
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (ufuo *UploadFileUpdateOne) SetNillableUserID(i *int64) *UploadFileUpdateOne {
+func (ufuo *UploadFileUpdateOne) SetNillableUserID(i *int) *UploadFileUpdateOne {
 	if i != nil {
 		ufuo.SetUserID(*i)
 	}
@@ -205,14 +255,31 @@ func (ufuo *UploadFileUpdateOne) SetNillableUserID(i *int64) *UploadFileUpdateOn
 }
 
 // AddUserID adds i to the "user_id" field.
-func (ufuo *UploadFileUpdateOne) AddUserID(i int64) *UploadFileUpdateOne {
+func (ufuo *UploadFileUpdateOne) AddUserID(i int) *UploadFileUpdateOne {
 	ufuo.mutation.AddUserID(i)
 	return ufuo
+}
+
+// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by ID.
+func (ufuo *UploadFileUpdateOne) SetLessonPlanID(id int) *UploadFileUpdateOne {
+	ufuo.mutation.SetLessonPlanID(id)
+	return ufuo
+}
+
+// SetLessonPlan sets the "LessonPlan" edge to the LessonPlan entity.
+func (ufuo *UploadFileUpdateOne) SetLessonPlan(l *LessonPlan) *UploadFileUpdateOne {
+	return ufuo.SetLessonPlanID(l.ID)
 }
 
 // Mutation returns the UploadFileMutation object of the builder.
 func (ufuo *UploadFileUpdateOne) Mutation() *UploadFileMutation {
 	return ufuo.mutation
+}
+
+// ClearLessonPlan clears the "LessonPlan" edge to the LessonPlan entity.
+func (ufuo *UploadFileUpdateOne) ClearLessonPlan() *UploadFileUpdateOne {
+	ufuo.mutation.ClearLessonPlan()
+	return ufuo
 }
 
 // Where appends a list predicates to the UploadFileUpdate builder.
@@ -258,9 +325,9 @@ func (ufuo *UploadFileUpdateOne) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ufuo *UploadFileUpdateOne) defaults() {
-	if _, ok := ufuo.mutation.UpdateTime(); !ok {
-		v := uploadfile.UpdateDefaultUpdateTime()
-		ufuo.mutation.SetUpdateTime(v)
+	if _, ok := ufuo.mutation.UpdatedAt(); !ok {
+		v := uploadfile.UpdateDefaultUpdatedAt()
+		ufuo.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -275,6 +342,9 @@ func (ufuo *UploadFileUpdateOne) check() error {
 		if err := uploadfile.UserIDValidator(v); err != nil {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.user_id": %w`, err)}
 		}
+	}
+	if ufuo.mutation.LessonPlanCleared() && len(ufuo.mutation.LessonPlanIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "UploadFile.LessonPlan"`)
 	}
 	return nil
 }
@@ -308,17 +378,46 @@ func (ufuo *UploadFileUpdateOne) sqlSave(ctx context.Context) (_node *UploadFile
 			}
 		}
 	}
-	if value, ok := ufuo.mutation.UpdateTime(); ok {
-		_spec.SetField(uploadfile.FieldUpdateTime, field.TypeTime, value)
+	if value, ok := ufuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(uploadfile.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := ufuo.mutation.PhotoKey(); ok {
 		_spec.SetField(uploadfile.FieldPhotoKey, field.TypeString, value)
 	}
 	if value, ok := ufuo.mutation.UserID(); ok {
-		_spec.SetField(uploadfile.FieldUserID, field.TypeInt64, value)
+		_spec.SetField(uploadfile.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := ufuo.mutation.AddedUserID(); ok {
-		_spec.AddField(uploadfile.FieldUserID, field.TypeInt64, value)
+		_spec.AddField(uploadfile.FieldUserID, field.TypeInt, value)
+	}
+	if ufuo.mutation.LessonPlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: []string{uploadfile.LessonPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufuo.mutation.LessonPlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: []string{uploadfile.LessonPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &UploadFile{config: ufuo.config}
 	_spec.Assign = _node.assignValues

@@ -20,30 +20,30 @@ type EmailVerificationCreate struct {
 	hooks    []Hook
 }
 
-// SetCreateTime sets the "create_time" field.
-func (evc *EmailVerificationCreate) SetCreateTime(t time.Time) *EmailVerificationCreate {
-	evc.mutation.SetCreateTime(t)
+// SetCreatedAt sets the "created_at" field.
+func (evc *EmailVerificationCreate) SetCreatedAt(t time.Time) *EmailVerificationCreate {
+	evc.mutation.SetCreatedAt(t)
 	return evc
 }
 
-// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
-func (evc *EmailVerificationCreate) SetNillableCreateTime(t *time.Time) *EmailVerificationCreate {
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (evc *EmailVerificationCreate) SetNillableCreatedAt(t *time.Time) *EmailVerificationCreate {
 	if t != nil {
-		evc.SetCreateTime(*t)
+		evc.SetCreatedAt(*t)
 	}
 	return evc
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (evc *EmailVerificationCreate) SetUpdateTime(t time.Time) *EmailVerificationCreate {
-	evc.mutation.SetUpdateTime(t)
+// SetUpdatedAt sets the "updated_at" field.
+func (evc *EmailVerificationCreate) SetUpdatedAt(t time.Time) *EmailVerificationCreate {
+	evc.mutation.SetUpdatedAt(t)
 	return evc
 }
 
-// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
-func (evc *EmailVerificationCreate) SetNillableUpdateTime(t *time.Time) *EmailVerificationCreate {
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (evc *EmailVerificationCreate) SetNillableUpdatedAt(t *time.Time) *EmailVerificationCreate {
 	if t != nil {
-		evc.SetUpdateTime(*t)
+		evc.SetUpdatedAt(*t)
 	}
 	return evc
 }
@@ -101,23 +101,23 @@ func (evc *EmailVerificationCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (evc *EmailVerificationCreate) defaults() {
-	if _, ok := evc.mutation.CreateTime(); !ok {
-		v := emailverification.DefaultCreateTime()
-		evc.mutation.SetCreateTime(v)
+	if _, ok := evc.mutation.CreatedAt(); !ok {
+		v := emailverification.DefaultCreatedAt()
+		evc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := evc.mutation.UpdateTime(); !ok {
-		v := emailverification.DefaultUpdateTime()
-		evc.mutation.SetUpdateTime(v)
+	if _, ok := evc.mutation.UpdatedAt(); !ok {
+		v := emailverification.DefaultUpdatedAt()
+		evc.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (evc *EmailVerificationCreate) check() error {
-	if _, ok := evc.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "EmailVerification.create_time"`)}
+	if _, ok := evc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "EmailVerification.created_at"`)}
 	}
-	if _, ok := evc.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "EmailVerification.update_time"`)}
+	if _, ok := evc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "EmailVerification.updated_at"`)}
 	}
 	if _, ok := evc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "EmailVerification.email"`)}
@@ -154,13 +154,13 @@ func (evc *EmailVerificationCreate) createSpec() (*EmailVerification, *sqlgraph.
 		_node = &EmailVerification{config: evc.config}
 		_spec = sqlgraph.NewCreateSpec(emailverification.Table, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt))
 	)
-	if value, ok := evc.mutation.CreateTime(); ok {
-		_spec.SetField(emailverification.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = value
+	if value, ok := evc.mutation.CreatedAt(); ok {
+		_spec.SetField(emailverification.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
 	}
-	if value, ok := evc.mutation.UpdateTime(); ok {
-		_spec.SetField(emailverification.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = value
+	if value, ok := evc.mutation.UpdatedAt(); ok {
+		_spec.SetField(emailverification.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := evc.mutation.Email(); ok {
 		_spec.SetField(emailverification.FieldEmail, field.TypeString, value)

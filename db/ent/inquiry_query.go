@@ -122,7 +122,7 @@ func (iq *InquiryQuery) QueryTeacher() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(inquiry.Table, inquiry.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, inquiry.TeacherTable, inquiry.TeacherColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, inquiry.TeacherTable, inquiry.TeacherColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
 		return fromU, nil
@@ -154,8 +154,8 @@ func (iq *InquiryQuery) FirstX(ctx context.Context) *Inquiry {
 
 // FirstID returns the first Inquiry ID from the query.
 // Returns a *NotFoundError when no Inquiry ID was found.
-func (iq *InquiryQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (iq *InquiryQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = iq.Limit(1).IDs(setContextOp(ctx, iq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -167,7 +167,7 @@ func (iq *InquiryQuery) FirstID(ctx context.Context) (id int64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (iq *InquiryQuery) FirstIDX(ctx context.Context) int64 {
+func (iq *InquiryQuery) FirstIDX(ctx context.Context) int {
 	id, err := iq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -205,8 +205,8 @@ func (iq *InquiryQuery) OnlyX(ctx context.Context) *Inquiry {
 // OnlyID is like Only, but returns the only Inquiry ID in the query.
 // Returns a *NotSingularError when more than one Inquiry ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (iq *InquiryQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (iq *InquiryQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = iq.Limit(2).IDs(setContextOp(ctx, iq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -222,7 +222,7 @@ func (iq *InquiryQuery) OnlyID(ctx context.Context) (id int64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (iq *InquiryQuery) OnlyIDX(ctx context.Context) int64 {
+func (iq *InquiryQuery) OnlyIDX(ctx context.Context) int {
 	id, err := iq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -250,7 +250,7 @@ func (iq *InquiryQuery) AllX(ctx context.Context) []*Inquiry {
 }
 
 // IDs executes the query and returns a list of Inquiry IDs.
-func (iq *InquiryQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (iq *InquiryQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if iq.ctx.Unique == nil && iq.path != nil {
 		iq.Unique(true)
 	}
@@ -262,7 +262,7 @@ func (iq *InquiryQuery) IDs(ctx context.Context) (ids []int64, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (iq *InquiryQuery) IDsX(ctx context.Context) []int64 {
+func (iq *InquiryQuery) IDsX(ctx context.Context) []int {
 	ids, err := iq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -370,12 +370,12 @@ func (iq *InquiryQuery) WithTeacher(opts ...func(*UserQuery)) *InquiryQuery {
 // Example:
 //
 //	var v []struct {
-//		LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Inquiry.Query().
-//		GroupBy(inquiry.FieldLessonScheduleID).
+//		GroupBy(inquiry.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (iq *InquiryQuery) GroupBy(field string, fields ...string) *InquiryGroupBy {
@@ -393,11 +393,11 @@ func (iq *InquiryQuery) GroupBy(field string, fields ...string) *InquiryGroupBy 
 // Example:
 //
 //	var v []struct {
-//		LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Inquiry.Query().
-//		Select(inquiry.FieldLessonScheduleID).
+//		Select(inquiry.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (iq *InquiryQuery) Select(fields ...string) *InquirySelect {
 	iq.ctx.Fields = append(iq.ctx.Fields, fields...)
@@ -488,8 +488,8 @@ func (iq *InquiryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Inqu
 }
 
 func (iq *InquiryQuery) loadLesson(ctx context.Context, query *LessonPlanQuery, nodes []*Inquiry, init func(*Inquiry), assign func(*Inquiry, *LessonPlan)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Inquiry)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Inquiry)
 	for i := range nodes {
 		fk := nodes[i].LessonScheduleID
 		if _, ok := nodeids[fk]; !ok {
@@ -517,8 +517,8 @@ func (iq *InquiryQuery) loadLesson(ctx context.Context, query *LessonPlanQuery, 
 	return nil
 }
 func (iq *InquiryQuery) loadSchool(ctx context.Context, query *SchoolQuery, nodes []*Inquiry, init func(*Inquiry), assign func(*Inquiry, *School)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Inquiry)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Inquiry)
 	for i := range nodes {
 		fk := nodes[i].SchoolID
 		if _, ok := nodeids[fk]; !ok {
@@ -546,8 +546,8 @@ func (iq *InquiryQuery) loadSchool(ctx context.Context, query *SchoolQuery, node
 	return nil
 }
 func (iq *InquiryQuery) loadTeacher(ctx context.Context, query *UserQuery, nodes []*Inquiry, init func(*Inquiry), assign func(*Inquiry, *User)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*Inquiry)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*Inquiry)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -585,7 +585,7 @@ func (iq *InquiryQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (iq *InquiryQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(inquiry.Table, inquiry.Columns, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(inquiry.Table, inquiry.Columns, sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt))
 	_spec.From = iq.sql
 	if unique := iq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -15,15 +15,18 @@ type EducationCategory struct {
 // Fields of the EducationCategory.
 func (EducationCategory) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("id").
-			Positive().
-			Unique(),
 		field.String("name").
 			NotEmpty().
 			Unique(),
 		field.String("code").
 			NotEmpty().
 			Unique(),
+	}
+}
+
+func (EducationCategory) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 

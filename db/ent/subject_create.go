@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,34 @@ type SubjectCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (sc *SubjectCreate) SetCreatedAt(t time.Time) *SubjectCreate {
+	sc.mutation.SetCreatedAt(t)
+	return sc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (sc *SubjectCreate) SetNillableCreatedAt(t *time.Time) *SubjectCreate {
+	if t != nil {
+		sc.SetCreatedAt(*t)
+	}
+	return sc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (sc *SubjectCreate) SetUpdatedAt(t time.Time) *SubjectCreate {
+	sc.mutation.SetUpdatedAt(t)
+	return sc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (sc *SubjectCreate) SetNillableUpdatedAt(t *time.Time) *SubjectCreate {
+	if t != nil {
+		sc.SetUpdatedAt(*t)
+	}
+	return sc
+}
+
 // SetName sets the "name" field.
 func (sc *SubjectCreate) SetName(s string) *SubjectCreate {
 	sc.mutation.SetName(s)
@@ -32,21 +61,15 @@ func (sc *SubjectCreate) SetCode(s string) *SubjectCreate {
 	return sc
 }
 
-// SetID sets the "id" field.
-func (sc *SubjectCreate) SetID(i int) *SubjectCreate {
-	sc.mutation.SetID(i)
-	return sc
-}
-
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (sc *SubjectCreate) AddLessonPlanIDs(ids ...int64) *SubjectCreate {
+func (sc *SubjectCreate) AddLessonPlanIDs(ids ...int) *SubjectCreate {
 	sc.mutation.AddLessonPlanIDs(ids...)
 	return sc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (sc *SubjectCreate) AddLessonPlans(l ...*LessonPlan) *SubjectCreate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -60,6 +83,7 @@ func (sc *SubjectCreate) Mutation() *SubjectMutation {
 
 // Save creates the Subject in the database.
 func (sc *SubjectCreate) Save(ctx context.Context) (*Subject, error) {
+	sc.defaults()
 	return withHooks(ctx, sc.sqlSave, sc.mutation, sc.hooks)
 }
 
@@ -85,8 +109,26 @@ func (sc *SubjectCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (sc *SubjectCreate) defaults() {
+	if _, ok := sc.mutation.CreatedAt(); !ok {
+		v := subject.DefaultCreatedAt()
+		sc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := sc.mutation.UpdatedAt(); !ok {
+		v := subject.DefaultUpdatedAt()
+		sc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (sc *SubjectCreate) check() error {
+	if _, ok := sc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Subject.created_at"`)}
+	}
+	if _, ok := sc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Subject.updated_at"`)}
+	}
 	if _, ok := sc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Subject.name"`)}
 	}
@@ -103,11 +145,6 @@ func (sc *SubjectCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Subject.code": %w`, err)}
 		}
 	}
-	if v, ok := sc.mutation.ID(); ok {
-		if err := subject.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Subject.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -122,10 +159,8 @@ func (sc *SubjectCreate) sqlSave(ctx context.Context) (*Subject, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	sc.mutation.id = &_node.ID
 	sc.mutation.done = true
 	return _node, nil
@@ -136,9 +171,13 @@ func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 		_node = &Subject{config: sc.config}
 		_spec = sqlgraph.NewCreateSpec(subject.Table, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt))
 	)
-	if id, ok := sc.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := sc.mutation.CreatedAt(); ok {
+		_spec.SetField(subject.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := sc.mutation.UpdatedAt(); ok {
+		_spec.SetField(subject.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := sc.mutation.Name(); ok {
 		_spec.SetField(subject.FieldName, field.TypeString, value)
@@ -156,7 +195,7 @@ func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -185,6 +224,7 @@ func (scb *SubjectCreateBulk) Save(ctx context.Context) ([]*Subject, error) {
 	for i := range scb.builders {
 		func(i int, root context.Context) {
 			builder := scb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*SubjectMutation)
 				if !ok {
@@ -211,7 +251,7 @@ func (scb *SubjectCreateBulk) Save(ctx context.Context) ([]*Subject, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

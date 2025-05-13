@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,34 @@ type GradeCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (gc *GradeCreate) SetCreatedAt(t time.Time) *GradeCreate {
+	gc.mutation.SetCreatedAt(t)
+	return gc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (gc *GradeCreate) SetNillableCreatedAt(t *time.Time) *GradeCreate {
+	if t != nil {
+		gc.SetCreatedAt(*t)
+	}
+	return gc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (gc *GradeCreate) SetUpdatedAt(t time.Time) *GradeCreate {
+	gc.mutation.SetUpdatedAt(t)
+	return gc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (gc *GradeCreate) SetNillableUpdatedAt(t *time.Time) *GradeCreate {
+	if t != nil {
+		gc.SetUpdatedAt(*t)
+	}
+	return gc
+}
+
 // SetName sets the "name" field.
 func (gc *GradeCreate) SetName(s string) *GradeCreate {
 	gc.mutation.SetName(s)
@@ -32,21 +61,15 @@ func (gc *GradeCreate) SetCode(s string) *GradeCreate {
 	return gc
 }
 
-// SetID sets the "id" field.
-func (gc *GradeCreate) SetID(i int) *GradeCreate {
-	gc.mutation.SetID(i)
-	return gc
-}
-
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (gc *GradeCreate) AddLessonPlanIDs(ids ...int64) *GradeCreate {
+func (gc *GradeCreate) AddLessonPlanIDs(ids ...int) *GradeCreate {
 	gc.mutation.AddLessonPlanIDs(ids...)
 	return gc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (gc *GradeCreate) AddLessonPlans(l ...*LessonPlan) *GradeCreate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -60,6 +83,7 @@ func (gc *GradeCreate) Mutation() *GradeMutation {
 
 // Save creates the Grade in the database.
 func (gc *GradeCreate) Save(ctx context.Context) (*Grade, error) {
+	gc.defaults()
 	return withHooks(ctx, gc.sqlSave, gc.mutation, gc.hooks)
 }
 
@@ -85,8 +109,26 @@ func (gc *GradeCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (gc *GradeCreate) defaults() {
+	if _, ok := gc.mutation.CreatedAt(); !ok {
+		v := grade.DefaultCreatedAt()
+		gc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := gc.mutation.UpdatedAt(); !ok {
+		v := grade.DefaultUpdatedAt()
+		gc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (gc *GradeCreate) check() error {
+	if _, ok := gc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Grade.created_at"`)}
+	}
+	if _, ok := gc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Grade.updated_at"`)}
+	}
 	if _, ok := gc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Grade.name"`)}
 	}
@@ -103,11 +145,6 @@ func (gc *GradeCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Grade.code": %w`, err)}
 		}
 	}
-	if v, ok := gc.mutation.ID(); ok {
-		if err := grade.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Grade.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -122,10 +159,8 @@ func (gc *GradeCreate) sqlSave(ctx context.Context) (*Grade, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	gc.mutation.id = &_node.ID
 	gc.mutation.done = true
 	return _node, nil
@@ -136,9 +171,13 @@ func (gc *GradeCreate) createSpec() (*Grade, *sqlgraph.CreateSpec) {
 		_node = &Grade{config: gc.config}
 		_spec = sqlgraph.NewCreateSpec(grade.Table, sqlgraph.NewFieldSpec(grade.FieldID, field.TypeInt))
 	)
-	if id, ok := gc.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := gc.mutation.CreatedAt(); ok {
+		_spec.SetField(grade.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := gc.mutation.UpdatedAt(); ok {
+		_spec.SetField(grade.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := gc.mutation.Name(); ok {
 		_spec.SetField(grade.FieldName, field.TypeString, value)
@@ -156,7 +195,7 @@ func (gc *GradeCreate) createSpec() (*Grade, *sqlgraph.CreateSpec) {
 			Columns: grade.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -185,6 +224,7 @@ func (gcb *GradeCreateBulk) Save(ctx context.Context) ([]*Grade, error) {
 	for i := range gcb.builders {
 		func(i int, root context.Context) {
 			builder := gcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*GradeMutation)
 				if !ok {
@@ -211,7 +251,7 @@ func (gcb *GradeCreateBulk) Save(ctx context.Context) ([]*Grade, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

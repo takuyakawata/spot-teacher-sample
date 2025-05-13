@@ -19,23 +19,21 @@ import (
 type Inquiry struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int64 `json:"id,omitempty"`
-	// LessonScheduleID holds the value of the "lesson_schedule_id" field.
-	LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
-	// SchoolID holds the value of the "school_id" field.
-	SchoolID int64 `json:"school_id,omitempty"`
-	// UserID holds the value of the "user_id" field.
-	UserID int64 `json:"user_id,omitempty"`
-	// Category holds the value of the "category" field.
-	Category inquiry.Category `json:"category,omitempty"`
-	// InquiryDetail holds the value of the "inquiry_detail" field.
-	InquiryDetail string `json:"inquiry_detail,omitempty"`
-	// DeletedAt holds the value of the "deleted_at" field.
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	ID int `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// LessonScheduleID holds the value of the "lesson_schedule_id" field.
+	LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
+	// SchoolID holds the value of the "school_id" field.
+	SchoolID int `json:"school_id,omitempty"`
+	// UserID holds the value of the "user_id" field.
+	UserID int `json:"user_id,omitempty"`
+	// Category holds the value of the "category" field.
+	Category inquiry.Category `json:"category,omitempty"`
+	// InquiryDetail holds the value of the "inquiry_detail" field.
+	InquiryDetail string `json:"inquiry_detail,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the InquiryQuery when eager-loading is set.
 	Edges        InquiryEdges `json:"edges"`
@@ -97,7 +95,7 @@ func (*Inquiry) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case inquiry.FieldCategory, inquiry.FieldInquiryDetail:
 			values[i] = new(sql.NullString)
-		case inquiry.FieldDeletedAt, inquiry.FieldCreatedAt, inquiry.FieldUpdatedAt:
+		case inquiry.FieldCreatedAt, inquiry.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -119,24 +117,36 @@ func (i *Inquiry) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			i.ID = int64(value.Int64)
+			i.ID = int(value.Int64)
+		case inquiry.FieldCreatedAt:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[j])
+			} else if value.Valid {
+				i.CreatedAt = value.Time
+			}
+		case inquiry.FieldUpdatedAt:
+			if value, ok := values[j].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[j])
+			} else if value.Valid {
+				i.UpdatedAt = value.Time
+			}
 		case inquiry.FieldLessonScheduleID:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_schedule_id", values[j])
 			} else if value.Valid {
-				i.LessonScheduleID = value.Int64
+				i.LessonScheduleID = int(value.Int64)
 			}
 		case inquiry.FieldSchoolID:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field school_id", values[j])
 			} else if value.Valid {
-				i.SchoolID = value.Int64
+				i.SchoolID = int(value.Int64)
 			}
 		case inquiry.FieldUserID:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[j])
 			} else if value.Valid {
-				i.UserID = value.Int64
+				i.UserID = int(value.Int64)
 			}
 		case inquiry.FieldCategory:
 			if value, ok := values[j].(*sql.NullString); !ok {
@@ -149,25 +159,6 @@ func (i *Inquiry) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field inquiry_detail", values[j])
 			} else if value.Valid {
 				i.InquiryDetail = value.String
-			}
-		case inquiry.FieldDeletedAt:
-			if value, ok := values[j].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field deleted_at", values[j])
-			} else if value.Valid {
-				i.DeletedAt = new(time.Time)
-				*i.DeletedAt = value.Time
-			}
-		case inquiry.FieldCreatedAt:
-			if value, ok := values[j].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[j])
-			} else if value.Valid {
-				i.CreatedAt = value.Time
-			}
-		case inquiry.FieldUpdatedAt:
-			if value, ok := values[j].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[j])
-			} else if value.Valid {
-				i.UpdatedAt = value.Time
 			}
 		default:
 			i.selectValues.Set(columns[j], values[j])
@@ -220,6 +211,12 @@ func (i *Inquiry) String() string {
 	var builder strings.Builder
 	builder.WriteString("Inquiry(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", i.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(i.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(i.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("lesson_schedule_id=")
 	builder.WriteString(fmt.Sprintf("%v", i.LessonScheduleID))
 	builder.WriteString(", ")
@@ -234,17 +231,6 @@ func (i *Inquiry) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("inquiry_detail=")
 	builder.WriteString(i.InquiryDetail)
-	builder.WriteString(", ")
-	if v := i.DeletedAt; v != nil {
-		builder.WriteString("deleted_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(i.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(i.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

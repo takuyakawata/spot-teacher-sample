@@ -5,16 +5,13 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"time"
 )
 
 type LessonPlan struct{ ent.Schema }
 
 func (LessonPlan) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id").Positive(),
-
-		field.Int64("company_id").Positive(),
+		field.Int("company_id").Positive(),
 
 		field.String("title").NotEmpty().MaxLen(500),
 
@@ -37,28 +34,27 @@ func (LessonPlan) Fields() []ent.Field {
 		field.Time("start_time"),
 
 		field.Time("end_time"),
+	}
+}
 
-		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
-
-		field.Time("created_at").Default(time.Now).Immutable(),
+func (LessonPlan) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 
 func (LessonPlan) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("schedules", LessonSchedule.Type),
 		edge.From("company", Company.Type).
 			Ref("lesson_plans").
 			Field("company_id").
 			Unique().
 			Required(),
+		edge.To("schedules", LessonSchedule.Type),
 		edge.To("grades", Grade.Type),
 		edge.To("subjects", Subject.Type),
 		edge.To("education_categories", EducationCategory.Type),
-
-		//edge.From("uploadFile", UploadFile.Type).
-		//	Ref("lessonPlans").
-		//	Unique(),
+		edge.To("upload_files", UploadFile.Type),
 	}
 }
 

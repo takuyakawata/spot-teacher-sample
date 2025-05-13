@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,34 @@ type EducationCategoryCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (ecc *EducationCategoryCreate) SetCreatedAt(t time.Time) *EducationCategoryCreate {
+	ecc.mutation.SetCreatedAt(t)
+	return ecc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (ecc *EducationCategoryCreate) SetNillableCreatedAt(t *time.Time) *EducationCategoryCreate {
+	if t != nil {
+		ecc.SetCreatedAt(*t)
+	}
+	return ecc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (ecc *EducationCategoryCreate) SetUpdatedAt(t time.Time) *EducationCategoryCreate {
+	ecc.mutation.SetUpdatedAt(t)
+	return ecc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (ecc *EducationCategoryCreate) SetNillableUpdatedAt(t *time.Time) *EducationCategoryCreate {
+	if t != nil {
+		ecc.SetUpdatedAt(*t)
+	}
+	return ecc
+}
+
 // SetName sets the "name" field.
 func (ecc *EducationCategoryCreate) SetName(s string) *EducationCategoryCreate {
 	ecc.mutation.SetName(s)
@@ -32,21 +61,15 @@ func (ecc *EducationCategoryCreate) SetCode(s string) *EducationCategoryCreate {
 	return ecc
 }
 
-// SetID sets the "id" field.
-func (ecc *EducationCategoryCreate) SetID(i int) *EducationCategoryCreate {
-	ecc.mutation.SetID(i)
-	return ecc
-}
-
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (ecc *EducationCategoryCreate) AddLessonPlanIDs(ids ...int64) *EducationCategoryCreate {
+func (ecc *EducationCategoryCreate) AddLessonPlanIDs(ids ...int) *EducationCategoryCreate {
 	ecc.mutation.AddLessonPlanIDs(ids...)
 	return ecc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (ecc *EducationCategoryCreate) AddLessonPlans(l ...*LessonPlan) *EducationCategoryCreate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -60,6 +83,7 @@ func (ecc *EducationCategoryCreate) Mutation() *EducationCategoryMutation {
 
 // Save creates the EducationCategory in the database.
 func (ecc *EducationCategoryCreate) Save(ctx context.Context) (*EducationCategory, error) {
+	ecc.defaults()
 	return withHooks(ctx, ecc.sqlSave, ecc.mutation, ecc.hooks)
 }
 
@@ -85,8 +109,26 @@ func (ecc *EducationCategoryCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ecc *EducationCategoryCreate) defaults() {
+	if _, ok := ecc.mutation.CreatedAt(); !ok {
+		v := educationcategory.DefaultCreatedAt()
+		ecc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := ecc.mutation.UpdatedAt(); !ok {
+		v := educationcategory.DefaultUpdatedAt()
+		ecc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (ecc *EducationCategoryCreate) check() error {
+	if _, ok := ecc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "EducationCategory.created_at"`)}
+	}
+	if _, ok := ecc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "EducationCategory.updated_at"`)}
+	}
 	if _, ok := ecc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "EducationCategory.name"`)}
 	}
@@ -103,11 +145,6 @@ func (ecc *EducationCategoryCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "EducationCategory.code": %w`, err)}
 		}
 	}
-	if v, ok := ecc.mutation.ID(); ok {
-		if err := educationcategory.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "EducationCategory.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -122,10 +159,8 @@ func (ecc *EducationCategoryCreate) sqlSave(ctx context.Context) (*EducationCate
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	ecc.mutation.id = &_node.ID
 	ecc.mutation.done = true
 	return _node, nil
@@ -136,9 +171,13 @@ func (ecc *EducationCategoryCreate) createSpec() (*EducationCategory, *sqlgraph.
 		_node = &EducationCategory{config: ecc.config}
 		_spec = sqlgraph.NewCreateSpec(educationcategory.Table, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt))
 	)
-	if id, ok := ecc.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := ecc.mutation.CreatedAt(); ok {
+		_spec.SetField(educationcategory.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := ecc.mutation.UpdatedAt(); ok {
+		_spec.SetField(educationcategory.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := ecc.mutation.Name(); ok {
 		_spec.SetField(educationcategory.FieldName, field.TypeString, value)
@@ -156,7 +195,7 @@ func (ecc *EducationCategoryCreate) createSpec() (*EducationCategory, *sqlgraph.
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -185,6 +224,7 @@ func (eccb *EducationCategoryCreateBulk) Save(ctx context.Context) ([]*Education
 	for i := range eccb.builders {
 		func(i int, root context.Context) {
 			builder := eccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*EducationCategoryMutation)
 				if !ok {
@@ -211,7 +251,7 @@ func (eccb *EducationCategoryCreateBulk) Save(ctx context.Context) ([]*Education
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

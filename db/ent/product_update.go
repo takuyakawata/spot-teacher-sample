@@ -28,6 +28,12 @@ func (pu *ProductUpdate) Where(ps ...predicate.Product) *ProductUpdate {
 	return pu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (pu *ProductUpdate) SetUpdatedAt(t time.Time) *ProductUpdate {
+	pu.mutation.SetUpdatedAt(t)
+	return pu
+}
+
 // SetName sets the "name" field.
 func (pu *ProductUpdate) SetName(s string) *ProductUpdate {
 	pu.mutation.SetName(s)
@@ -80,12 +86,6 @@ func (pu *ProductUpdate) SetNillableDescription(s *string) *ProductUpdate {
 // ClearDescription clears the value of the "description" field.
 func (pu *ProductUpdate) ClearDescription() *ProductUpdate {
 	pu.mutation.ClearDescription()
-	return pu
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (pu *ProductUpdate) SetUpdatedAt(t time.Time) *ProductUpdate {
-	pu.mutation.SetUpdatedAt(t)
 	return pu
 }
 
@@ -162,6 +162,9 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := pu.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
@@ -176,9 +179,6 @@ func (pu *ProductUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.DescriptionCleared() {
 		_spec.ClearField(product.FieldDescription, field.TypeString)
-	}
-	if value, ok := pu.mutation.UpdatedAt(); ok {
-		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -198,6 +198,12 @@ type ProductUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *ProductMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (puo *ProductUpdateOne) SetUpdatedAt(t time.Time) *ProductUpdateOne {
+	puo.mutation.SetUpdatedAt(t)
+	return puo
 }
 
 // SetName sets the "name" field.
@@ -252,12 +258,6 @@ func (puo *ProductUpdateOne) SetNillableDescription(s *string) *ProductUpdateOne
 // ClearDescription clears the value of the "description" field.
 func (puo *ProductUpdateOne) ClearDescription() *ProductUpdateOne {
 	puo.mutation.ClearDescription()
-	return puo
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (puo *ProductUpdateOne) SetUpdatedAt(t time.Time) *ProductUpdateOne {
-	puo.mutation.SetUpdatedAt(t)
 	return puo
 }
 
@@ -364,6 +364,9 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 			}
 		}
 	}
+	if value, ok := puo.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 	}
@@ -378,9 +381,6 @@ func (puo *ProductUpdateOne) sqlSave(ctx context.Context) (_node *Product, err e
 	}
 	if puo.mutation.DescriptionCleared() {
 		_spec.ClearField(product.FieldDescription, field.TypeString)
-	}
-	if value, ok := puo.mutation.UpdatedAt(); ok {
-		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
 	}
 	_node = &Product{config: puo.config}
 	_spec.Assign = _node.assignValues

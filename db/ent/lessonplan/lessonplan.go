@@ -15,6 +15,10 @@ const (
 	Label = "lesson_plan"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldCompanyID holds the string denoting the company_id field in the database.
 	FieldCompanyID = "company_id"
 	// FieldTitle holds the string denoting the title field in the database.
@@ -39,29 +43,20 @@ const (
 	FieldStartTime = "start_time"
 	// FieldEndTime holds the string denoting the end_time field in the database.
 	FieldEndTime = "end_time"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
-	// EdgeSchedules holds the string denoting the schedules edge name in mutations.
-	EdgeSchedules = "schedules"
 	// EdgeCompany holds the string denoting the company edge name in mutations.
 	EdgeCompany = "company"
+	// EdgeSchedules holds the string denoting the schedules edge name in mutations.
+	EdgeSchedules = "schedules"
 	// EdgeGrades holds the string denoting the grades edge name in mutations.
 	EdgeGrades = "grades"
 	// EdgeSubjects holds the string denoting the subjects edge name in mutations.
 	EdgeSubjects = "subjects"
 	// EdgeEducationCategories holds the string denoting the education_categories edge name in mutations.
 	EdgeEducationCategories = "education_categories"
+	// EdgeUploadFiles holds the string denoting the upload_files edge name in mutations.
+	EdgeUploadFiles = "upload_files"
 	// Table holds the table name of the lessonplan in the database.
 	Table = "lesson_plans"
-	// SchedulesTable is the table that holds the schedules relation/edge.
-	SchedulesTable = "lesson_schedules"
-	// SchedulesInverseTable is the table name for the LessonSchedule entity.
-	// It exists in this package in order to avoid circular dependency with the "lessonschedule" package.
-	SchedulesInverseTable = "lesson_schedules"
-	// SchedulesColumn is the table column denoting the schedules relation/edge.
-	SchedulesColumn = "lesson_plan_id"
 	// CompanyTable is the table that holds the company relation/edge.
 	CompanyTable = "lesson_plans"
 	// CompanyInverseTable is the table name for the Company entity.
@@ -69,6 +64,13 @@ const (
 	CompanyInverseTable = "companies"
 	// CompanyColumn is the table column denoting the company relation/edge.
 	CompanyColumn = "company_id"
+	// SchedulesTable is the table that holds the schedules relation/edge.
+	SchedulesTable = "lesson_schedules"
+	// SchedulesInverseTable is the table name for the LessonSchedule entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonschedule" package.
+	SchedulesInverseTable = "lesson_schedules"
+	// SchedulesColumn is the table column denoting the schedules relation/edge.
+	SchedulesColumn = "lesson_plan_id"
 	// GradesTable is the table that holds the grades relation/edge. The primary key declared below.
 	GradesTable = "lesson_plan_grades"
 	// GradesInverseTable is the table name for the Grade entity.
@@ -84,11 +86,20 @@ const (
 	// EducationCategoriesInverseTable is the table name for the EducationCategory entity.
 	// It exists in this package in order to avoid circular dependency with the "educationcategory" package.
 	EducationCategoriesInverseTable = "education_categories"
+	// UploadFilesTable is the table that holds the upload_files relation/edge.
+	UploadFilesTable = "upload_files"
+	// UploadFilesInverseTable is the table name for the UploadFile entity.
+	// It exists in this package in order to avoid circular dependency with the "uploadfile" package.
+	UploadFilesInverseTable = "upload_files"
+	// UploadFilesColumn is the table column denoting the upload_files relation/edge.
+	UploadFilesColumn = "lesson_plan_upload_files"
 )
 
 // Columns holds all SQL columns for lessonplan fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldCompanyID,
 	FieldTitle,
 	FieldDescription,
@@ -101,8 +112,6 @@ var Columns = []string{
 	FieldEndDay,
 	FieldStartTime,
 	FieldEndTime,
-	FieldUpdatedAt,
-	FieldCreatedAt,
 }
 
 var (
@@ -128,8 +137,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// CompanyIDValidator is a validator for the "company_id" field. It is called by the builders before save.
-	CompanyIDValidator func(int64) error
+	CompanyIDValidator func(int) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
@@ -146,14 +161,6 @@ var (
 	EndMonthValidator func(int) error
 	// EndDayValidator is a validator for the "end_day" field. It is called by the builders before save.
 	EndDayValidator func(int) error
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt func() time.Time
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int64) error
 )
 
 // LessonType defines the type for the "lesson_type" enum field.
@@ -186,6 +193,16 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByCompanyID orders the results by the company_id field.
@@ -248,14 +265,11 @@ func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
 }
 
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
-}
-
-// ByCreatedAt orders the results by the created_at field.
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+// ByCompanyField orders the results by company field.
+func ByCompanyField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCompanyStep(), sql.OrderByField(field, opts...))
+	}
 }
 
 // BySchedulesCount orders the results by schedules count.
@@ -269,13 +283,6 @@ func BySchedulesCount(opts ...sql.OrderTermOption) OrderOption {
 func BySchedules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newSchedulesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByCompanyField orders the results by company field.
-func ByCompanyField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCompanyStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -320,18 +327,32 @@ func ByEducationCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newEducationCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newSchedulesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(SchedulesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, SchedulesTable, SchedulesColumn),
-	)
+
+// ByUploadFilesCount orders the results by upload_files count.
+func ByUploadFilesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newUploadFilesStep(), opts...)
+	}
+}
+
+// ByUploadFiles orders the results by upload_files terms.
+func ByUploadFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUploadFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
 }
 func newCompanyStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CompanyInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CompanyTable, CompanyColumn),
+	)
+}
+func newSchedulesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SchedulesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, SchedulesTable, SchedulesColumn),
 	)
 }
 func newGradesStep() *sqlgraph.Step {
@@ -353,5 +374,12 @@ func newEducationCategoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EducationCategoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, EducationCategoriesTable, EducationCategoriesPrimaryKey...),
+	)
+}
+func newUploadFilesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UploadFilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, UploadFilesTable, UploadFilesColumn),
 	)
 }

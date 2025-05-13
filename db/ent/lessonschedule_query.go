@@ -15,6 +15,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
@@ -31,6 +32,7 @@ type LessonScheduleQuery struct {
 	withGrades              *GradeQuery
 	withSubjects            *SubjectQuery
 	withEducationCategories *EducationCategoryQuery
+	withLessonReservations  *LessonReservationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -155,6 +157,28 @@ func (lsq *LessonScheduleQuery) QueryEducationCategories() *EducationCategoryQue
 	return query
 }
 
+// QueryLessonReservations chains the current query on the "lesson_reservations" edge.
+func (lsq *LessonScheduleQuery) QueryLessonReservations() *LessonReservationQuery {
+	query := (&LessonReservationClient{config: lsq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, selector),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.LessonReservationsTable, lessonschedule.LessonReservationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first LessonSchedule entity from the query.
 // Returns a *NotFoundError when no LessonSchedule was found.
 func (lsq *LessonScheduleQuery) First(ctx context.Context) (*LessonSchedule, error) {
@@ -179,8 +203,8 @@ func (lsq *LessonScheduleQuery) FirstX(ctx context.Context) *LessonSchedule {
 
 // FirstID returns the first LessonSchedule ID from the query.
 // Returns a *NotFoundError when no LessonSchedule ID was found.
-func (lsq *LessonScheduleQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (lsq *LessonScheduleQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lsq.Limit(1).IDs(setContextOp(ctx, lsq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -192,7 +216,7 @@ func (lsq *LessonScheduleQuery) FirstID(ctx context.Context) (id int64, err erro
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (lsq *LessonScheduleQuery) FirstIDX(ctx context.Context) int64 {
+func (lsq *LessonScheduleQuery) FirstIDX(ctx context.Context) int {
 	id, err := lsq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -230,8 +254,8 @@ func (lsq *LessonScheduleQuery) OnlyX(ctx context.Context) *LessonSchedule {
 // OnlyID is like Only, but returns the only LessonSchedule ID in the query.
 // Returns a *NotSingularError when more than one LessonSchedule ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (lsq *LessonScheduleQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (lsq *LessonScheduleQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lsq.Limit(2).IDs(setContextOp(ctx, lsq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -247,7 +271,7 @@ func (lsq *LessonScheduleQuery) OnlyID(ctx context.Context) (id int64, err error
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (lsq *LessonScheduleQuery) OnlyIDX(ctx context.Context) int64 {
+func (lsq *LessonScheduleQuery) OnlyIDX(ctx context.Context) int {
 	id, err := lsq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -275,7 +299,7 @@ func (lsq *LessonScheduleQuery) AllX(ctx context.Context) []*LessonSchedule {
 }
 
 // IDs executes the query and returns a list of LessonSchedule IDs.
-func (lsq *LessonScheduleQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (lsq *LessonScheduleQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if lsq.ctx.Unique == nil && lsq.path != nil {
 		lsq.Unique(true)
 	}
@@ -287,7 +311,7 @@ func (lsq *LessonScheduleQuery) IDs(ctx context.Context) (ids []int64, err error
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lsq *LessonScheduleQuery) IDsX(ctx context.Context) []int64 {
+func (lsq *LessonScheduleQuery) IDsX(ctx context.Context) []int {
 	ids, err := lsq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -351,6 +375,7 @@ func (lsq *LessonScheduleQuery) Clone() *LessonScheduleQuery {
 		withGrades:              lsq.withGrades.Clone(),
 		withSubjects:            lsq.withSubjects.Clone(),
 		withEducationCategories: lsq.withEducationCategories.Clone(),
+		withLessonReservations:  lsq.withLessonReservations.Clone(),
 		// clone intermediate query.
 		sql:  lsq.sql.Clone(),
 		path: lsq.path,
@@ -401,18 +426,29 @@ func (lsq *LessonScheduleQuery) WithEducationCategories(opts ...func(*EducationC
 	return lsq
 }
 
+// WithLessonReservations tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_reservations" edge. The optional arguments are used to configure the query builder of the edge.
+func (lsq *LessonScheduleQuery) WithLessonReservations(opts ...func(*LessonReservationQuery)) *LessonScheduleQuery {
+	query := (&LessonReservationClient{config: lsq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lsq.withLessonReservations = query
+	return lsq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		LessonPlanID int64 `json:"lesson_plan_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.LessonSchedule.Query().
-//		GroupBy(lessonschedule.FieldLessonPlanID).
+//		GroupBy(lessonschedule.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (lsq *LessonScheduleQuery) GroupBy(field string, fields ...string) *LessonScheduleGroupBy {
@@ -430,11 +466,11 @@ func (lsq *LessonScheduleQuery) GroupBy(field string, fields ...string) *LessonS
 // Example:
 //
 //	var v []struct {
-//		LessonPlanID int64 `json:"lesson_plan_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.LessonSchedule.Query().
-//		Select(lessonschedule.FieldLessonPlanID).
+//		Select(lessonschedule.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (lsq *LessonScheduleQuery) Select(fields ...string) *LessonScheduleSelect {
 	lsq.ctx.Fields = append(lsq.ctx.Fields, fields...)
@@ -479,11 +515,12 @@ func (lsq *LessonScheduleQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 	var (
 		nodes       = []*LessonSchedule{}
 		_spec       = lsq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			lsq.withPlan != nil,
 			lsq.withGrades != nil,
 			lsq.withSubjects != nil,
 			lsq.withEducationCategories != nil,
+			lsq.withLessonReservations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -533,12 +570,21 @@ func (lsq *LessonScheduleQuery) sqlAll(ctx context.Context, hooks ...queryHook) 
 			return nil, err
 		}
 	}
+	if query := lsq.withLessonReservations; query != nil {
+		if err := lsq.loadLessonReservations(ctx, query, nodes,
+			func(n *LessonSchedule) { n.Edges.LessonReservations = []*LessonReservation{} },
+			func(n *LessonSchedule, e *LessonReservation) {
+				n.Edges.LessonReservations = append(n.Edges.LessonReservations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (lsq *LessonScheduleQuery) loadPlan(ctx context.Context, query *LessonPlanQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *LessonPlan)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*LessonSchedule)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LessonSchedule)
 	for i := range nodes {
 		fk := nodes[i].LessonPlanID
 		if _, ok := nodeids[fk]; !ok {
@@ -567,7 +613,7 @@ func (lsq *LessonScheduleQuery) loadPlan(ctx context.Context, query *LessonPlanQ
 }
 func (lsq *LessonScheduleQuery) loadGrades(ctx context.Context, query *GradeQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *Grade)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*LessonSchedule)
+	nodeids := make(map[int]*LessonSchedule)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -598,7 +644,7 @@ func (lsq *LessonScheduleQuery) loadGrades(ctx context.Context, query *GradeQuer
 }
 func (lsq *LessonScheduleQuery) loadSubjects(ctx context.Context, query *SubjectQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *Subject)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*LessonSchedule)
+	nodeids := make(map[int]*LessonSchedule)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -629,7 +675,7 @@ func (lsq *LessonScheduleQuery) loadSubjects(ctx context.Context, query *Subject
 }
 func (lsq *LessonScheduleQuery) loadEducationCategories(ctx context.Context, query *EducationCategoryQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *EducationCategory)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*LessonSchedule)
+	nodeids := make(map[int]*LessonSchedule)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -658,6 +704,36 @@ func (lsq *LessonScheduleQuery) loadEducationCategories(ctx context.Context, que
 	}
 	return nil
 }
+func (lsq *LessonScheduleQuery) loadLessonReservations(ctx context.Context, query *LessonReservationQuery, nodes []*LessonSchedule, init func(*LessonSchedule), assign func(*LessonSchedule, *LessonReservation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*LessonSchedule)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonreservation.FieldLessonScheduleID)
+	}
+	query.Where(predicate.LessonReservation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonschedule.LessonReservationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LessonScheduleID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_schedule_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (lsq *LessonScheduleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := lsq.querySpec()
@@ -669,7 +745,7 @@ func (lsq *LessonScheduleQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (lsq *LessonScheduleQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessonschedule.Table, lessonschedule.Columns, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(lessonschedule.Table, lessonschedule.Columns, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt))
 	_spec.From = lsq.sql
 	if unique := lsq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -12,6 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/company"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
@@ -20,12 +23,14 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx         *QueryContext
-	order       []user.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.User
-	withSchool  *SchoolQuery
-	withCompany *CompanyQuery
+	ctx                    *QueryContext
+	order                  []user.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.User
+	withSchool             *SchoolQuery
+	withCompany            *CompanyQuery
+	withInquiries          *InquiryQuery
+	withLessonReservations *LessonReservationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -106,6 +111,50 @@ func (uq *UserQuery) QueryCompany() *CompanyQuery {
 	return query
 }
 
+// QueryInquiries chains the current query on the "inquiries" edge.
+func (uq *UserQuery) QueryInquiries() *InquiryQuery {
+	query := (&InquiryClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(inquiry.Table, inquiry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.InquiriesTable, user.InquiriesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLessonReservations chains the current query on the "lesson_reservations" edge.
+func (uq *UserQuery) QueryLessonReservations() *LessonReservationQuery {
+	query := (&LessonReservationClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LessonReservationsTable, user.LessonReservationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first User entity from the query.
 // Returns a *NotFoundError when no User was found.
 func (uq *UserQuery) First(ctx context.Context) (*User, error) {
@@ -130,8 +179,8 @@ func (uq *UserQuery) FirstX(ctx context.Context) *User {
 
 // FirstID returns the first User ID from the query.
 // Returns a *NotFoundError when no User ID was found.
-func (uq *UserQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (uq *UserQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = uq.Limit(1).IDs(setContextOp(ctx, uq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -143,7 +192,7 @@ func (uq *UserQuery) FirstID(ctx context.Context) (id int64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (uq *UserQuery) FirstIDX(ctx context.Context) int64 {
+func (uq *UserQuery) FirstIDX(ctx context.Context) int {
 	id, err := uq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -181,8 +230,8 @@ func (uq *UserQuery) OnlyX(ctx context.Context) *User {
 // OnlyID is like Only, but returns the only User ID in the query.
 // Returns a *NotSingularError when more than one User ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (uq *UserQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (uq *UserQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = uq.Limit(2).IDs(setContextOp(ctx, uq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -198,7 +247,7 @@ func (uq *UserQuery) OnlyID(ctx context.Context) (id int64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (uq *UserQuery) OnlyIDX(ctx context.Context) int64 {
+func (uq *UserQuery) OnlyIDX(ctx context.Context) int {
 	id, err := uq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -226,7 +275,7 @@ func (uq *UserQuery) AllX(ctx context.Context) []*User {
 }
 
 // IDs executes the query and returns a list of User IDs.
-func (uq *UserQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (uq *UserQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if uq.ctx.Unique == nil && uq.path != nil {
 		uq.Unique(true)
 	}
@@ -238,7 +287,7 @@ func (uq *UserQuery) IDs(ctx context.Context) (ids []int64, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (uq *UserQuery) IDsX(ctx context.Context) []int64 {
+func (uq *UserQuery) IDsX(ctx context.Context) []int {
 	ids, err := uq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -293,13 +342,15 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:      uq.config,
-		ctx:         uq.ctx.Clone(),
-		order:       append([]user.OrderOption{}, uq.order...),
-		inters:      append([]Interceptor{}, uq.inters...),
-		predicates:  append([]predicate.User{}, uq.predicates...),
-		withSchool:  uq.withSchool.Clone(),
-		withCompany: uq.withCompany.Clone(),
+		config:                 uq.config,
+		ctx:                    uq.ctx.Clone(),
+		order:                  append([]user.OrderOption{}, uq.order...),
+		inters:                 append([]Interceptor{}, uq.inters...),
+		predicates:             append([]predicate.User{}, uq.predicates...),
+		withSchool:             uq.withSchool.Clone(),
+		withCompany:            uq.withCompany.Clone(),
+		withInquiries:          uq.withInquiries.Clone(),
+		withLessonReservations: uq.withLessonReservations.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -328,18 +379,40 @@ func (uq *UserQuery) WithCompany(opts ...func(*CompanyQuery)) *UserQuery {
 	return uq
 }
 
+// WithInquiries tells the query-builder to eager-load the nodes that are connected to
+// the "inquiries" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithInquiries(opts ...func(*InquiryQuery)) *UserQuery {
+	query := (&InquiryClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withInquiries = query
+	return uq
+}
+
+// WithLessonReservations tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_reservations" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithLessonReservations(opts ...func(*LessonReservationQuery)) *UserQuery {
+	query := (&LessonReservationClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withLessonReservations = query
+	return uq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		UserType user.UserType `json:"user_type,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		GroupBy(user.FieldUserType).
+//		GroupBy(user.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
@@ -357,11 +430,11 @@ func (uq *UserQuery) GroupBy(field string, fields ...string) *UserGroupBy {
 // Example:
 //
 //	var v []struct {
-//		UserType user.UserType `json:"user_type,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.User.Query().
-//		Select(user.FieldUserType).
+//		Select(user.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (uq *UserQuery) Select(fields ...string) *UserSelect {
 	uq.ctx.Fields = append(uq.ctx.Fields, fields...)
@@ -406,9 +479,11 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [4]bool{
 			uq.withSchool != nil,
 			uq.withCompany != nil,
+			uq.withInquiries != nil,
+			uq.withLessonReservations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,12 +516,28 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := uq.withInquiries; query != nil {
+		if err := uq.loadInquiries(ctx, query, nodes,
+			func(n *User) { n.Edges.Inquiries = []*Inquiry{} },
+			func(n *User, e *Inquiry) { n.Edges.Inquiries = append(n.Edges.Inquiries, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withLessonReservations; query != nil {
+		if err := uq.loadLessonReservations(ctx, query, nodes,
+			func(n *User) { n.Edges.LessonReservations = []*LessonReservation{} },
+			func(n *User, e *LessonReservation) {
+				n.Edges.LessonReservations = append(n.Edges.LessonReservations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (uq *UserQuery) loadSchool(ctx context.Context, query *SchoolQuery, nodes []*User, init func(*User), assign func(*User, *School)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*User)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*User)
 	for i := range nodes {
 		if nodes[i].SchoolID == nil {
 			continue
@@ -477,8 +568,8 @@ func (uq *UserQuery) loadSchool(ctx context.Context, query *SchoolQuery, nodes [
 	return nil
 }
 func (uq *UserQuery) loadCompany(ctx context.Context, query *CompanyQuery, nodes []*User, init func(*User), assign func(*User, *Company)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*User)
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*User)
 	for i := range nodes {
 		if nodes[i].CompanyID == nil {
 			continue
@@ -508,6 +599,66 @@ func (uq *UserQuery) loadCompany(ctx context.Context, query *CompanyQuery, nodes
 	}
 	return nil
 }
+func (uq *UserQuery) loadInquiries(ctx context.Context, query *InquiryQuery, nodes []*User, init func(*User), assign func(*User, *Inquiry)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(inquiry.FieldUserID)
+	}
+	query.Where(predicate.Inquiry(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.InquiriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadLessonReservations(ctx context.Context, query *LessonReservationQuery, nodes []*User, init func(*User), assign func(*User, *LessonReservation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonreservation.FieldUserID)
+	}
+	query.Where(predicate.LessonReservation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.LessonReservationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := uq.querySpec()
@@ -519,7 +670,7 @@ func (uq *UserQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (uq *UserQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
 	_spec.From = uq.sql
 	if unique := uq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

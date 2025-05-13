@@ -17,9 +17,13 @@ import (
 type LessonSchedule struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int64 `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// LessonPlanID holds the value of the "lesson_plan_id" field.
-	LessonPlanID int64 `json:"lesson_plan_id,omitempty"`
+	LessonPlanID int `json:"lesson_plan_id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
@@ -38,10 +42,6 @@ type LessonSchedule struct {
 	StartTime time.Time `json:"start_time,omitempty"`
 	// EndTime holds the value of the "end_time" field.
 	EndTime time.Time `json:"end_time,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LessonScheduleQuery when eager-loading is set.
 	Edges        LessonScheduleEdges `json:"edges"`
@@ -58,9 +58,11 @@ type LessonScheduleEdges struct {
 	Subjects []*Subject `json:"subjects,omitempty"`
 	// EducationCategories holds the value of the education_categories edge.
 	EducationCategories []*EducationCategory `json:"education_categories,omitempty"`
+	// LessonReservations holds the value of the lesson_reservations edge.
+	LessonReservations []*LessonReservation `json:"lesson_reservations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // PlanOrErr returns the Plan value or an error if the edge
@@ -101,6 +103,15 @@ func (e LessonScheduleEdges) EducationCategoriesOrErr() ([]*EducationCategory, e
 	return nil, &NotLoadedError{edge: "education_categories"}
 }
 
+// LessonReservationsOrErr returns the LessonReservations value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonScheduleEdges) LessonReservationsOrErr() ([]*LessonReservation, error) {
+	if e.loadedTypes[4] {
+		return e.LessonReservations, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_reservations"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*LessonSchedule) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -110,7 +121,7 @@ func (*LessonSchedule) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case lessonschedule.FieldTitle, lessonschedule.FieldDescription, lessonschedule.FieldLocation, lessonschedule.FieldLessonType:
 			values[i] = new(sql.NullString)
-		case lessonschedule.FieldStartDate, lessonschedule.FieldEndDate, lessonschedule.FieldStartTime, lessonschedule.FieldEndTime, lessonschedule.FieldUpdatedAt, lessonschedule.FieldCreatedAt:
+		case lessonschedule.FieldCreatedAt, lessonschedule.FieldUpdatedAt, lessonschedule.FieldStartDate, lessonschedule.FieldEndDate, lessonschedule.FieldStartTime, lessonschedule.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -132,12 +143,24 @@ func (ls *LessonSchedule) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			ls.ID = int64(value.Int64)
+			ls.ID = int(value.Int64)
+		case lessonschedule.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				ls.CreatedAt = value.Time
+			}
+		case lessonschedule.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				ls.UpdatedAt = value.Time
+			}
 		case lessonschedule.FieldLessonPlanID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_plan_id", values[i])
 			} else if value.Valid {
-				ls.LessonPlanID = value.Int64
+				ls.LessonPlanID = int(value.Int64)
 			}
 		case lessonschedule.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -193,18 +216,6 @@ func (ls *LessonSchedule) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ls.EndTime = value.Time
 			}
-		case lessonschedule.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				ls.UpdatedAt = value.Time
-			}
-		case lessonschedule.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				ls.CreatedAt = value.Time
-			}
 		default:
 			ls.selectValues.Set(columns[i], values[i])
 		}
@@ -238,6 +249,11 @@ func (ls *LessonSchedule) QueryEducationCategories() *EducationCategoryQuery {
 	return NewLessonScheduleClient(ls.config).QueryEducationCategories(ls)
 }
 
+// QueryLessonReservations queries the "lesson_reservations" edge of the LessonSchedule entity.
+func (ls *LessonSchedule) QueryLessonReservations() *LessonReservationQuery {
+	return NewLessonScheduleClient(ls.config).QueryLessonReservations(ls)
+}
+
 // Update returns a builder for updating this LessonSchedule.
 // Note that you need to call LessonSchedule.Unwrap() before calling this method if this LessonSchedule
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -261,6 +277,12 @@ func (ls *LessonSchedule) String() string {
 	var builder strings.Builder
 	builder.WriteString("LessonSchedule(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ls.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(ls.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(ls.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("lesson_plan_id=")
 	builder.WriteString(fmt.Sprintf("%v", ls.LessonPlanID))
 	builder.WriteString(", ")
@@ -290,12 +312,6 @@ func (ls *LessonSchedule) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("end_time=")
 	builder.WriteString(ls.EndTime.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(ls.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(ls.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

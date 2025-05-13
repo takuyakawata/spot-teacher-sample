@@ -20,32 +20,6 @@ type ProductCreate struct {
 	hooks    []Hook
 }
 
-// SetName sets the "name" field.
-func (pc *ProductCreate) SetName(s string) *ProductCreate {
-	pc.mutation.SetName(s)
-	return pc
-}
-
-// SetPrice sets the "price" field.
-func (pc *ProductCreate) SetPrice(i int) *ProductCreate {
-	pc.mutation.SetPrice(i)
-	return pc
-}
-
-// SetDescription sets the "description" field.
-func (pc *ProductCreate) SetDescription(s string) *ProductCreate {
-	pc.mutation.SetDescription(s)
-	return pc
-}
-
-// SetNillableDescription sets the "description" field if the given value is not nil.
-func (pc *ProductCreate) SetNillableDescription(s *string) *ProductCreate {
-	if s != nil {
-		pc.SetDescription(*s)
-	}
-	return pc
-}
-
 // SetCreatedAt sets the "created_at" field.
 func (pc *ProductCreate) SetCreatedAt(t time.Time) *ProductCreate {
 	pc.mutation.SetCreatedAt(t)
@@ -70,6 +44,32 @@ func (pc *ProductCreate) SetUpdatedAt(t time.Time) *ProductCreate {
 func (pc *ProductCreate) SetNillableUpdatedAt(t *time.Time) *ProductCreate {
 	if t != nil {
 		pc.SetUpdatedAt(*t)
+	}
+	return pc
+}
+
+// SetName sets the "name" field.
+func (pc *ProductCreate) SetName(s string) *ProductCreate {
+	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetPrice sets the "price" field.
+func (pc *ProductCreate) SetPrice(i int) *ProductCreate {
+	pc.mutation.SetPrice(i)
+	return pc
+}
+
+// SetDescription sets the "description" field.
+func (pc *ProductCreate) SetDescription(s string) *ProductCreate {
+	pc.mutation.SetDescription(s)
+	return pc
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (pc *ProductCreate) SetNillableDescription(s *string) *ProductCreate {
+	if s != nil {
+		pc.SetDescription(*s)
 	}
 	return pc
 }
@@ -121,6 +121,12 @@ func (pc *ProductCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProductCreate) check() error {
+	if _, ok := pc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Product.created_at"`)}
+	}
+	if _, ok := pc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Product.updated_at"`)}
+	}
 	if _, ok := pc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Product.name"`)}
 	}
@@ -141,12 +147,6 @@ func (pc *ProductCreate) check() error {
 		if err := product.DescriptionValidator(v); err != nil {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
 		}
-	}
-	if _, ok := pc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Product.created_at"`)}
-	}
-	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Product.updated_at"`)}
 	}
 	return nil
 }
@@ -174,6 +174,14 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 		_node = &Product{config: pc.config}
 		_spec = sqlgraph.NewCreateSpec(product.Table, sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt))
 	)
+	if value, ok := pc.mutation.CreatedAt(); ok {
+		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := pc.mutation.UpdatedAt(); ok {
+		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := pc.mutation.Name(); ok {
 		_spec.SetField(product.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -185,14 +193,6 @@ func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Description(); ok {
 		_spec.SetField(product.FieldDescription, field.TypeString, value)
 		_node.Description = value
-	}
-	if value, ok := pc.mutation.CreatedAt(); ok {
-		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := pc.mutation.UpdatedAt(); ok {
-		_spec.SetField(product.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
 	}
 	return _node, _spec
 }

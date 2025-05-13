@@ -5,7 +5,6 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"entgo.io/ent/schema/mixin"
 )
 
 type LessonReservationPreferredDate struct {
@@ -14,6 +13,8 @@ type LessonReservationPreferredDate struct {
 
 func (LessonReservationPreferredDate) Fields() []ent.Field {
 	return []ent.Field{
+		field.Int("lesson_reservation_id").Positive(),
+
 		field.Enum("priority").
 			Values("FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH").
 			Comment("希望日時の優先順位"),
@@ -30,18 +31,19 @@ func (LessonReservationPreferredDate) Fields() []ent.Field {
 	}
 }
 
-func (LessonReservationPreferredDate) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.Time{},
-	}
-}
-
 func (LessonReservationPreferredDate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("lessonReservations", LessonReservation.Type).
-			Ref("preferredDates").
+			Ref("lesson_reservation_preferred_dates").
+			Field("lesson_reservation_id").
 			Unique().
 			Required(),
+	}
+}
+
+func (LessonReservationPreferredDate) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 

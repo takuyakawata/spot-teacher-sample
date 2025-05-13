@@ -5,15 +5,12 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"time"
 )
 
 type School struct{ ent.Schema }
 
 func (School) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id"),
-
 		field.Enum("school_type").
 			Values("elementary", "juniorHigh", "highSchool"),
 
@@ -44,20 +41,19 @@ func (School) Fields() []ent.Field {
 
 		field.String("url").
 			Optional(),
+	}
+}
 
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
-
-		field.Time("updated_at").
-			Default(time.Now).
-			UpdateDefault(time.Now),
+func (School) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 
 func (School) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("teachers", User.Type),
+		edge.To("lesson_reservations", LessonReservation.Type),
 	}
 }
 

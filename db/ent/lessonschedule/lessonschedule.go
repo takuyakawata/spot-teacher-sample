@@ -15,6 +15,10 @@ const (
 	Label = "lesson_schedule"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldLessonPlanID holds the string denoting the lesson_plan_id field in the database.
 	FieldLessonPlanID = "lesson_plan_id"
 	// FieldTitle holds the string denoting the title field in the database.
@@ -35,10 +39,6 @@ const (
 	FieldStartTime = "start_time"
 	// FieldEndTime holds the string denoting the end_time field in the database.
 	FieldEndTime = "end_time"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
 	// EdgePlan holds the string denoting the plan edge name in mutations.
 	EdgePlan = "plan"
 	// EdgeGrades holds the string denoting the grades edge name in mutations.
@@ -47,6 +47,8 @@ const (
 	EdgeSubjects = "subjects"
 	// EdgeEducationCategories holds the string denoting the education_categories edge name in mutations.
 	EdgeEducationCategories = "education_categories"
+	// EdgeLessonReservations holds the string denoting the lesson_reservations edge name in mutations.
+	EdgeLessonReservations = "lesson_reservations"
 	// Table holds the table name of the lessonschedule in the database.
 	Table = "lesson_schedules"
 	// PlanTable is the table that holds the plan relation/edge.
@@ -77,11 +79,20 @@ const (
 	EducationCategoriesInverseTable = "education_categories"
 	// EducationCategoriesColumn is the table column denoting the education_categories relation/edge.
 	EducationCategoriesColumn = "lesson_schedule_education_categories"
+	// LessonReservationsTable is the table that holds the lesson_reservations relation/edge.
+	LessonReservationsTable = "lesson_reservations"
+	// LessonReservationsInverseTable is the table name for the LessonReservation entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonreservation" package.
+	LessonReservationsInverseTable = "lesson_reservations"
+	// LessonReservationsColumn is the table column denoting the lesson_reservations relation/edge.
+	LessonReservationsColumn = "lesson_schedule_id"
 )
 
 // Columns holds all SQL columns for lessonschedule fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldLessonPlanID,
 	FieldTitle,
 	FieldDescription,
@@ -92,8 +103,6 @@ var Columns = []string{
 	FieldEndDate,
 	FieldStartTime,
 	FieldEndTime,
-	FieldUpdatedAt,
-	FieldCreatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -107,8 +116,14 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// LessonPlanIDValidator is a validator for the "lesson_plan_id" field. It is called by the builders before save.
-	LessonPlanIDValidator func(int64) error
+	LessonPlanIDValidator func(int) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
@@ -117,14 +132,6 @@ var (
 	LocationValidator func(string) error
 	// AnnualMaxExecutionsValidator is a validator for the "annual_max_executions" field. It is called by the builders before save.
 	AnnualMaxExecutionsValidator func(int) error
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt func() time.Time
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int64) error
 )
 
 // LessonType defines the type for the "lesson_type" enum field.
@@ -157,6 +164,16 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByLessonPlanID orders the results by the lesson_plan_id field.
@@ -209,16 +226,6 @@ func ByEndTime(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEndTime, opts...).ToFunc()
 }
 
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
-}
-
-// ByCreatedAt orders the results by the created_at field.
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
-}
-
 // ByPlanField orders the results by plan field.
 func ByPlanField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -267,6 +274,20 @@ func ByEducationCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 		sqlgraph.OrderByNeighborTerms(s, newEducationCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLessonReservationsCount orders the results by lesson_reservations count.
+func ByLessonReservationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonReservationsStep(), opts...)
+	}
+}
+
+// ByLessonReservations orders the results by lesson_reservations terms.
+func ByLessonReservations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonReservationsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newPlanStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -293,5 +314,12 @@ func newEducationCategoriesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(EducationCategoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, EducationCategoriesTable, EducationCategoriesColumn),
+	)
+}
+func newLessonReservationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonReservationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LessonReservationsTable, LessonReservationsColumn),
 	)
 }

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
@@ -18,10 +19,12 @@ import (
 // UploadFileQuery is the builder for querying UploadFile entities.
 type UploadFileQuery struct {
 	config
-	ctx        *QueryContext
-	order      []uploadfile.OrderOption
-	inters     []Interceptor
-	predicates []predicate.UploadFile
+	ctx            *QueryContext
+	order          []uploadfile.OrderOption
+	inters         []Interceptor
+	predicates     []predicate.UploadFile
+	withLessonPlan *LessonPlanQuery
+	withFKs        bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -56,6 +59,28 @@ func (ufq *UploadFileQuery) Unique(unique bool) *UploadFileQuery {
 func (ufq *UploadFileQuery) Order(o ...uploadfile.OrderOption) *UploadFileQuery {
 	ufq.order = append(ufq.order, o...)
 	return ufq
+}
+
+// QueryLessonPlan chains the current query on the "LessonPlan" edge.
+func (ufq *UploadFileQuery) QueryLessonPlan() *LessonPlanQuery {
+	query := (&LessonPlanClient{config: ufq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ufq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ufq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(uploadfile.Table, uploadfile.FieldID, selector),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, uploadfile.LessonPlanTable, uploadfile.LessonPlanColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ufq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first UploadFile entity from the query.
@@ -245,15 +270,27 @@ func (ufq *UploadFileQuery) Clone() *UploadFileQuery {
 		return nil
 	}
 	return &UploadFileQuery{
-		config:     ufq.config,
-		ctx:        ufq.ctx.Clone(),
-		order:      append([]uploadfile.OrderOption{}, ufq.order...),
-		inters:     append([]Interceptor{}, ufq.inters...),
-		predicates: append([]predicate.UploadFile{}, ufq.predicates...),
+		config:         ufq.config,
+		ctx:            ufq.ctx.Clone(),
+		order:          append([]uploadfile.OrderOption{}, ufq.order...),
+		inters:         append([]Interceptor{}, ufq.inters...),
+		predicates:     append([]predicate.UploadFile{}, ufq.predicates...),
+		withLessonPlan: ufq.withLessonPlan.Clone(),
 		// clone intermediate query.
 		sql:  ufq.sql.Clone(),
 		path: ufq.path,
 	}
+}
+
+// WithLessonPlan tells the query-builder to eager-load the nodes that are connected to
+// the "LessonPlan" edge. The optional arguments are used to configure the query builder of the edge.
+func (ufq *UploadFileQuery) WithLessonPlan(opts ...func(*LessonPlanQuery)) *UploadFileQuery {
+	query := (&LessonPlanClient{config: ufq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	ufq.withLessonPlan = query
+	return ufq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -262,12 +299,12 @@ func (ufq *UploadFileQuery) Clone() *UploadFileQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.UploadFile.Query().
-//		GroupBy(uploadfile.FieldCreateTime).
+//		GroupBy(uploadfile.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ufq *UploadFileQuery) GroupBy(field string, fields ...string) *UploadFileGroupBy {
@@ -285,11 +322,11 @@ func (ufq *UploadFileQuery) GroupBy(field string, fields ...string) *UploadFileG
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.UploadFile.Query().
-//		Select(uploadfile.FieldCreateTime).
+//		Select(uploadfile.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (ufq *UploadFileQuery) Select(fields ...string) *UploadFileSelect {
 	ufq.ctx.Fields = append(ufq.ctx.Fields, fields...)
@@ -332,15 +369,26 @@ func (ufq *UploadFileQuery) prepareQuery(ctx context.Context) error {
 
 func (ufq *UploadFileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UploadFile, error) {
 	var (
-		nodes = []*UploadFile{}
-		_spec = ufq.querySpec()
+		nodes       = []*UploadFile{}
+		withFKs     = ufq.withFKs
+		_spec       = ufq.querySpec()
+		loadedTypes = [1]bool{
+			ufq.withLessonPlan != nil,
+		}
 	)
+	if ufq.withLessonPlan != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, uploadfile.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UploadFile).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &UploadFile{config: ufq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +400,46 @@ func (ufq *UploadFileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := ufq.withLessonPlan; query != nil {
+		if err := ufq.loadLessonPlan(ctx, query, nodes, nil,
+			func(n *UploadFile, e *LessonPlan) { n.Edges.LessonPlan = e }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (ufq *UploadFileQuery) loadLessonPlan(ctx context.Context, query *LessonPlanQuery, nodes []*UploadFile, init func(*UploadFile), assign func(*UploadFile, *LessonPlan)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*UploadFile)
+	for i := range nodes {
+		if nodes[i].lesson_plan_upload_files == nil {
+			continue
+		}
+		fk := *nodes[i].lesson_plan_upload_files
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(lessonplan.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "lesson_plan_upload_files" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
 }
 
 func (ufq *UploadFileQuery) sqlCount(ctx context.Context) (int, error) {

@@ -262,12 +262,12 @@ func (evq *EmailVerificationQuery) Clone() *EmailVerificationQuery {
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.EmailVerification.Query().
-//		GroupBy(emailverification.FieldCreateTime).
+//		GroupBy(emailverification.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (evq *EmailVerificationQuery) GroupBy(field string, fields ...string) *EmailVerificationGroupBy {
@@ -285,11 +285,11 @@ func (evq *EmailVerificationQuery) GroupBy(field string, fields ...string) *Emai
 // Example:
 //
 //	var v []struct {
-//		CreateTime time.Time `json:"create_time,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.EmailVerification.Query().
-//		Select(emailverification.FieldCreateTime).
+//		Select(emailverification.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (evq *EmailVerificationQuery) Select(fields ...string) *EmailVerificationSelect {
 	evq.ctx.Fields = append(evq.ctx.Fields, fields...)

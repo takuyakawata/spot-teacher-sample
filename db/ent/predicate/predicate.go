@@ -21,11 +21,17 @@ type Grade func(*sql.Selector)
 // Inquiry is the predicate function for inquiry builders.
 type Inquiry func(*sql.Selector)
 
+// LessonConfirmation is the predicate function for lessonconfirmation builders.
+type LessonConfirmation func(*sql.Selector)
+
 // LessonPlan is the predicate function for lessonplan builders.
 type LessonPlan func(*sql.Selector)
 
 // LessonReservation is the predicate function for lessonreservation builders.
 type LessonReservation func(*sql.Selector)
+
+// LessonReservationPreferredDate is the predicate function for lessonreservationpreferreddate builders.
+type LessonReservationPreferredDate func(*sql.Selector)
 
 // LessonSchedule is the predicate function for lessonschedule builders.
 type LessonSchedule func(*sql.Selector)

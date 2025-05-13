@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -11,17 +12,27 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonconfirmation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservationpreferreddate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
 
 // LessonReservationQuery is the builder for querying LessonReservation entities.
 type LessonReservationQuery struct {
 	config
-	ctx        *QueryContext
-	order      []lessonreservation.OrderOption
-	inters     []Interceptor
-	predicates []predicate.LessonReservation
+	ctx                                 *QueryContext
+	order                               []lessonreservation.OrderOption
+	inters                              []Interceptor
+	predicates                          []predicate.LessonReservation
+	withLessonSchedule                  *LessonScheduleQuery
+	withSchool                          *SchoolQuery
+	withUser                            *UserQuery
+	withLessonReservationPreferredDates *LessonReservationPreferredDateQuery
+	withLessonConfirmation              *LessonConfirmationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,6 +69,116 @@ func (lrq *LessonReservationQuery) Order(o ...lessonreservation.OrderOption) *Le
 	return lrq
 }
 
+// QueryLessonSchedule chains the current query on the "lesson_schedule" edge.
+func (lrq *LessonReservationQuery) QueryLessonSchedule() *LessonScheduleQuery {
+	query := (&LessonScheduleClient{config: lrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, selector),
+			sqlgraph.To(lessonschedule.Table, lessonschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservation.LessonScheduleTable, lessonreservation.LessonScheduleColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySchool chains the current query on the "school" edge.
+func (lrq *LessonReservationQuery) QuerySchool() *SchoolQuery {
+	query := (&SchoolClient{config: lrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, selector),
+			sqlgraph.To(school.Table, school.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservation.SchoolTable, lessonreservation.SchoolColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (lrq *LessonReservationQuery) QueryUser() *UserQuery {
+	query := (&UserClient{config: lrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservation.UserTable, lessonreservation.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLessonReservationPreferredDates chains the current query on the "lesson_reservation_preferred_dates" edge.
+func (lrq *LessonReservationQuery) QueryLessonReservationPreferredDates() *LessonReservationPreferredDateQuery {
+	query := (&LessonReservationPreferredDateClient{config: lrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, selector),
+			sqlgraph.To(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonreservation.LessonReservationPreferredDatesTable, lessonreservation.LessonReservationPreferredDatesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryLessonConfirmation chains the current query on the "lesson_confirmation" edge.
+func (lrq *LessonReservationQuery) QueryLessonConfirmation() *LessonConfirmationQuery {
+	query := (&LessonConfirmationClient{config: lrq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lrq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lrq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, selector),
+			sqlgraph.To(lessonconfirmation.Table, lessonconfirmation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonreservation.LessonConfirmationTable, lessonreservation.LessonConfirmationColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lrq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first LessonReservation entity from the query.
 // Returns a *NotFoundError when no LessonReservation was found.
 func (lrq *LessonReservationQuery) First(ctx context.Context) (*LessonReservation, error) {
@@ -82,8 +203,8 @@ func (lrq *LessonReservationQuery) FirstX(ctx context.Context) *LessonReservatio
 
 // FirstID returns the first LessonReservation ID from the query.
 // Returns a *NotFoundError when no LessonReservation ID was found.
-func (lrq *LessonReservationQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (lrq *LessonReservationQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lrq.Limit(1).IDs(setContextOp(ctx, lrq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +216,7 @@ func (lrq *LessonReservationQuery) FirstID(ctx context.Context) (id int64, err e
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (lrq *LessonReservationQuery) FirstIDX(ctx context.Context) int64 {
+func (lrq *LessonReservationQuery) FirstIDX(ctx context.Context) int {
 	id, err := lrq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +254,8 @@ func (lrq *LessonReservationQuery) OnlyX(ctx context.Context) *LessonReservation
 // OnlyID is like Only, but returns the only LessonReservation ID in the query.
 // Returns a *NotSingularError when more than one LessonReservation ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (lrq *LessonReservationQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (lrq *LessonReservationQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lrq.Limit(2).IDs(setContextOp(ctx, lrq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +271,7 @@ func (lrq *LessonReservationQuery) OnlyID(ctx context.Context) (id int64, err er
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (lrq *LessonReservationQuery) OnlyIDX(ctx context.Context) int64 {
+func (lrq *LessonReservationQuery) OnlyIDX(ctx context.Context) int {
 	id, err := lrq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +299,7 @@ func (lrq *LessonReservationQuery) AllX(ctx context.Context) []*LessonReservatio
 }
 
 // IDs executes the query and returns a list of LessonReservation IDs.
-func (lrq *LessonReservationQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (lrq *LessonReservationQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if lrq.ctx.Unique == nil && lrq.path != nil {
 		lrq.Unique(true)
 	}
@@ -190,7 +311,7 @@ func (lrq *LessonReservationQuery) IDs(ctx context.Context) (ids []int64, err er
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lrq *LessonReservationQuery) IDsX(ctx context.Context) []int64 {
+func (lrq *LessonReservationQuery) IDsX(ctx context.Context) []int {
 	ids, err := lrq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -245,15 +366,75 @@ func (lrq *LessonReservationQuery) Clone() *LessonReservationQuery {
 		return nil
 	}
 	return &LessonReservationQuery{
-		config:     lrq.config,
-		ctx:        lrq.ctx.Clone(),
-		order:      append([]lessonreservation.OrderOption{}, lrq.order...),
-		inters:     append([]Interceptor{}, lrq.inters...),
-		predicates: append([]predicate.LessonReservation{}, lrq.predicates...),
+		config:                              lrq.config,
+		ctx:                                 lrq.ctx.Clone(),
+		order:                               append([]lessonreservation.OrderOption{}, lrq.order...),
+		inters:                              append([]Interceptor{}, lrq.inters...),
+		predicates:                          append([]predicate.LessonReservation{}, lrq.predicates...),
+		withLessonSchedule:                  lrq.withLessonSchedule.Clone(),
+		withSchool:                          lrq.withSchool.Clone(),
+		withUser:                            lrq.withUser.Clone(),
+		withLessonReservationPreferredDates: lrq.withLessonReservationPreferredDates.Clone(),
+		withLessonConfirmation:              lrq.withLessonConfirmation.Clone(),
 		// clone intermediate query.
 		sql:  lrq.sql.Clone(),
 		path: lrq.path,
 	}
+}
+
+// WithLessonSchedule tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_schedule" edge. The optional arguments are used to configure the query builder of the edge.
+func (lrq *LessonReservationQuery) WithLessonSchedule(opts ...func(*LessonScheduleQuery)) *LessonReservationQuery {
+	query := (&LessonScheduleClient{config: lrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lrq.withLessonSchedule = query
+	return lrq
+}
+
+// WithSchool tells the query-builder to eager-load the nodes that are connected to
+// the "school" edge. The optional arguments are used to configure the query builder of the edge.
+func (lrq *LessonReservationQuery) WithSchool(opts ...func(*SchoolQuery)) *LessonReservationQuery {
+	query := (&SchoolClient{config: lrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lrq.withSchool = query
+	return lrq
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (lrq *LessonReservationQuery) WithUser(opts ...func(*UserQuery)) *LessonReservationQuery {
+	query := (&UserClient{config: lrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lrq.withUser = query
+	return lrq
+}
+
+// WithLessonReservationPreferredDates tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_reservation_preferred_dates" edge. The optional arguments are used to configure the query builder of the edge.
+func (lrq *LessonReservationQuery) WithLessonReservationPreferredDates(opts ...func(*LessonReservationPreferredDateQuery)) *LessonReservationQuery {
+	query := (&LessonReservationPreferredDateClient{config: lrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lrq.withLessonReservationPreferredDates = query
+	return lrq
+}
+
+// WithLessonConfirmation tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_confirmation" edge. The optional arguments are used to configure the query builder of the edge.
+func (lrq *LessonReservationQuery) WithLessonConfirmation(opts ...func(*LessonConfirmationQuery)) *LessonReservationQuery {
+	query := (&LessonConfirmationClient{config: lrq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lrq.withLessonConfirmation = query
+	return lrq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -262,7 +443,7 @@ func (lrq *LessonReservationQuery) Clone() *LessonReservationQuery {
 // Example:
 //
 //	var v []struct {
-//		LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
+//		LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -285,7 +466,7 @@ func (lrq *LessonReservationQuery) GroupBy(field string, fields ...string) *Less
 // Example:
 //
 //	var v []struct {
-//		LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
+//		LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
 //	}
 //
 //	client.LessonReservation.Query().
@@ -332,8 +513,15 @@ func (lrq *LessonReservationQuery) prepareQuery(ctx context.Context) error {
 
 func (lrq *LessonReservationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*LessonReservation, error) {
 	var (
-		nodes = []*LessonReservation{}
-		_spec = lrq.querySpec()
+		nodes       = []*LessonReservation{}
+		_spec       = lrq.querySpec()
+		loadedTypes = [5]bool{
+			lrq.withLessonSchedule != nil,
+			lrq.withSchool != nil,
+			lrq.withUser != nil,
+			lrq.withLessonReservationPreferredDates != nil,
+			lrq.withLessonConfirmation != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*LessonReservation).scanValues(nil, columns)
@@ -341,6 +529,7 @@ func (lrq *LessonReservationQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &LessonReservation{config: lrq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -352,7 +541,193 @@ func (lrq *LessonReservationQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := lrq.withLessonSchedule; query != nil {
+		if err := lrq.loadLessonSchedule(ctx, query, nodes, nil,
+			func(n *LessonReservation, e *LessonSchedule) { n.Edges.LessonSchedule = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lrq.withSchool; query != nil {
+		if err := lrq.loadSchool(ctx, query, nodes, nil,
+			func(n *LessonReservation, e *School) { n.Edges.School = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lrq.withUser; query != nil {
+		if err := lrq.loadUser(ctx, query, nodes, nil,
+			func(n *LessonReservation, e *User) { n.Edges.User = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := lrq.withLessonReservationPreferredDates; query != nil {
+		if err := lrq.loadLessonReservationPreferredDates(ctx, query, nodes,
+			func(n *LessonReservation) {
+				n.Edges.LessonReservationPreferredDates = []*LessonReservationPreferredDate{}
+			},
+			func(n *LessonReservation, e *LessonReservationPreferredDate) {
+				n.Edges.LessonReservationPreferredDates = append(n.Edges.LessonReservationPreferredDates, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := lrq.withLessonConfirmation; query != nil {
+		if err := lrq.loadLessonConfirmation(ctx, query, nodes,
+			func(n *LessonReservation) { n.Edges.LessonConfirmation = []*LessonConfirmation{} },
+			func(n *LessonReservation, e *LessonConfirmation) {
+				n.Edges.LessonConfirmation = append(n.Edges.LessonConfirmation, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (lrq *LessonReservationQuery) loadLessonSchedule(ctx context.Context, query *LessonScheduleQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *LessonSchedule)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LessonReservation)
+	for i := range nodes {
+		fk := nodes[i].LessonScheduleID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(lessonschedule.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "lesson_schedule_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (lrq *LessonReservationQuery) loadSchool(ctx context.Context, query *SchoolQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *School)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LessonReservation)
+	for i := range nodes {
+		fk := nodes[i].SchoolID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(school.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "school_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (lrq *LessonReservationQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *User)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LessonReservation)
+	for i := range nodes {
+		fk := nodes[i].UserID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(user.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
+func (lrq *LessonReservationQuery) loadLessonReservationPreferredDates(ctx context.Context, query *LessonReservationPreferredDateQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *LessonReservationPreferredDate)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*LessonReservation)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonreservationpreferreddate.FieldLessonReservationID)
+	}
+	query.Where(predicate.LessonReservationPreferredDate(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonreservation.LessonReservationPreferredDatesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LessonReservationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_reservation_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (lrq *LessonReservationQuery) loadLessonConfirmation(ctx context.Context, query *LessonConfirmationQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *LessonConfirmation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*LessonReservation)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonconfirmation.FieldLessonReservationID)
+	}
+	query.Where(predicate.LessonConfirmation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonreservation.LessonConfirmationColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.LessonReservationID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_reservation_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (lrq *LessonReservationQuery) sqlCount(ctx context.Context) (int, error) {
@@ -365,7 +740,7 @@ func (lrq *LessonReservationQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (lrq *LessonReservationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt))
 	_spec.From = lrq.sql
 	if unique := lrq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -379,6 +754,15 @@ func (lrq *LessonReservationQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != lessonreservation.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if lrq.withLessonSchedule != nil {
+			_spec.Node.AddColumnOnce(lessonreservation.FieldLessonScheduleID)
+		}
+		if lrq.withSchool != nil {
+			_spec.Node.AddColumnOnce(lessonreservation.FieldSchoolID)
+		}
+		if lrq.withUser != nil {
+			_spec.Node.AddColumnOnce(lessonreservation.FieldUserID)
 		}
 	}
 	if ps := lrq.predicates; len(ps) > 0 {

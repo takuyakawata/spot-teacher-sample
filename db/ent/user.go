@@ -18,13 +18,17 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int64 `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// UserType holds the value of the "user_type" field.
 	UserType user.UserType `json:"user_type,omitempty"`
 	// SchoolID holds the value of the "school_id" field.
-	SchoolID *int64 `json:"school_id,omitempty"`
+	SchoolID *int `json:"school_id,omitempty"`
 	// CompanyID holds the value of the "company_id" field.
-	CompanyID *int64 `json:"company_id,omitempty"`
+	CompanyID *int `json:"company_id,omitempty"`
 	// FirstName holds the value of the "first_name" field.
 	FirstName string `json:"first_name,omitempty"`
 	// FamilyName holds the value of the "family_name" field.
@@ -35,10 +39,6 @@ type User struct {
 	PhoneNumber string `json:"phone_number,omitempty"`
 	// Password holds the value of the "password" field.
 	Password *string `json:"-"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -51,9 +51,13 @@ type UserEdges struct {
 	School *School `json:"school,omitempty"`
 	// Company holds the value of the company edge.
 	Company *Company `json:"company,omitempty"`
+	// Inquiries holds the value of the inquiries edge.
+	Inquiries []*Inquiry `json:"inquiries,omitempty"`
+	// LessonReservations holds the value of the lesson_reservations edge.
+	LessonReservations []*LessonReservation `json:"lesson_reservations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [4]bool
 }
 
 // SchoolOrErr returns the School value or an error if the edge
@@ -78,6 +82,24 @@ func (e UserEdges) CompanyOrErr() (*Company, error) {
 	return nil, &NotLoadedError{edge: "company"}
 }
 
+// InquiriesOrErr returns the Inquiries value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) InquiriesOrErr() ([]*Inquiry, error) {
+	if e.loadedTypes[2] {
+		return e.Inquiries, nil
+	}
+	return nil, &NotLoadedError{edge: "inquiries"}
+}
+
+// LessonReservationsOrErr returns the LessonReservations value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) LessonReservationsOrErr() ([]*LessonReservation, error) {
+	if e.loadedTypes[3] {
+		return e.LessonReservations, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_reservations"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*User) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -87,7 +109,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case user.FieldUserType, user.FieldFirstName, user.FieldFamilyName, user.FieldEmail, user.FieldPhoneNumber, user.FieldPassword:
 			values[i] = new(sql.NullString)
-		case user.FieldUpdatedAt, user.FieldCreatedAt:
+		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -109,7 +131,19 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int64(value.Int64)
+			u.ID = int(value.Int64)
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				u.CreatedAt = value.Time
+			}
+		case user.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				u.UpdatedAt = value.Time
+			}
 		case user.FieldUserType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field user_type", values[i])
@@ -120,15 +154,15 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field school_id", values[i])
 			} else if value.Valid {
-				u.SchoolID = new(int64)
-				*u.SchoolID = value.Int64
+				u.SchoolID = new(int)
+				*u.SchoolID = int(value.Int64)
 			}
 		case user.FieldCompanyID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field company_id", values[i])
 			} else if value.Valid {
-				u.CompanyID = new(int64)
-				*u.CompanyID = value.Int64
+				u.CompanyID = new(int)
+				*u.CompanyID = int(value.Int64)
 			}
 		case user.FieldFirstName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -161,18 +195,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.Password = new(string)
 				*u.Password = value.String
 			}
-		case user.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				u.UpdatedAt = value.Time
-			}
-		case user.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				u.CreatedAt = value.Time
-			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
 		}
@@ -194,6 +216,16 @@ func (u *User) QuerySchool() *SchoolQuery {
 // QueryCompany queries the "company" edge of the User entity.
 func (u *User) QueryCompany() *CompanyQuery {
 	return NewUserClient(u.config).QueryCompany(u)
+}
+
+// QueryInquiries queries the "inquiries" edge of the User entity.
+func (u *User) QueryInquiries() *InquiryQuery {
+	return NewUserClient(u.config).QueryInquiries(u)
+}
+
+// QueryLessonReservations queries the "lesson_reservations" edge of the User entity.
+func (u *User) QueryLessonReservations() *LessonReservationQuery {
+	return NewUserClient(u.config).QueryLessonReservations(u)
 }
 
 // Update returns a builder for updating this User.
@@ -219,6 +251,12 @@ func (u *User) String() string {
 	var builder strings.Builder
 	builder.WriteString("User(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", u.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("user_type=")
 	builder.WriteString(fmt.Sprintf("%v", u.UserType))
 	builder.WriteString(", ")
@@ -245,12 +283,6 @@ func (u *User) String() string {
 	builder.WriteString(u.PhoneNumber)
 	builder.WriteString(", ")
 	builder.WriteString("password=<sensitive>")
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

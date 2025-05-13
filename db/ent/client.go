@@ -20,8 +20,10 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/emailverification"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonconfirmation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservationpreferreddate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/product"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
@@ -45,10 +47,14 @@ type Client struct {
 	Grade *GradeClient
 	// Inquiry is the client for interacting with the Inquiry builders.
 	Inquiry *InquiryClient
+	// LessonConfirmation is the client for interacting with the LessonConfirmation builders.
+	LessonConfirmation *LessonConfirmationClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
 	// LessonReservation is the client for interacting with the LessonReservation builders.
 	LessonReservation *LessonReservationClient
+	// LessonReservationPreferredDate is the client for interacting with the LessonReservationPreferredDate builders.
+	LessonReservationPreferredDate *LessonReservationPreferredDateClient
 	// LessonSchedule is the client for interacting with the LessonSchedule builders.
 	LessonSchedule *LessonScheduleClient
 	// Product is the client for interacting with the Product builders.
@@ -77,8 +83,10 @@ func (c *Client) init() {
 	c.EmailVerification = NewEmailVerificationClient(c.config)
 	c.Grade = NewGradeClient(c.config)
 	c.Inquiry = NewInquiryClient(c.config)
+	c.LessonConfirmation = NewLessonConfirmationClient(c.config)
 	c.LessonPlan = NewLessonPlanClient(c.config)
 	c.LessonReservation = NewLessonReservationClient(c.config)
+	c.LessonReservationPreferredDate = NewLessonReservationPreferredDateClient(c.config)
 	c.LessonSchedule = NewLessonScheduleClient(c.config)
 	c.Product = NewProductClient(c.config)
 	c.School = NewSchoolClient(c.config)
@@ -175,21 +183,23 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:               ctx,
-		config:            cfg,
-		Company:           NewCompanyClient(cfg),
-		EducationCategory: NewEducationCategoryClient(cfg),
-		EmailVerification: NewEmailVerificationClient(cfg),
-		Grade:             NewGradeClient(cfg),
-		Inquiry:           NewInquiryClient(cfg),
-		LessonPlan:        NewLessonPlanClient(cfg),
-		LessonReservation: NewLessonReservationClient(cfg),
-		LessonSchedule:    NewLessonScheduleClient(cfg),
-		Product:           NewProductClient(cfg),
-		School:            NewSchoolClient(cfg),
-		Subject:           NewSubjectClient(cfg),
-		UploadFile:        NewUploadFileClient(cfg),
-		User:              NewUserClient(cfg),
+		ctx:                            ctx,
+		config:                         cfg,
+		Company:                        NewCompanyClient(cfg),
+		EducationCategory:              NewEducationCategoryClient(cfg),
+		EmailVerification:              NewEmailVerificationClient(cfg),
+		Grade:                          NewGradeClient(cfg),
+		Inquiry:                        NewInquiryClient(cfg),
+		LessonConfirmation:             NewLessonConfirmationClient(cfg),
+		LessonPlan:                     NewLessonPlanClient(cfg),
+		LessonReservation:              NewLessonReservationClient(cfg),
+		LessonReservationPreferredDate: NewLessonReservationPreferredDateClient(cfg),
+		LessonSchedule:                 NewLessonScheduleClient(cfg),
+		Product:                        NewProductClient(cfg),
+		School:                         NewSchoolClient(cfg),
+		Subject:                        NewSubjectClient(cfg),
+		UploadFile:                     NewUploadFileClient(cfg),
+		User:                           NewUserClient(cfg),
 	}, nil
 }
 
@@ -207,21 +217,23 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:               ctx,
-		config:            cfg,
-		Company:           NewCompanyClient(cfg),
-		EducationCategory: NewEducationCategoryClient(cfg),
-		EmailVerification: NewEmailVerificationClient(cfg),
-		Grade:             NewGradeClient(cfg),
-		Inquiry:           NewInquiryClient(cfg),
-		LessonPlan:        NewLessonPlanClient(cfg),
-		LessonReservation: NewLessonReservationClient(cfg),
-		LessonSchedule:    NewLessonScheduleClient(cfg),
-		Product:           NewProductClient(cfg),
-		School:            NewSchoolClient(cfg),
-		Subject:           NewSubjectClient(cfg),
-		UploadFile:        NewUploadFileClient(cfg),
-		User:              NewUserClient(cfg),
+		ctx:                            ctx,
+		config:                         cfg,
+		Company:                        NewCompanyClient(cfg),
+		EducationCategory:              NewEducationCategoryClient(cfg),
+		EmailVerification:              NewEmailVerificationClient(cfg),
+		Grade:                          NewGradeClient(cfg),
+		Inquiry:                        NewInquiryClient(cfg),
+		LessonConfirmation:             NewLessonConfirmationClient(cfg),
+		LessonPlan:                     NewLessonPlanClient(cfg),
+		LessonReservation:              NewLessonReservationClient(cfg),
+		LessonReservationPreferredDate: NewLessonReservationPreferredDateClient(cfg),
+		LessonSchedule:                 NewLessonScheduleClient(cfg),
+		Product:                        NewProductClient(cfg),
+		School:                         NewSchoolClient(cfg),
+		Subject:                        NewSubjectClient(cfg),
+		UploadFile:                     NewUploadFileClient(cfg),
+		User:                           NewUserClient(cfg),
 	}, nil
 }
 
@@ -252,7 +264,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Company, c.EducationCategory, c.EmailVerification, c.Grade, c.Inquiry,
-		c.LessonPlan, c.LessonReservation, c.LessonSchedule, c.Product, c.School,
+		c.LessonConfirmation, c.LessonPlan, c.LessonReservation,
+		c.LessonReservationPreferredDate, c.LessonSchedule, c.Product, c.School,
 		c.Subject, c.UploadFile, c.User,
 	} {
 		n.Use(hooks...)
@@ -264,7 +277,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Company, c.EducationCategory, c.EmailVerification, c.Grade, c.Inquiry,
-		c.LessonPlan, c.LessonReservation, c.LessonSchedule, c.Product, c.School,
+		c.LessonConfirmation, c.LessonPlan, c.LessonReservation,
+		c.LessonReservationPreferredDate, c.LessonSchedule, c.Product, c.School,
 		c.Subject, c.UploadFile, c.User,
 	} {
 		n.Intercept(interceptors...)
@@ -284,10 +298,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Grade.mutate(ctx, m)
 	case *InquiryMutation:
 		return c.Inquiry.mutate(ctx, m)
+	case *LessonConfirmationMutation:
+		return c.LessonConfirmation.mutate(ctx, m)
 	case *LessonPlanMutation:
 		return c.LessonPlan.mutate(ctx, m)
 	case *LessonReservationMutation:
 		return c.LessonReservation.mutate(ctx, m)
+	case *LessonReservationPreferredDateMutation:
+		return c.LessonReservationPreferredDate.mutate(ctx, m)
 	case *LessonScheduleMutation:
 		return c.LessonSchedule.mutate(ctx, m)
 	case *ProductMutation:
@@ -366,7 +384,7 @@ func (c *CompanyClient) UpdateOne(co *Company) *CompanyUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *CompanyClient) UpdateOneID(id int64) *CompanyUpdateOne {
+func (c *CompanyClient) UpdateOneID(id int) *CompanyUpdateOne {
 	mutation := newCompanyMutation(c.config, OpUpdateOne, withCompanyID(id))
 	return &CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -383,7 +401,7 @@ func (c *CompanyClient) DeleteOne(co *Company) *CompanyDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *CompanyClient) DeleteOneID(id int64) *CompanyDeleteOne {
+func (c *CompanyClient) DeleteOneID(id int) *CompanyDeleteOne {
 	builder := c.Delete().Where(company.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -400,12 +418,12 @@ func (c *CompanyClient) Query() *CompanyQuery {
 }
 
 // Get returns a Company entity by its id.
-func (c *CompanyClient) Get(ctx context.Context, id int64) (*Company, error) {
+func (c *CompanyClient) Get(ctx context.Context, id int) (*Company, error) {
 	return c.Query().Where(company.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *CompanyClient) GetX(ctx context.Context, id int64) *Company {
+func (c *CompanyClient) GetX(ctx context.Context, id int) *Company {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -962,7 +980,7 @@ func (c *InquiryClient) UpdateOne(i *Inquiry) *InquiryUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *InquiryClient) UpdateOneID(id int64) *InquiryUpdateOne {
+func (c *InquiryClient) UpdateOneID(id int) *InquiryUpdateOne {
 	mutation := newInquiryMutation(c.config, OpUpdateOne, withInquiryID(id))
 	return &InquiryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -979,7 +997,7 @@ func (c *InquiryClient) DeleteOne(i *Inquiry) *InquiryDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *InquiryClient) DeleteOneID(id int64) *InquiryDeleteOne {
+func (c *InquiryClient) DeleteOneID(id int) *InquiryDeleteOne {
 	builder := c.Delete().Where(inquiry.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -996,12 +1014,12 @@ func (c *InquiryClient) Query() *InquiryQuery {
 }
 
 // Get returns a Inquiry entity by its id.
-func (c *InquiryClient) Get(ctx context.Context, id int64) (*Inquiry, error) {
+func (c *InquiryClient) Get(ctx context.Context, id int) (*Inquiry, error) {
 	return c.Query().Where(inquiry.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *InquiryClient) GetX(ctx context.Context, id int64) *Inquiry {
+func (c *InquiryClient) GetX(ctx context.Context, id int) *Inquiry {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1049,7 +1067,7 @@ func (c *InquiryClient) QueryTeacher(i *Inquiry) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(inquiry.Table, inquiry.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, inquiry.TeacherTable, inquiry.TeacherColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, inquiry.TeacherTable, inquiry.TeacherColumn),
 		)
 		fromV = sqlgraph.Neighbors(i.driver.Dialect(), step)
 		return fromV, nil
@@ -1079,6 +1097,155 @@ func (c *InquiryClient) mutate(ctx context.Context, m *InquiryMutation) (Value, 
 		return (&InquiryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Inquiry mutation op: %q", m.Op())
+	}
+}
+
+// LessonConfirmationClient is a client for the LessonConfirmation schema.
+type LessonConfirmationClient struct {
+	config
+}
+
+// NewLessonConfirmationClient returns a client for the LessonConfirmation from the given config.
+func NewLessonConfirmationClient(c config) *LessonConfirmationClient {
+	return &LessonConfirmationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonconfirmation.Hooks(f(g(h())))`.
+func (c *LessonConfirmationClient) Use(hooks ...Hook) {
+	c.hooks.LessonConfirmation = append(c.hooks.LessonConfirmation, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonconfirmation.Intercept(f(g(h())))`.
+func (c *LessonConfirmationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonConfirmation = append(c.inters.LessonConfirmation, interceptors...)
+}
+
+// Create returns a builder for creating a LessonConfirmation entity.
+func (c *LessonConfirmationClient) Create() *LessonConfirmationCreate {
+	mutation := newLessonConfirmationMutation(c.config, OpCreate)
+	return &LessonConfirmationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonConfirmation entities.
+func (c *LessonConfirmationClient) CreateBulk(builders ...*LessonConfirmationCreate) *LessonConfirmationCreateBulk {
+	return &LessonConfirmationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonConfirmationClient) MapCreateBulk(slice any, setFunc func(*LessonConfirmationCreate, int)) *LessonConfirmationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonConfirmationCreateBulk{err: fmt.Errorf("calling to LessonConfirmationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonConfirmationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonConfirmationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonConfirmation.
+func (c *LessonConfirmationClient) Update() *LessonConfirmationUpdate {
+	mutation := newLessonConfirmationMutation(c.config, OpUpdate)
+	return &LessonConfirmationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonConfirmationClient) UpdateOne(lc *LessonConfirmation) *LessonConfirmationUpdateOne {
+	mutation := newLessonConfirmationMutation(c.config, OpUpdateOne, withLessonConfirmation(lc))
+	return &LessonConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonConfirmationClient) UpdateOneID(id int) *LessonConfirmationUpdateOne {
+	mutation := newLessonConfirmationMutation(c.config, OpUpdateOne, withLessonConfirmationID(id))
+	return &LessonConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonConfirmation.
+func (c *LessonConfirmationClient) Delete() *LessonConfirmationDelete {
+	mutation := newLessonConfirmationMutation(c.config, OpDelete)
+	return &LessonConfirmationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonConfirmationClient) DeleteOne(lc *LessonConfirmation) *LessonConfirmationDeleteOne {
+	return c.DeleteOneID(lc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonConfirmationClient) DeleteOneID(id int) *LessonConfirmationDeleteOne {
+	builder := c.Delete().Where(lessonconfirmation.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonConfirmationDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonConfirmation.
+func (c *LessonConfirmationClient) Query() *LessonConfirmationQuery {
+	return &LessonConfirmationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonConfirmation},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonConfirmation entity by its id.
+func (c *LessonConfirmationClient) Get(ctx context.Context, id int) (*LessonConfirmation, error) {
+	return c.Query().Where(lessonconfirmation.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonConfirmationClient) GetX(ctx context.Context, id int) *LessonConfirmation {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLessonReservation queries the lesson_reservation edge of a LessonConfirmation.
+func (c *LessonConfirmationClient) QueryLessonReservation(lc *LessonConfirmation) *LessonReservationQuery {
+	query := (&LessonReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lc.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonconfirmation.Table, lessonconfirmation.FieldID, id),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonconfirmation.LessonReservationTable, lessonconfirmation.LessonReservationColumn),
+		)
+		fromV = sqlgraph.Neighbors(lc.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LessonConfirmationClient) Hooks() []Hook {
+	return c.hooks.LessonConfirmation
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonConfirmationClient) Interceptors() []Interceptor {
+	return c.inters.LessonConfirmation
+}
+
+func (c *LessonConfirmationClient) mutate(ctx context.Context, m *LessonConfirmationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonConfirmationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonConfirmationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonConfirmationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonConfirmation mutation op: %q", m.Op())
 	}
 }
 
@@ -1143,7 +1310,7 @@ func (c *LessonPlanClient) UpdateOne(lp *LessonPlan) *LessonPlanUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonPlanClient) UpdateOneID(id int64) *LessonPlanUpdateOne {
+func (c *LessonPlanClient) UpdateOneID(id int) *LessonPlanUpdateOne {
 	mutation := newLessonPlanMutation(c.config, OpUpdateOne, withLessonPlanID(id))
 	return &LessonPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1160,7 +1327,7 @@ func (c *LessonPlanClient) DeleteOne(lp *LessonPlan) *LessonPlanDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonPlanClient) DeleteOneID(id int64) *LessonPlanDeleteOne {
+func (c *LessonPlanClient) DeleteOneID(id int) *LessonPlanDeleteOne {
 	builder := c.Delete().Where(lessonplan.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1177,33 +1344,17 @@ func (c *LessonPlanClient) Query() *LessonPlanQuery {
 }
 
 // Get returns a LessonPlan entity by its id.
-func (c *LessonPlanClient) Get(ctx context.Context, id int64) (*LessonPlan, error) {
+func (c *LessonPlanClient) Get(ctx context.Context, id int) (*LessonPlan, error) {
 	return c.Query().Where(lessonplan.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonPlanClient) GetX(ctx context.Context, id int64) *LessonPlan {
+func (c *LessonPlanClient) GetX(ctx context.Context, id int) *LessonPlan {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
-}
-
-// QuerySchedules queries the schedules edge of a LessonPlan.
-func (c *LessonPlanClient) QuerySchedules(lp *LessonPlan) *LessonScheduleQuery {
-	query := (&LessonScheduleClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := lp.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
-			sqlgraph.To(lessonschedule.Table, lessonschedule.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.SchedulesTable, lessonplan.SchedulesColumn),
-		)
-		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // QueryCompany queries the company edge of a LessonPlan.
@@ -1215,6 +1366,22 @@ func (c *LessonPlanClient) QueryCompany(lp *LessonPlan) *CompanyQuery {
 			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
 			sqlgraph.To(company.Table, company.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, lessonplan.CompanyTable, lessonplan.CompanyColumn),
+		)
+		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySchedules queries the schedules edge of a LessonPlan.
+func (c *LessonPlanClient) QuerySchedules(lp *LessonPlan) *LessonScheduleQuery {
+	query := (&LessonScheduleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
+			sqlgraph.To(lessonschedule.Table, lessonschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.SchedulesTable, lessonplan.SchedulesColumn),
 		)
 		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
 		return fromV, nil
@@ -1263,6 +1430,22 @@ func (c *LessonPlanClient) QueryEducationCategories(lp *LessonPlan) *EducationCa
 			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
 			sqlgraph.To(educationcategory.Table, educationcategory.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, lessonplan.EducationCategoriesTable, lessonplan.EducationCategoriesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUploadFiles queries the upload_files edge of a LessonPlan.
+func (c *LessonPlanClient) QueryUploadFiles(lp *LessonPlan) *UploadFileQuery {
+	query := (&UploadFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
+			sqlgraph.To(uploadfile.Table, uploadfile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.UploadFilesTable, lessonplan.UploadFilesColumn),
 		)
 		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
 		return fromV, nil
@@ -1356,7 +1539,7 @@ func (c *LessonReservationClient) UpdateOne(lr *LessonReservation) *LessonReserv
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonReservationClient) UpdateOneID(id int64) *LessonReservationUpdateOne {
+func (c *LessonReservationClient) UpdateOneID(id int) *LessonReservationUpdateOne {
 	mutation := newLessonReservationMutation(c.config, OpUpdateOne, withLessonReservationID(id))
 	return &LessonReservationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1373,7 +1556,7 @@ func (c *LessonReservationClient) DeleteOne(lr *LessonReservation) *LessonReserv
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonReservationClient) DeleteOneID(id int64) *LessonReservationDeleteOne {
+func (c *LessonReservationClient) DeleteOneID(id int) *LessonReservationDeleteOne {
 	builder := c.Delete().Where(lessonreservation.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1390,17 +1573,97 @@ func (c *LessonReservationClient) Query() *LessonReservationQuery {
 }
 
 // Get returns a LessonReservation entity by its id.
-func (c *LessonReservationClient) Get(ctx context.Context, id int64) (*LessonReservation, error) {
+func (c *LessonReservationClient) Get(ctx context.Context, id int) (*LessonReservation, error) {
 	return c.Query().Where(lessonreservation.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonReservationClient) GetX(ctx context.Context, id int64) *LessonReservation {
+func (c *LessonReservationClient) GetX(ctx context.Context, id int) *LessonReservation {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
 	}
 	return obj
+}
+
+// QueryLessonSchedule queries the lesson_schedule edge of a LessonReservation.
+func (c *LessonReservationClient) QueryLessonSchedule(lr *LessonReservation) *LessonScheduleQuery {
+	query := (&LessonScheduleClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, id),
+			sqlgraph.To(lessonschedule.Table, lessonschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservation.LessonScheduleTable, lessonreservation.LessonScheduleColumn),
+		)
+		fromV = sqlgraph.Neighbors(lr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySchool queries the school edge of a LessonReservation.
+func (c *LessonReservationClient) QuerySchool(lr *LessonReservation) *SchoolQuery {
+	query := (&SchoolClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, id),
+			sqlgraph.To(school.Table, school.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservation.SchoolTable, lessonreservation.SchoolColumn),
+		)
+		fromV = sqlgraph.Neighbors(lr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUser queries the user edge of a LessonReservation.
+func (c *LessonReservationClient) QueryUser(lr *LessonReservation) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservation.UserTable, lessonreservation.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(lr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonReservationPreferredDates queries the lesson_reservation_preferred_dates edge of a LessonReservation.
+func (c *LessonReservationClient) QueryLessonReservationPreferredDates(lr *LessonReservation) *LessonReservationPreferredDateQuery {
+	query := (&LessonReservationPreferredDateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, id),
+			sqlgraph.To(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonreservation.LessonReservationPreferredDatesTable, lessonreservation.LessonReservationPreferredDatesColumn),
+		)
+		fromV = sqlgraph.Neighbors(lr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonConfirmation queries the lesson_confirmation edge of a LessonReservation.
+func (c *LessonReservationClient) QueryLessonConfirmation(lr *LessonReservation) *LessonConfirmationQuery {
+	query := (&LessonConfirmationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservation.Table, lessonreservation.FieldID, id),
+			sqlgraph.To(lessonconfirmation.Table, lessonconfirmation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonreservation.LessonConfirmationTable, lessonreservation.LessonConfirmationColumn),
+		)
+		fromV = sqlgraph.Neighbors(lr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -1425,6 +1688,155 @@ func (c *LessonReservationClient) mutate(ctx context.Context, m *LessonReservati
 		return (&LessonReservationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown LessonReservation mutation op: %q", m.Op())
+	}
+}
+
+// LessonReservationPreferredDateClient is a client for the LessonReservationPreferredDate schema.
+type LessonReservationPreferredDateClient struct {
+	config
+}
+
+// NewLessonReservationPreferredDateClient returns a client for the LessonReservationPreferredDate from the given config.
+func NewLessonReservationPreferredDateClient(c config) *LessonReservationPreferredDateClient {
+	return &LessonReservationPreferredDateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonreservationpreferreddate.Hooks(f(g(h())))`.
+func (c *LessonReservationPreferredDateClient) Use(hooks ...Hook) {
+	c.hooks.LessonReservationPreferredDate = append(c.hooks.LessonReservationPreferredDate, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonreservationpreferreddate.Intercept(f(g(h())))`.
+func (c *LessonReservationPreferredDateClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonReservationPreferredDate = append(c.inters.LessonReservationPreferredDate, interceptors...)
+}
+
+// Create returns a builder for creating a LessonReservationPreferredDate entity.
+func (c *LessonReservationPreferredDateClient) Create() *LessonReservationPreferredDateCreate {
+	mutation := newLessonReservationPreferredDateMutation(c.config, OpCreate)
+	return &LessonReservationPreferredDateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonReservationPreferredDate entities.
+func (c *LessonReservationPreferredDateClient) CreateBulk(builders ...*LessonReservationPreferredDateCreate) *LessonReservationPreferredDateCreateBulk {
+	return &LessonReservationPreferredDateCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonReservationPreferredDateClient) MapCreateBulk(slice any, setFunc func(*LessonReservationPreferredDateCreate, int)) *LessonReservationPreferredDateCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonReservationPreferredDateCreateBulk{err: fmt.Errorf("calling to LessonReservationPreferredDateClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonReservationPreferredDateCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonReservationPreferredDateCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonReservationPreferredDate.
+func (c *LessonReservationPreferredDateClient) Update() *LessonReservationPreferredDateUpdate {
+	mutation := newLessonReservationPreferredDateMutation(c.config, OpUpdate)
+	return &LessonReservationPreferredDateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonReservationPreferredDateClient) UpdateOne(lrpd *LessonReservationPreferredDate) *LessonReservationPreferredDateUpdateOne {
+	mutation := newLessonReservationPreferredDateMutation(c.config, OpUpdateOne, withLessonReservationPreferredDate(lrpd))
+	return &LessonReservationPreferredDateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonReservationPreferredDateClient) UpdateOneID(id int) *LessonReservationPreferredDateUpdateOne {
+	mutation := newLessonReservationPreferredDateMutation(c.config, OpUpdateOne, withLessonReservationPreferredDateID(id))
+	return &LessonReservationPreferredDateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonReservationPreferredDate.
+func (c *LessonReservationPreferredDateClient) Delete() *LessonReservationPreferredDateDelete {
+	mutation := newLessonReservationPreferredDateMutation(c.config, OpDelete)
+	return &LessonReservationPreferredDateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonReservationPreferredDateClient) DeleteOne(lrpd *LessonReservationPreferredDate) *LessonReservationPreferredDateDeleteOne {
+	return c.DeleteOneID(lrpd.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonReservationPreferredDateClient) DeleteOneID(id int) *LessonReservationPreferredDateDeleteOne {
+	builder := c.Delete().Where(lessonreservationpreferreddate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonReservationPreferredDateDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonReservationPreferredDate.
+func (c *LessonReservationPreferredDateClient) Query() *LessonReservationPreferredDateQuery {
+	return &LessonReservationPreferredDateQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonReservationPreferredDate},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonReservationPreferredDate entity by its id.
+func (c *LessonReservationPreferredDateClient) Get(ctx context.Context, id int) (*LessonReservationPreferredDate, error) {
+	return c.Query().Where(lessonreservationpreferreddate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonReservationPreferredDateClient) GetX(ctx context.Context, id int) *LessonReservationPreferredDate {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLessonReservations queries the lessonReservations edge of a LessonReservationPreferredDate.
+func (c *LessonReservationPreferredDateClient) QueryLessonReservations(lrpd *LessonReservationPreferredDate) *LessonReservationQuery {
+	query := (&LessonReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lrpd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.FieldID, id),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, lessonreservationpreferreddate.LessonReservationsTable, lessonreservationpreferreddate.LessonReservationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(lrpd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LessonReservationPreferredDateClient) Hooks() []Hook {
+	return c.hooks.LessonReservationPreferredDate
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonReservationPreferredDateClient) Interceptors() []Interceptor {
+	return c.inters.LessonReservationPreferredDate
+}
+
+func (c *LessonReservationPreferredDateClient) mutate(ctx context.Context, m *LessonReservationPreferredDateMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonReservationPreferredDateCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonReservationPreferredDateUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonReservationPreferredDateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonReservationPreferredDateDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonReservationPreferredDate mutation op: %q", m.Op())
 	}
 }
 
@@ -1489,7 +1901,7 @@ func (c *LessonScheduleClient) UpdateOne(ls *LessonSchedule) *LessonScheduleUpda
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonScheduleClient) UpdateOneID(id int64) *LessonScheduleUpdateOne {
+func (c *LessonScheduleClient) UpdateOneID(id int) *LessonScheduleUpdateOne {
 	mutation := newLessonScheduleMutation(c.config, OpUpdateOne, withLessonScheduleID(id))
 	return &LessonScheduleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1506,7 +1918,7 @@ func (c *LessonScheduleClient) DeleteOne(ls *LessonSchedule) *LessonScheduleDele
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonScheduleClient) DeleteOneID(id int64) *LessonScheduleDeleteOne {
+func (c *LessonScheduleClient) DeleteOneID(id int) *LessonScheduleDeleteOne {
 	builder := c.Delete().Where(lessonschedule.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1523,12 +1935,12 @@ func (c *LessonScheduleClient) Query() *LessonScheduleQuery {
 }
 
 // Get returns a LessonSchedule entity by its id.
-func (c *LessonScheduleClient) Get(ctx context.Context, id int64) (*LessonSchedule, error) {
+func (c *LessonScheduleClient) Get(ctx context.Context, id int) (*LessonSchedule, error) {
 	return c.Query().Where(lessonschedule.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonScheduleClient) GetX(ctx context.Context, id int64) *LessonSchedule {
+func (c *LessonScheduleClient) GetX(ctx context.Context, id int) *LessonSchedule {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1593,6 +2005,22 @@ func (c *LessonScheduleClient) QueryEducationCategories(ls *LessonSchedule) *Edu
 			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, id),
 			sqlgraph.To(educationcategory.Table, educationcategory.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.EducationCategoriesTable, lessonschedule.EducationCategoriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ls.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonReservations queries the lesson_reservations edge of a LessonSchedule.
+func (c *LessonScheduleClient) QueryLessonReservations(ls *LessonSchedule) *LessonReservationQuery {
+	query := (&LessonReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ls.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonschedule.Table, lessonschedule.FieldID, id),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonschedule.LessonReservationsTable, lessonschedule.LessonReservationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(ls.driver.Dialect(), step)
 		return fromV, nil
@@ -1819,7 +2247,7 @@ func (c *SchoolClient) UpdateOne(s *School) *SchoolUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SchoolClient) UpdateOneID(id int64) *SchoolUpdateOne {
+func (c *SchoolClient) UpdateOneID(id int) *SchoolUpdateOne {
 	mutation := newSchoolMutation(c.config, OpUpdateOne, withSchoolID(id))
 	return &SchoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1836,7 +2264,7 @@ func (c *SchoolClient) DeleteOne(s *School) *SchoolDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SchoolClient) DeleteOneID(id int64) *SchoolDeleteOne {
+func (c *SchoolClient) DeleteOneID(id int) *SchoolDeleteOne {
 	builder := c.Delete().Where(school.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1853,12 +2281,12 @@ func (c *SchoolClient) Query() *SchoolQuery {
 }
 
 // Get returns a School entity by its id.
-func (c *SchoolClient) Get(ctx context.Context, id int64) (*School, error) {
+func (c *SchoolClient) Get(ctx context.Context, id int) (*School, error) {
 	return c.Query().Where(school.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SchoolClient) GetX(ctx context.Context, id int64) *School {
+func (c *SchoolClient) GetX(ctx context.Context, id int) *School {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1875,6 +2303,22 @@ func (c *SchoolClient) QueryTeachers(s *School) *UserQuery {
 			sqlgraph.From(school.Table, school.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, school.TeachersTable, school.TeachersColumn),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonReservations queries the lesson_reservations edge of a School.
+func (c *SchoolClient) QueryLessonReservations(s *School) *LessonReservationQuery {
+	query := (&LessonReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(school.Table, school.FieldID, id),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, school.LessonReservationsTable, school.LessonReservationsColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -2164,6 +2608,22 @@ func (c *UploadFileClient) GetX(ctx context.Context, id int) *UploadFile {
 	return obj
 }
 
+// QueryLessonPlan queries the LessonPlan edge of a UploadFile.
+func (c *UploadFileClient) QueryLessonPlan(uf *UploadFile) *LessonPlanQuery {
+	query := (&LessonPlanClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(uploadfile.Table, uploadfile.FieldID, id),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, uploadfile.LessonPlanTable, uploadfile.LessonPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(uf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UploadFileClient) Hooks() []Hook {
 	return c.hooks.UploadFile
@@ -2250,7 +2710,7 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int64) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2267,7 +2727,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserClient) DeleteOneID(id int64) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2284,12 +2744,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int64) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int64) *User {
+func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2329,6 +2789,38 @@ func (c *UserClient) QueryCompany(u *User) *CompanyQuery {
 	return query
 }
 
+// QueryInquiries queries the inquiries edge of a User.
+func (c *UserClient) QueryInquiries(u *User) *InquiryQuery {
+	query := (&InquiryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(inquiry.Table, inquiry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.InquiriesTable, user.InquiriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonReservations queries the lesson_reservations edge of a User.
+func (c *UserClient) QueryLessonReservations(u *User) *LessonReservationQuery {
+	query := (&LessonReservationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.LessonReservationsTable, user.LessonReservationsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -2357,13 +2849,15 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Company, EducationCategory, EmailVerification, Grade, Inquiry, LessonPlan,
-		LessonReservation, LessonSchedule, Product, School, Subject, UploadFile,
-		User []ent.Hook
+		Company, EducationCategory, EmailVerification, Grade, Inquiry,
+		LessonConfirmation, LessonPlan, LessonReservation,
+		LessonReservationPreferredDate, LessonSchedule, Product, School, Subject,
+		UploadFile, User []ent.Hook
 	}
 	inters struct {
-		Company, EducationCategory, EmailVerification, Grade, Inquiry, LessonPlan,
-		LessonReservation, LessonSchedule, Product, School, Subject, UploadFile,
-		User []ent.Interceptor
+		Company, EducationCategory, EmailVerification, Grade, Inquiry,
+		LessonConfirmation, LessonPlan, LessonReservation,
+		LessonReservationPreferredDate, LessonSchedule, Product, School, Subject,
+		UploadFile, User []ent.Interceptor
 	}
 )

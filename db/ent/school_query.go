@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
@@ -20,11 +21,12 @@ import (
 // SchoolQuery is the builder for querying School entities.
 type SchoolQuery struct {
 	config
-	ctx          *QueryContext
-	order        []school.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.School
-	withTeachers *UserQuery
+	ctx                    *QueryContext
+	order                  []school.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.School
+	withTeachers           *UserQuery
+	withLessonReservations *LessonReservationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -83,6 +85,28 @@ func (sq *SchoolQuery) QueryTeachers() *UserQuery {
 	return query
 }
 
+// QueryLessonReservations chains the current query on the "lesson_reservations" edge.
+func (sq *SchoolQuery) QueryLessonReservations() *LessonReservationQuery {
+	query := (&LessonReservationClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(school.Table, school.FieldID, selector),
+			sqlgraph.To(lessonreservation.Table, lessonreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, school.LessonReservationsTable, school.LessonReservationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first School entity from the query.
 // Returns a *NotFoundError when no School was found.
 func (sq *SchoolQuery) First(ctx context.Context) (*School, error) {
@@ -107,8 +131,8 @@ func (sq *SchoolQuery) FirstX(ctx context.Context) *School {
 
 // FirstID returns the first School ID from the query.
 // Returns a *NotFoundError when no School ID was found.
-func (sq *SchoolQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (sq *SchoolQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -120,7 +144,7 @@ func (sq *SchoolQuery) FirstID(ctx context.Context) (id int64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *SchoolQuery) FirstIDX(ctx context.Context) int64 {
+func (sq *SchoolQuery) FirstIDX(ctx context.Context) int {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -158,8 +182,8 @@ func (sq *SchoolQuery) OnlyX(ctx context.Context) *School {
 // OnlyID is like Only, but returns the only School ID in the query.
 // Returns a *NotSingularError when more than one School ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *SchoolQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (sq *SchoolQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -175,7 +199,7 @@ func (sq *SchoolQuery) OnlyID(ctx context.Context) (id int64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *SchoolQuery) OnlyIDX(ctx context.Context) int64 {
+func (sq *SchoolQuery) OnlyIDX(ctx context.Context) int {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -203,7 +227,7 @@ func (sq *SchoolQuery) AllX(ctx context.Context) []*School {
 }
 
 // IDs executes the query and returns a list of School IDs.
-func (sq *SchoolQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (sq *SchoolQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -215,7 +239,7 @@ func (sq *SchoolQuery) IDs(ctx context.Context) (ids []int64, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SchoolQuery) IDsX(ctx context.Context) []int64 {
+func (sq *SchoolQuery) IDsX(ctx context.Context) []int {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -270,12 +294,13 @@ func (sq *SchoolQuery) Clone() *SchoolQuery {
 		return nil
 	}
 	return &SchoolQuery{
-		config:       sq.config,
-		ctx:          sq.ctx.Clone(),
-		order:        append([]school.OrderOption{}, sq.order...),
-		inters:       append([]Interceptor{}, sq.inters...),
-		predicates:   append([]predicate.School{}, sq.predicates...),
-		withTeachers: sq.withTeachers.Clone(),
+		config:                 sq.config,
+		ctx:                    sq.ctx.Clone(),
+		order:                  append([]school.OrderOption{}, sq.order...),
+		inters:                 append([]Interceptor{}, sq.inters...),
+		predicates:             append([]predicate.School{}, sq.predicates...),
+		withTeachers:           sq.withTeachers.Clone(),
+		withLessonReservations: sq.withLessonReservations.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -293,18 +318,29 @@ func (sq *SchoolQuery) WithTeachers(opts ...func(*UserQuery)) *SchoolQuery {
 	return sq
 }
 
+// WithLessonReservations tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_reservations" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SchoolQuery) WithLessonReservations(opts ...func(*LessonReservationQuery)) *SchoolQuery {
+	query := (&LessonReservationClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withLessonReservations = query
+	return sq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		SchoolType school.SchoolType `json:"school_type,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.School.Query().
-//		GroupBy(school.FieldSchoolType).
+//		GroupBy(school.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (sq *SchoolQuery) GroupBy(field string, fields ...string) *SchoolGroupBy {
@@ -322,11 +358,11 @@ func (sq *SchoolQuery) GroupBy(field string, fields ...string) *SchoolGroupBy {
 // Example:
 //
 //	var v []struct {
-//		SchoolType school.SchoolType `json:"school_type,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.School.Query().
-//		Select(school.FieldSchoolType).
+//		Select(school.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (sq *SchoolQuery) Select(fields ...string) *SchoolSelect {
 	sq.ctx.Fields = append(sq.ctx.Fields, fields...)
@@ -371,8 +407,9 @@ func (sq *SchoolQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Schoo
 	var (
 		nodes       = []*School{}
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sq.withTeachers != nil,
+			sq.withLessonReservations != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -400,12 +437,21 @@ func (sq *SchoolQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Schoo
 			return nil, err
 		}
 	}
+	if query := sq.withLessonReservations; query != nil {
+		if err := sq.loadLessonReservations(ctx, query, nodes,
+			func(n *School) { n.Edges.LessonReservations = []*LessonReservation{} },
+			func(n *School, e *LessonReservation) {
+				n.Edges.LessonReservations = append(n.Edges.LessonReservations, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (sq *SchoolQuery) loadTeachers(ctx context.Context, query *UserQuery, nodes []*School, init func(*School), assign func(*School, *User)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*School)
+	nodeids := make(map[int]*School)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -436,6 +482,36 @@ func (sq *SchoolQuery) loadTeachers(ctx context.Context, query *UserQuery, nodes
 	}
 	return nil
 }
+func (sq *SchoolQuery) loadLessonReservations(ctx context.Context, query *LessonReservationQuery, nodes []*School, init func(*School), assign func(*School, *LessonReservation)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*School)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonreservation.FieldSchoolID)
+	}
+	query.Where(predicate.LessonReservation(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(school.LessonReservationsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SchoolID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "school_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (sq *SchoolQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := sq.querySpec()
@@ -447,7 +523,7 @@ func (sq *SchoolQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (sq *SchoolQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt))
 	_spec.From = sq.sql
 	if unique := sq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

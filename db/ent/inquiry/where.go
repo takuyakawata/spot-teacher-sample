@@ -11,73 +11,48 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int64) predicate.Inquiry {
+func ID(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int64) predicate.Inquiry {
+func IDEQ(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int64) predicate.Inquiry {
+func IDNEQ(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int64) predicate.Inquiry {
+func IDIn(ids ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int64) predicate.Inquiry {
+func IDNotIn(ids ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int64) predicate.Inquiry {
+func IDGT(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int64) predicate.Inquiry {
+func IDGTE(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int64) predicate.Inquiry {
+func IDLT(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int64) predicate.Inquiry {
+func IDLTE(id int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldLTE(FieldID, id))
-}
-
-// LessonScheduleID applies equality check predicate on the "lesson_schedule_id" field. It's identical to LessonScheduleIDEQ.
-func LessonScheduleID(v int64) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldLessonScheduleID, v))
-}
-
-// SchoolID applies equality check predicate on the "school_id" field. It's identical to SchoolIDEQ.
-func SchoolID(v int64) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldSchoolID, v))
-}
-
-// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int64) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldUserID, v))
-}
-
-// InquiryDetail applies equality check predicate on the "inquiry_detail" field. It's identical to InquiryDetailEQ.
-func InquiryDetail(v string) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldInquiryDetail, v))
-}
-
-// DeletedAt applies equality check predicate on the "deleted_at" field. It's identical to DeletedAtEQ.
-func DeletedAt(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldDeletedAt, v))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
@@ -90,63 +65,163 @@ func UpdatedAt(v time.Time) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// LessonScheduleID applies equality check predicate on the "lesson_schedule_id" field. It's identical to LessonScheduleIDEQ.
+func LessonScheduleID(v int) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldEQ(FieldLessonScheduleID, v))
+}
+
+// SchoolID applies equality check predicate on the "school_id" field. It's identical to SchoolIDEQ.
+func SchoolID(v int) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldEQ(FieldSchoolID, v))
+}
+
+// UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
+func UserID(v int) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldEQ(FieldUserID, v))
+}
+
+// InquiryDetail applies equality check predicate on the "inquiry_detail" field. It's identical to InquiryDetailEQ.
+func InquiryDetail(v string) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldEQ(FieldInquiryDetail, v))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.Inquiry {
+	return predicate.Inquiry(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
 // LessonScheduleIDEQ applies the EQ predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDEQ(v int64) predicate.Inquiry {
+func LessonScheduleIDEQ(v int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldLessonScheduleID, v))
 }
 
 // LessonScheduleIDNEQ applies the NEQ predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDNEQ(v int64) predicate.Inquiry {
+func LessonScheduleIDNEQ(v int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldLessonScheduleID, v))
 }
 
 // LessonScheduleIDIn applies the In predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDIn(vs ...int64) predicate.Inquiry {
+func LessonScheduleIDIn(vs ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldLessonScheduleID, vs...))
 }
 
 // LessonScheduleIDNotIn applies the NotIn predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDNotIn(vs ...int64) predicate.Inquiry {
+func LessonScheduleIDNotIn(vs ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldLessonScheduleID, vs...))
 }
 
 // SchoolIDEQ applies the EQ predicate on the "school_id" field.
-func SchoolIDEQ(v int64) predicate.Inquiry {
+func SchoolIDEQ(v int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // SchoolIDNEQ applies the NEQ predicate on the "school_id" field.
-func SchoolIDNEQ(v int64) predicate.Inquiry {
+func SchoolIDNEQ(v int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldSchoolID, v))
 }
 
 // SchoolIDIn applies the In predicate on the "school_id" field.
-func SchoolIDIn(vs ...int64) predicate.Inquiry {
+func SchoolIDIn(vs ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldSchoolID, vs...))
 }
 
 // SchoolIDNotIn applies the NotIn predicate on the "school_id" field.
-func SchoolIDNotIn(vs ...int64) predicate.Inquiry {
+func SchoolIDNotIn(vs ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldSchoolID, vs...))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int64) predicate.Inquiry {
+func UserIDEQ(v int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int64) predicate.Inquiry {
+func UserIDNEQ(v int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int64) predicate.Inquiry {
+func UserIDIn(vs ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int64) predicate.Inquiry {
+func UserIDNotIn(vs ...int) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldUserID, vs...))
 }
 
@@ -235,136 +310,6 @@ func InquiryDetailContainsFold(v string) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldContainsFold(FieldInquiryDetail, v))
 }
 
-// DeletedAtEQ applies the EQ predicate on the "deleted_at" field.
-func DeletedAtEQ(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldDeletedAt, v))
-}
-
-// DeletedAtNEQ applies the NEQ predicate on the "deleted_at" field.
-func DeletedAtNEQ(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNEQ(FieldDeletedAt, v))
-}
-
-// DeletedAtIn applies the In predicate on the "deleted_at" field.
-func DeletedAtIn(vs ...time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldIn(FieldDeletedAt, vs...))
-}
-
-// DeletedAtNotIn applies the NotIn predicate on the "deleted_at" field.
-func DeletedAtNotIn(vs ...time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNotIn(FieldDeletedAt, vs...))
-}
-
-// DeletedAtGT applies the GT predicate on the "deleted_at" field.
-func DeletedAtGT(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldGT(FieldDeletedAt, v))
-}
-
-// DeletedAtGTE applies the GTE predicate on the "deleted_at" field.
-func DeletedAtGTE(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldGTE(FieldDeletedAt, v))
-}
-
-// DeletedAtLT applies the LT predicate on the "deleted_at" field.
-func DeletedAtLT(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldLT(FieldDeletedAt, v))
-}
-
-// DeletedAtLTE applies the LTE predicate on the "deleted_at" field.
-func DeletedAtLTE(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldLTE(FieldDeletedAt, v))
-}
-
-// DeletedAtIsNil applies the IsNil predicate on the "deleted_at" field.
-func DeletedAtIsNil() predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldIsNull(FieldDeletedAt))
-}
-
-// DeletedAtNotNil applies the NotNil predicate on the "deleted_at" field.
-func DeletedAtNotNil() predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNotNull(FieldDeletedAt))
-}
-
-// CreatedAtEQ applies the EQ predicate on the "created_at" field.
-func CreatedAtEQ(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldCreatedAt, v))
-}
-
-// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
-func CreatedAtNEQ(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNEQ(FieldCreatedAt, v))
-}
-
-// CreatedAtIn applies the In predicate on the "created_at" field.
-func CreatedAtIn(vs ...time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldIn(FieldCreatedAt, vs...))
-}
-
-// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
-func CreatedAtNotIn(vs ...time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNotIn(FieldCreatedAt, vs...))
-}
-
-// CreatedAtGT applies the GT predicate on the "created_at" field.
-func CreatedAtGT(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldGT(FieldCreatedAt, v))
-}
-
-// CreatedAtGTE applies the GTE predicate on the "created_at" field.
-func CreatedAtGTE(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldGTE(FieldCreatedAt, v))
-}
-
-// CreatedAtLT applies the LT predicate on the "created_at" field.
-func CreatedAtLT(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldLT(FieldCreatedAt, v))
-}
-
-// CreatedAtLTE applies the LTE predicate on the "created_at" field.
-func CreatedAtLTE(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldLTE(FieldCreatedAt, v))
-}
-
-// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
-func UpdatedAtEQ(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
-func UpdatedAtNEQ(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNEQ(FieldUpdatedAt, v))
-}
-
-// UpdatedAtIn applies the In predicate on the "updated_at" field.
-func UpdatedAtIn(vs ...time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldIn(FieldUpdatedAt, vs...))
-}
-
-// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
-func UpdatedAtNotIn(vs ...time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldNotIn(FieldUpdatedAt, vs...))
-}
-
-// UpdatedAtGT applies the GT predicate on the "updated_at" field.
-func UpdatedAtGT(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldGT(FieldUpdatedAt, v))
-}
-
-// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
-func UpdatedAtGTE(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldGTE(FieldUpdatedAt, v))
-}
-
-// UpdatedAtLT applies the LT predicate on the "updated_at" field.
-func UpdatedAtLT(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldLT(FieldUpdatedAt, v))
-}
-
-// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
-func UpdatedAtLTE(v time.Time) predicate.Inquiry {
-	return predicate.Inquiry(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
 // HasLesson applies the HasEdge predicate on the "lesson" edge.
 func HasLesson() predicate.Inquiry {
 	return predicate.Inquiry(func(s *sql.Selector) {
@@ -416,7 +361,7 @@ func HasTeacher() predicate.Inquiry {
 	return predicate.Inquiry(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, TeacherTable, TeacherColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, TeacherTable, TeacherColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})

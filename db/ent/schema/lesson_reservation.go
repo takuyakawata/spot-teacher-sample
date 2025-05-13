@@ -5,7 +5,6 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"entgo.io/ent/schema/mixin"
 )
 
 type LessonReservation struct {
@@ -14,16 +13,13 @@ type LessonReservation struct {
 
 func (LessonReservation) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id").
+		field.Int("lesson_schedule_id").
 			Positive(),
 
-		field.Int64("lesson_schedule_id").
+		field.Int("school_id").
 			Positive(),
 
-		field.Int64("school_id").
-			Positive(),
-
-		field.Int64("user_id").
+		field.Int("user_id").
 			Positive(),
 
 		field.Enum("reservation_status").
@@ -45,32 +41,34 @@ func (LessonReservation) Fields() []ent.Field {
 	}
 }
 
-func (LessonReservation) Mixins() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.Time{},
-	}
-}
-
-func (LessonReservation) Edge() []ent.Edge {
+func (LessonReservation) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("lesson_schedule", LessonSchedule.Type).
+		edge.From("lesson_schedule", LessonSchedule.Type).
+			Ref("lesson_reservations").
 			Field("lesson_schedule_id").
 			Unique().
 			Required(),
 
-		edge.To("school", School.Type).
+		edge.From("school", School.Type).
+			Ref("lesson_reservations").
 			Field("school_id").
 			Unique().
 			Required(),
 
-		edge.To("user", User.Type).
+		edge.From("user", User.Type).
+			Ref("lesson_reservations").
 			Field("user_id").
 			Unique().
 			Required(),
 
-		edge.To("preferred_dates", LessonReservationPreferredDate.Type),
+		edge.To("lesson_reservation_preferred_dates", LessonReservationPreferredDate.Type),
+		edge.To("lesson_confirmation", LessonConfirmation.Type),
+	}
+}
 
-		//edge.To("confirmation", LessonConfirmation.Type),
+func (LessonReservation) Mixins() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 
@@ -80,6 +78,5 @@ func (LessonReservation) Indexes() []ent.Index {
 		index.Fields("school_id"),
 		index.Fields("user_id"),
 		index.Fields("reservation_status"),
-		index.Fields("created_at"),
 	}
 }

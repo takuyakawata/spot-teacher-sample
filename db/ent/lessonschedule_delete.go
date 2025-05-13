@@ -40,7 +40,7 @@ func (lsd *LessonScheduleDelete) ExecX(ctx context.Context) int {
 }
 
 func (lsd *LessonScheduleDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(lessonschedule.Table, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewDeleteSpec(lessonschedule.Table, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt))
 	if ps := lsd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

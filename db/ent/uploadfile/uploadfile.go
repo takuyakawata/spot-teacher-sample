@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -13,25 +14,40 @@ const (
 	Label = "upload_file"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldCreateTime holds the string denoting the create_time field in the database.
-	FieldCreateTime = "create_time"
-	// FieldUpdateTime holds the string denoting the update_time field in the database.
-	FieldUpdateTime = "update_time"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldPhotoKey holds the string denoting the photo_key field in the database.
 	FieldPhotoKey = "photo_key"
 	// FieldUserID holds the string denoting the user_id field in the database.
 	FieldUserID = "user_id"
+	// EdgeLessonPlan holds the string denoting the lessonplan edge name in mutations.
+	EdgeLessonPlan = "LessonPlan"
 	// Table holds the table name of the uploadfile in the database.
 	Table = "upload_files"
+	// LessonPlanTable is the table that holds the LessonPlan relation/edge.
+	LessonPlanTable = "upload_files"
+	// LessonPlanInverseTable is the table name for the LessonPlan entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplan" package.
+	LessonPlanInverseTable = "lesson_plans"
+	// LessonPlanColumn is the table column denoting the LessonPlan relation/edge.
+	LessonPlanColumn = "lesson_plan_upload_files"
 )
 
 // Columns holds all SQL columns for uploadfile fields.
 var Columns = []string{
 	FieldID,
-	FieldCreateTime,
-	FieldUpdateTime,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldPhotoKey,
 	FieldUserID,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "upload_files"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"lesson_plan_upload_files",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -41,20 +57,25 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
 
 var (
-	// DefaultCreateTime holds the default value on creation for the "create_time" field.
-	DefaultCreateTime func() time.Time
-	// DefaultUpdateTime holds the default value on creation for the "update_time" field.
-	DefaultUpdateTime func() time.Time
-	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
-	UpdateDefaultUpdateTime func() time.Time
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// PhotoKeyValidator is a validator for the "photo_key" field. It is called by the builders before save.
 	PhotoKeyValidator func(string) error
 	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(int64) error
+	UserIDValidator func(int) error
 )
 
 // OrderOption defines the ordering options for the UploadFile queries.
@@ -65,14 +86,14 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
-// ByCreateTime orders the results by the create_time field.
-func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
 }
 
-// ByUpdateTime orders the results by the update_time field.
-func ByUpdateTime(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdateTime, opts...).ToFunc()
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByPhotoKey orders the results by the photo_key field.
@@ -83,4 +104,18 @@ func ByPhotoKey(opts ...sql.OrderTermOption) OrderOption {
 // ByUserID orders the results by the user_id field.
 func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
+}
+
+// ByLessonPlanField orders the results by LessonPlan field.
+func ByLessonPlanField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newLessonPlanStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, LessonPlanTable, LessonPlanColumn),
+	)
 }

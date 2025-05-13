@@ -16,7 +16,11 @@ import (
 type School struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int64 `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// SchoolType holds the value of the "school_type" field.
 	SchoolType school.SchoolType `json:"school_type,omitempty"`
 	// Name holds the value of the "name" field.
@@ -35,10 +39,6 @@ type School struct {
 	PostCode string `json:"post_code,omitempty"`
 	// URL holds the value of the "url" field.
 	URL string `json:"url,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SchoolQuery when eager-loading is set.
 	Edges        SchoolEdges `json:"edges"`
@@ -49,9 +49,11 @@ type School struct {
 type SchoolEdges struct {
 	// Teachers holds the value of the teachers edge.
 	Teachers []*User `json:"teachers,omitempty"`
+	// LessonReservations holds the value of the lesson_reservations edge.
+	LessonReservations []*LessonReservation `json:"lesson_reservations,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // TeachersOrErr returns the Teachers value or an error if the edge
@@ -61,6 +63,15 @@ func (e SchoolEdges) TeachersOrErr() ([]*User, error) {
 		return e.Teachers, nil
 	}
 	return nil, &NotLoadedError{edge: "teachers"}
+}
+
+// LessonReservationsOrErr returns the LessonReservations value or an error if the edge
+// was not loaded in eager-loading.
+func (e SchoolEdges) LessonReservationsOrErr() ([]*LessonReservation, error) {
+	if e.loadedTypes[1] {
+		return e.LessonReservations, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_reservations"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -94,7 +105,19 @@ func (s *School) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			s.ID = int64(value.Int64)
+			s.ID = int(value.Int64)
+		case school.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				s.CreatedAt = value.Time
+			}
+		case school.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				s.UpdatedAt = value.Time
+			}
 		case school.FieldSchoolType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field school_type", values[i])
@@ -149,18 +172,6 @@ func (s *School) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				s.URL = value.String
 			}
-		case school.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				s.CreatedAt = value.Time
-			}
-		case school.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				s.UpdatedAt = value.Time
-			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
 		}
@@ -177,6 +188,11 @@ func (s *School) Value(name string) (ent.Value, error) {
 // QueryTeachers queries the "teachers" edge of the School entity.
 func (s *School) QueryTeachers() *UserQuery {
 	return NewSchoolClient(s.config).QueryTeachers(s)
+}
+
+// QueryLessonReservations queries the "lesson_reservations" edge of the School entity.
+func (s *School) QueryLessonReservations() *LessonReservationQuery {
+	return NewSchoolClient(s.config).QueryLessonReservations(s)
 }
 
 // Update returns a builder for updating this School.
@@ -202,6 +218,12 @@ func (s *School) String() string {
 	var builder strings.Builder
 	builder.WriteString("School(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", s.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(s.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(s.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("school_type=")
 	builder.WriteString(fmt.Sprintf("%v", s.SchoolType))
 	builder.WriteString(", ")
@@ -228,12 +250,6 @@ func (s *School) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("url=")
 	builder.WriteString(s.URL)
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(s.CreatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(s.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

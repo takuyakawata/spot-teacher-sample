@@ -5,22 +5,19 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"time"
 )
 
 type Company struct{ ent.Schema }
 
 func (Company) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id"),
-
 		field.String("name").
 			NotEmpty().
 			MaxLen(50),
 
 		field.Int("prefecture").
 			Min(0).
-			Max(46),
+			Max(50),
 
 		field.String("city").
 			NotEmpty(),
@@ -37,14 +34,12 @@ func (Company) Fields() []ent.Field {
 
 		field.String("url").
 			Optional(),
+	}
+}
 
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
-
-		field.Time("updated_at").
-			Default(time.Now).
-			UpdateDefault(time.Now),
+func (Company) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 

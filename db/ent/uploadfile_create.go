@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
 
@@ -20,30 +21,30 @@ type UploadFileCreate struct {
 	hooks    []Hook
 }
 
-// SetCreateTime sets the "create_time" field.
-func (ufc *UploadFileCreate) SetCreateTime(t time.Time) *UploadFileCreate {
-	ufc.mutation.SetCreateTime(t)
+// SetCreatedAt sets the "created_at" field.
+func (ufc *UploadFileCreate) SetCreatedAt(t time.Time) *UploadFileCreate {
+	ufc.mutation.SetCreatedAt(t)
 	return ufc
 }
 
-// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
-func (ufc *UploadFileCreate) SetNillableCreateTime(t *time.Time) *UploadFileCreate {
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (ufc *UploadFileCreate) SetNillableCreatedAt(t *time.Time) *UploadFileCreate {
 	if t != nil {
-		ufc.SetCreateTime(*t)
+		ufc.SetCreatedAt(*t)
 	}
 	return ufc
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (ufc *UploadFileCreate) SetUpdateTime(t time.Time) *UploadFileCreate {
-	ufc.mutation.SetUpdateTime(t)
+// SetUpdatedAt sets the "updated_at" field.
+func (ufc *UploadFileCreate) SetUpdatedAt(t time.Time) *UploadFileCreate {
+	ufc.mutation.SetUpdatedAt(t)
 	return ufc
 }
 
-// SetNillableUpdateTime sets the "update_time" field if the given value is not nil.
-func (ufc *UploadFileCreate) SetNillableUpdateTime(t *time.Time) *UploadFileCreate {
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (ufc *UploadFileCreate) SetNillableUpdatedAt(t *time.Time) *UploadFileCreate {
 	if t != nil {
-		ufc.SetUpdateTime(*t)
+		ufc.SetUpdatedAt(*t)
 	}
 	return ufc
 }
@@ -55,9 +56,20 @@ func (ufc *UploadFileCreate) SetPhotoKey(s string) *UploadFileCreate {
 }
 
 // SetUserID sets the "user_id" field.
-func (ufc *UploadFileCreate) SetUserID(i int64) *UploadFileCreate {
+func (ufc *UploadFileCreate) SetUserID(i int) *UploadFileCreate {
 	ufc.mutation.SetUserID(i)
 	return ufc
+}
+
+// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by ID.
+func (ufc *UploadFileCreate) SetLessonPlanID(id int) *UploadFileCreate {
+	ufc.mutation.SetLessonPlanID(id)
+	return ufc
+}
+
+// SetLessonPlan sets the "LessonPlan" edge to the LessonPlan entity.
+func (ufc *UploadFileCreate) SetLessonPlan(l *LessonPlan) *UploadFileCreate {
+	return ufc.SetLessonPlanID(l.ID)
 }
 
 // Mutation returns the UploadFileMutation object of the builder.
@@ -95,23 +107,23 @@ func (ufc *UploadFileCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ufc *UploadFileCreate) defaults() {
-	if _, ok := ufc.mutation.CreateTime(); !ok {
-		v := uploadfile.DefaultCreateTime()
-		ufc.mutation.SetCreateTime(v)
+	if _, ok := ufc.mutation.CreatedAt(); !ok {
+		v := uploadfile.DefaultCreatedAt()
+		ufc.mutation.SetCreatedAt(v)
 	}
-	if _, ok := ufc.mutation.UpdateTime(); !ok {
-		v := uploadfile.DefaultUpdateTime()
-		ufc.mutation.SetUpdateTime(v)
+	if _, ok := ufc.mutation.UpdatedAt(); !ok {
+		v := uploadfile.DefaultUpdatedAt()
+		ufc.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (ufc *UploadFileCreate) check() error {
-	if _, ok := ufc.mutation.CreateTime(); !ok {
-		return &ValidationError{Name: "create_time", err: errors.New(`ent: missing required field "UploadFile.create_time"`)}
+	if _, ok := ufc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "UploadFile.created_at"`)}
 	}
-	if _, ok := ufc.mutation.UpdateTime(); !ok {
-		return &ValidationError{Name: "update_time", err: errors.New(`ent: missing required field "UploadFile.update_time"`)}
+	if _, ok := ufc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "UploadFile.updated_at"`)}
 	}
 	if _, ok := ufc.mutation.PhotoKey(); !ok {
 		return &ValidationError{Name: "photo_key", err: errors.New(`ent: missing required field "UploadFile.photo_key"`)}
@@ -128,6 +140,9 @@ func (ufc *UploadFileCreate) check() error {
 		if err := uploadfile.UserIDValidator(v); err != nil {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.user_id": %w`, err)}
 		}
+	}
+	if len(ufc.mutation.LessonPlanIDs()) == 0 {
+		return &ValidationError{Name: "LessonPlan", err: errors.New(`ent: missing required edge "UploadFile.LessonPlan"`)}
 	}
 	return nil
 }
@@ -155,21 +170,38 @@ func (ufc *UploadFileCreate) createSpec() (*UploadFile, *sqlgraph.CreateSpec) {
 		_node = &UploadFile{config: ufc.config}
 		_spec = sqlgraph.NewCreateSpec(uploadfile.Table, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt))
 	)
-	if value, ok := ufc.mutation.CreateTime(); ok {
-		_spec.SetField(uploadfile.FieldCreateTime, field.TypeTime, value)
-		_node.CreateTime = value
+	if value, ok := ufc.mutation.CreatedAt(); ok {
+		_spec.SetField(uploadfile.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
 	}
-	if value, ok := ufc.mutation.UpdateTime(); ok {
-		_spec.SetField(uploadfile.FieldUpdateTime, field.TypeTime, value)
-		_node.UpdateTime = value
+	if value, ok := ufc.mutation.UpdatedAt(); ok {
+		_spec.SetField(uploadfile.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := ufc.mutation.PhotoKey(); ok {
 		_spec.SetField(uploadfile.FieldPhotoKey, field.TypeString, value)
 		_node.PhotoKey = value
 	}
 	if value, ok := ufc.mutation.UserID(); ok {
-		_spec.SetField(uploadfile.FieldUserID, field.TypeInt64, value)
+		_spec.SetField(uploadfile.FieldUserID, field.TypeInt, value)
 		_node.UserID = value
+	}
+	if nodes := ufc.mutation.LessonPlanIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: []string{uploadfile.LessonPlanColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.lesson_plan_upload_files = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

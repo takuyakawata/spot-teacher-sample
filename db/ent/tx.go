@@ -22,10 +22,14 @@ type Tx struct {
 	Grade *GradeClient
 	// Inquiry is the client for interacting with the Inquiry builders.
 	Inquiry *InquiryClient
+	// LessonConfirmation is the client for interacting with the LessonConfirmation builders.
+	LessonConfirmation *LessonConfirmationClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
 	// LessonReservation is the client for interacting with the LessonReservation builders.
 	LessonReservation *LessonReservationClient
+	// LessonReservationPreferredDate is the client for interacting with the LessonReservationPreferredDate builders.
+	LessonReservationPreferredDate *LessonReservationPreferredDateClient
 	// LessonSchedule is the client for interacting with the LessonSchedule builders.
 	LessonSchedule *LessonScheduleClient
 	// Product is the client for interacting with the Product builders.
@@ -174,8 +178,10 @@ func (tx *Tx) init() {
 	tx.EmailVerification = NewEmailVerificationClient(tx.config)
 	tx.Grade = NewGradeClient(tx.config)
 	tx.Inquiry = NewInquiryClient(tx.config)
+	tx.LessonConfirmation = NewLessonConfirmationClient(tx.config)
 	tx.LessonPlan = NewLessonPlanClient(tx.config)
 	tx.LessonReservation = NewLessonReservationClient(tx.config)
+	tx.LessonReservationPreferredDate = NewLessonReservationPreferredDateClient(tx.config)
 	tx.LessonSchedule = NewLessonScheduleClient(tx.config)
 	tx.Product = NewProductClient(tx.config)
 	tx.School = NewSchoolClient(tx.config)

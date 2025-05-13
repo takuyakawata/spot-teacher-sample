@@ -11,52 +11,62 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int64) predicate.LessonPlan {
+func ID(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int64) predicate.LessonPlan {
+func IDEQ(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int64) predicate.LessonPlan {
+func IDNEQ(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int64) predicate.LessonPlan {
+func IDIn(ids ...int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int64) predicate.LessonPlan {
+func IDNotIn(ids ...int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int64) predicate.LessonPlan {
+func IDGT(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int64) predicate.LessonPlan {
+func IDGTE(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int64) predicate.LessonPlan {
+func IDLT(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int64) predicate.LessonPlan {
+func IDLTE(id int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldID, id))
 }
 
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
 // CompanyID applies equality check predicate on the "company_id" field. It's identical to CompanyIDEQ.
-func CompanyID(v int64) predicate.LessonPlan {
+func CompanyID(v int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldCompanyID, v))
 }
 
@@ -110,33 +120,103 @@ func EndTime(v time.Time) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldEndTime, v))
 }
 
-// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
-func UpdatedAt(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldEQ(FieldUpdatedAt, v))
-}
-
-// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
-func CreatedAt(v time.Time) predicate.LessonPlan {
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldCreatedAt, v))
 }
 
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.LessonPlan {
+	return predicate.LessonPlan(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
 // CompanyIDEQ applies the EQ predicate on the "company_id" field.
-func CompanyIDEQ(v int64) predicate.LessonPlan {
+func CompanyIDEQ(v int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldCompanyID, v))
 }
 
 // CompanyIDNEQ applies the NEQ predicate on the "company_id" field.
-func CompanyIDNEQ(v int64) predicate.LessonPlan {
+func CompanyIDNEQ(v int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldCompanyID, v))
 }
 
 // CompanyIDIn applies the In predicate on the "company_id" field.
-func CompanyIDIn(vs ...int64) predicate.LessonPlan {
+func CompanyIDIn(vs ...int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldCompanyID, vs...))
 }
 
 // CompanyIDNotIn applies the NotIn predicate on the "company_id" field.
-func CompanyIDNotIn(vs ...int64) predicate.LessonPlan {
+func CompanyIDNotIn(vs ...int) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldCompanyID, vs...))
 }
 
@@ -655,84 +735,27 @@ func EndTimeLTE(v time.Time) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldEndTime, v))
 }
 
-// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
-func UpdatedAtEQ(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldEQ(FieldUpdatedAt, v))
+// HasCompany applies the HasEdge predicate on the "company" edge.
+func HasCompany() predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, CompanyTable, CompanyColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
 }
 
-// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
-func UpdatedAtNEQ(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldNEQ(FieldUpdatedAt, v))
-}
-
-// UpdatedAtIn applies the In predicate on the "updated_at" field.
-func UpdatedAtIn(vs ...time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldIn(FieldUpdatedAt, vs...))
-}
-
-// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
-func UpdatedAtNotIn(vs ...time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldNotIn(FieldUpdatedAt, vs...))
-}
-
-// UpdatedAtGT applies the GT predicate on the "updated_at" field.
-func UpdatedAtGT(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldGT(FieldUpdatedAt, v))
-}
-
-// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
-func UpdatedAtGTE(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldGTE(FieldUpdatedAt, v))
-}
-
-// UpdatedAtLT applies the LT predicate on the "updated_at" field.
-func UpdatedAtLT(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldLT(FieldUpdatedAt, v))
-}
-
-// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
-func UpdatedAtLTE(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldLTE(FieldUpdatedAt, v))
-}
-
-// CreatedAtEQ applies the EQ predicate on the "created_at" field.
-func CreatedAtEQ(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldEQ(FieldCreatedAt, v))
-}
-
-// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
-func CreatedAtNEQ(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldNEQ(FieldCreatedAt, v))
-}
-
-// CreatedAtIn applies the In predicate on the "created_at" field.
-func CreatedAtIn(vs ...time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldIn(FieldCreatedAt, vs...))
-}
-
-// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
-func CreatedAtNotIn(vs ...time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldNotIn(FieldCreatedAt, vs...))
-}
-
-// CreatedAtGT applies the GT predicate on the "created_at" field.
-func CreatedAtGT(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldGT(FieldCreatedAt, v))
-}
-
-// CreatedAtGTE applies the GTE predicate on the "created_at" field.
-func CreatedAtGTE(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldGTE(FieldCreatedAt, v))
-}
-
-// CreatedAtLT applies the LT predicate on the "created_at" field.
-func CreatedAtLT(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldLT(FieldCreatedAt, v))
-}
-
-// CreatedAtLTE applies the LTE predicate on the "created_at" field.
-func CreatedAtLTE(v time.Time) predicate.LessonPlan {
-	return predicate.LessonPlan(sql.FieldLTE(FieldCreatedAt, v))
+// HasCompanyWith applies the HasEdge predicate on the "company" edge with a given conditions (other predicates).
+func HasCompanyWith(preds ...predicate.Company) predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := newCompanyStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // HasSchedules applies the HasEdge predicate on the "schedules" edge.
@@ -750,29 +773,6 @@ func HasSchedules() predicate.LessonPlan {
 func HasSchedulesWith(preds ...predicate.LessonSchedule) predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
 		step := newSchedulesStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasCompany applies the HasEdge predicate on the "company" edge.
-func HasCompany() predicate.LessonPlan {
-	return predicate.LessonPlan(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, CompanyTable, CompanyColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCompanyWith applies the HasEdge predicate on the "company" edge with a given conditions (other predicates).
-func HasCompanyWith(preds ...predicate.Company) predicate.LessonPlan {
-	return predicate.LessonPlan(func(s *sql.Selector) {
-		step := newCompanyStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -842,6 +842,29 @@ func HasEducationCategories() predicate.LessonPlan {
 func HasEducationCategoriesWith(preds ...predicate.EducationCategory) predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
 		step := newEducationCategoriesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasUploadFiles applies the HasEdge predicate on the "upload_files" edge.
+func HasUploadFiles() predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, UploadFilesTable, UploadFilesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUploadFilesWith applies the HasEdge predicate on the "upload_files" edge with a given conditions (other predicates).
+func HasUploadFilesWith(preds ...predicate.UploadFile) predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := newUploadFilesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

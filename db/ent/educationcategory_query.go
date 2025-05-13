@@ -300,12 +300,12 @@ func (ecq *EducationCategoryQuery) WithLessonPlans(opts ...func(*LessonPlanQuery
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.EducationCategory.Query().
-//		GroupBy(educationcategory.FieldName).
+//		GroupBy(educationcategory.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ecq *EducationCategoryQuery) GroupBy(field string, fields ...string) *EducationCategoryGroupBy {
@@ -323,11 +323,11 @@ func (ecq *EducationCategoryQuery) GroupBy(field string, fields ...string) *Educ
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.EducationCategory.Query().
-//		Select(educationcategory.FieldName).
+//		Select(educationcategory.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (ecq *EducationCategoryQuery) Select(fields ...string) *EducationCategorySelect {
 	ecq.ctx.Fields = append(ecq.ctx.Fields, fields...)
@@ -411,7 +411,7 @@ func (ecq *EducationCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 func (ecq *EducationCategoryQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*EducationCategory, init func(*EducationCategory), assign func(*EducationCategory, *LessonPlan)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*EducationCategory)
-	nids := make(map[int64]map[*EducationCategory]struct{})
+	nids := make(map[int]map[*EducationCategory]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -444,7 +444,7 @@ func (ecq *EducationCategoryQuery) loadLessonPlans(ctx context.Context, query *L
 			}
 			spec.Assign = func(columns []string, values []any) error {
 				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := values[1].(*sql.NullInt64).Int64
+				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
 					nids[inValue] = map[*EducationCategory]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])

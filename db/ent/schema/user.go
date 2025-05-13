@@ -5,27 +5,22 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"time"
 )
 
 type User struct{ ent.Schema }
 
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id").
-			Positive().
-			Unique(),
-
 		field.Enum("user_type").
 			Values("teacher", "company_member", "admin").
 			Default("teacher"),
 
-		field.Int64("school_id").
+		field.Int("school_id").
 			Positive().
 			Optional().
 			Nillable(),
 
-		field.Int64("company_id").
+		field.Int("company_id").
 			Positive().
 			Optional().
 			Nillable(),
@@ -42,10 +37,6 @@ func (User) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Sensitive(),
-
-		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
-
-		field.Time("created_at").Default(time.Now).Immutable(),
 	}
 }
 
@@ -60,6 +51,16 @@ func (User) Edges() []ent.Edge {
 			Ref("members").
 			Field("company_id").
 			Unique(),
+
+		edge.To("inquiries", Inquiry.Type),
+
+		edge.To("lesson_reservations", LessonReservation.Type),
+	}
+}
+
+func (User) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 

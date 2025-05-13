@@ -131,8 +131,8 @@ func (cq *CompanyQuery) FirstX(ctx context.Context) *Company {
 
 // FirstID returns the first Company ID from the query.
 // Returns a *NotFoundError when no Company ID was found.
-func (cq *CompanyQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (cq *CompanyQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = cq.Limit(1).IDs(setContextOp(ctx, cq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -144,7 +144,7 @@ func (cq *CompanyQuery) FirstID(ctx context.Context) (id int64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (cq *CompanyQuery) FirstIDX(ctx context.Context) int64 {
+func (cq *CompanyQuery) FirstIDX(ctx context.Context) int {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -182,8 +182,8 @@ func (cq *CompanyQuery) OnlyX(ctx context.Context) *Company {
 // OnlyID is like Only, but returns the only Company ID in the query.
 // Returns a *NotSingularError when more than one Company ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (cq *CompanyQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (cq *CompanyQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = cq.Limit(2).IDs(setContextOp(ctx, cq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -199,7 +199,7 @@ func (cq *CompanyQuery) OnlyID(ctx context.Context) (id int64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (cq *CompanyQuery) OnlyIDX(ctx context.Context) int64 {
+func (cq *CompanyQuery) OnlyIDX(ctx context.Context) int {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -227,7 +227,7 @@ func (cq *CompanyQuery) AllX(ctx context.Context) []*Company {
 }
 
 // IDs executes the query and returns a list of Company IDs.
-func (cq *CompanyQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (cq *CompanyQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if cq.ctx.Unique == nil && cq.path != nil {
 		cq.Unique(true)
 	}
@@ -239,7 +239,7 @@ func (cq *CompanyQuery) IDs(ctx context.Context) (ids []int64, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *CompanyQuery) IDsX(ctx context.Context) []int64 {
+func (cq *CompanyQuery) IDsX(ctx context.Context) []int {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -335,12 +335,12 @@ func (cq *CompanyQuery) WithMembers(opts ...func(*UserQuery)) *CompanyQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Company.Query().
-//		GroupBy(company.FieldName).
+//		GroupBy(company.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (cq *CompanyQuery) GroupBy(field string, fields ...string) *CompanyGroupBy {
@@ -358,11 +358,11 @@ func (cq *CompanyQuery) GroupBy(field string, fields ...string) *CompanyGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Company.Query().
-//		Select(company.FieldName).
+//		Select(company.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (cq *CompanyQuery) Select(fields ...string) *CompanySelect {
 	cq.ctx.Fields = append(cq.ctx.Fields, fields...)
@@ -449,7 +449,7 @@ func (cq *CompanyQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Comp
 
 func (cq *CompanyQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*Company, init func(*Company), assign func(*Company, *LessonPlan)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*Company)
+	nodeids := make(map[int]*Company)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -479,7 +479,7 @@ func (cq *CompanyQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQu
 }
 func (cq *CompanyQuery) loadMembers(ctx context.Context, query *UserQuery, nodes []*Company, init func(*Company), assign func(*Company, *User)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*Company)
+	nodeids := make(map[int]*Company)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -521,7 +521,7 @@ func (cq *CompanyQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (cq *CompanyQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
 	_spec.From = cq.sql
 	if unique := cq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

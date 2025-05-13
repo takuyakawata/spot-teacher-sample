@@ -30,6 +30,12 @@ func (cu *CompanyUpdate) Where(ps ...predicate.Company) *CompanyUpdate {
 	return cu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (cu *CompanyUpdate) SetUpdatedAt(t time.Time) *CompanyUpdate {
+	cu.mutation.SetUpdatedAt(t)
+	return cu
+}
+
 // SetName sets the "name" field.
 func (cu *CompanyUpdate) SetName(s string) *CompanyUpdate {
 	cu.mutation.SetName(s)
@@ -147,21 +153,15 @@ func (cu *CompanyUpdate) ClearURL() *CompanyUpdate {
 	return cu
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (cu *CompanyUpdate) SetUpdatedAt(t time.Time) *CompanyUpdate {
-	cu.mutation.SetUpdatedAt(t)
-	return cu
-}
-
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (cu *CompanyUpdate) AddLessonPlanIDs(ids ...int64) *CompanyUpdate {
+func (cu *CompanyUpdate) AddLessonPlanIDs(ids ...int) *CompanyUpdate {
 	cu.mutation.AddLessonPlanIDs(ids...)
 	return cu
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (cu *CompanyUpdate) AddLessonPlans(l ...*LessonPlan) *CompanyUpdate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -169,14 +169,14 @@ func (cu *CompanyUpdate) AddLessonPlans(l ...*LessonPlan) *CompanyUpdate {
 }
 
 // AddMemberIDs adds the "members" edge to the User entity by IDs.
-func (cu *CompanyUpdate) AddMemberIDs(ids ...int64) *CompanyUpdate {
+func (cu *CompanyUpdate) AddMemberIDs(ids ...int) *CompanyUpdate {
 	cu.mutation.AddMemberIDs(ids...)
 	return cu
 }
 
 // AddMembers adds the "members" edges to the User entity.
 func (cu *CompanyUpdate) AddMembers(u ...*User) *CompanyUpdate {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -195,14 +195,14 @@ func (cu *CompanyUpdate) ClearLessonPlans() *CompanyUpdate {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (cu *CompanyUpdate) RemoveLessonPlanIDs(ids ...int64) *CompanyUpdate {
+func (cu *CompanyUpdate) RemoveLessonPlanIDs(ids ...int) *CompanyUpdate {
 	cu.mutation.RemoveLessonPlanIDs(ids...)
 	return cu
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (cu *CompanyUpdate) RemoveLessonPlans(l ...*LessonPlan) *CompanyUpdate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -216,14 +216,14 @@ func (cu *CompanyUpdate) ClearMembers() *CompanyUpdate {
 }
 
 // RemoveMemberIDs removes the "members" edge to User entities by IDs.
-func (cu *CompanyUpdate) RemoveMemberIDs(ids ...int64) *CompanyUpdate {
+func (cu *CompanyUpdate) RemoveMemberIDs(ids ...int) *CompanyUpdate {
 	cu.mutation.RemoveMemberIDs(ids...)
 	return cu
 }
 
 // RemoveMembers removes "members" edges to User entities.
 func (cu *CompanyUpdate) RemoveMembers(u ...*User) *CompanyUpdate {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -300,13 +300,16 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := cu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cu.mutation.UpdatedAt(); ok {
+		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cu.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
@@ -338,9 +341,6 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if cu.mutation.URLCleared() {
 		_spec.ClearField(company.FieldURL, field.TypeString)
 	}
-	if value, ok := cu.mutation.UpdatedAt(); ok {
-		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if cu.mutation.LessonPlansCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -349,7 +349,7 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -362,7 +362,7 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -378,7 +378,7 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -394,7 +394,7 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -407,7 +407,7 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -423,7 +423,7 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -449,6 +449,12 @@ type CompanyUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CompanyMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cuo *CompanyUpdateOne) SetUpdatedAt(t time.Time) *CompanyUpdateOne {
+	cuo.mutation.SetUpdatedAt(t)
+	return cuo
 }
 
 // SetName sets the "name" field.
@@ -568,21 +574,15 @@ func (cuo *CompanyUpdateOne) ClearURL() *CompanyUpdateOne {
 	return cuo
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (cuo *CompanyUpdateOne) SetUpdatedAt(t time.Time) *CompanyUpdateOne {
-	cuo.mutation.SetUpdatedAt(t)
-	return cuo
-}
-
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (cuo *CompanyUpdateOne) AddLessonPlanIDs(ids ...int64) *CompanyUpdateOne {
+func (cuo *CompanyUpdateOne) AddLessonPlanIDs(ids ...int) *CompanyUpdateOne {
 	cuo.mutation.AddLessonPlanIDs(ids...)
 	return cuo
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (cuo *CompanyUpdateOne) AddLessonPlans(l ...*LessonPlan) *CompanyUpdateOne {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -590,14 +590,14 @@ func (cuo *CompanyUpdateOne) AddLessonPlans(l ...*LessonPlan) *CompanyUpdateOne 
 }
 
 // AddMemberIDs adds the "members" edge to the User entity by IDs.
-func (cuo *CompanyUpdateOne) AddMemberIDs(ids ...int64) *CompanyUpdateOne {
+func (cuo *CompanyUpdateOne) AddMemberIDs(ids ...int) *CompanyUpdateOne {
 	cuo.mutation.AddMemberIDs(ids...)
 	return cuo
 }
 
 // AddMembers adds the "members" edges to the User entity.
 func (cuo *CompanyUpdateOne) AddMembers(u ...*User) *CompanyUpdateOne {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -616,14 +616,14 @@ func (cuo *CompanyUpdateOne) ClearLessonPlans() *CompanyUpdateOne {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (cuo *CompanyUpdateOne) RemoveLessonPlanIDs(ids ...int64) *CompanyUpdateOne {
+func (cuo *CompanyUpdateOne) RemoveLessonPlanIDs(ids ...int) *CompanyUpdateOne {
 	cuo.mutation.RemoveLessonPlanIDs(ids...)
 	return cuo
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (cuo *CompanyUpdateOne) RemoveLessonPlans(l ...*LessonPlan) *CompanyUpdateOne {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -637,14 +637,14 @@ func (cuo *CompanyUpdateOne) ClearMembers() *CompanyUpdateOne {
 }
 
 // RemoveMemberIDs removes the "members" edge to User entities by IDs.
-func (cuo *CompanyUpdateOne) RemoveMemberIDs(ids ...int64) *CompanyUpdateOne {
+func (cuo *CompanyUpdateOne) RemoveMemberIDs(ids ...int) *CompanyUpdateOne {
 	cuo.mutation.RemoveMemberIDs(ids...)
 	return cuo
 }
 
 // RemoveMembers removes "members" edges to User entities.
 func (cuo *CompanyUpdateOne) RemoveMembers(u ...*User) *CompanyUpdateOne {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -734,7 +734,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 	if err := cuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
 	id, ok := cuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Company.id" for update`)}
@@ -758,6 +758,9 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cuo.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
@@ -789,9 +792,6 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 	if cuo.mutation.URLCleared() {
 		_spec.ClearField(company.FieldURL, field.TypeString)
 	}
-	if value, ok := cuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if cuo.mutation.LessonPlansCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -800,7 +800,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -813,7 +813,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -829,7 +829,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -845,7 +845,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -858,7 +858,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -874,7 +874,7 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

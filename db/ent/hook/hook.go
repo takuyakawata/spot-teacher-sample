@@ -69,6 +69,18 @@ func (f InquiryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, err
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.InquiryMutation", m)
 }
 
+// The LessonConfirmationFunc type is an adapter to allow the use of ordinary
+// function as LessonConfirmation mutator.
+type LessonConfirmationFunc func(context.Context, *ent.LessonConfirmationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonConfirmationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonConfirmationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonConfirmationMutation", m)
+}
+
 // The LessonPlanFunc type is an adapter to allow the use of ordinary
 // function as LessonPlan mutator.
 type LessonPlanFunc func(context.Context, *ent.LessonPlanMutation) (ent.Value, error)
@@ -91,6 +103,18 @@ func (f LessonReservationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonReservationMutation", m)
+}
+
+// The LessonReservationPreferredDateFunc type is an adapter to allow the use of ordinary
+// function as LessonReservationPreferredDate mutator.
+type LessonReservationPreferredDateFunc func(context.Context, *ent.LessonReservationPreferredDateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonReservationPreferredDateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonReservationPreferredDateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonReservationPreferredDateMutation", m)
 }
 
 // The LessonScheduleFunc type is an adapter to allow the use of ordinary

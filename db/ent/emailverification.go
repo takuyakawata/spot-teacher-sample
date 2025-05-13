@@ -17,10 +17,10 @@ type EmailVerification struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
-	// CreateTime holds the value of the "create_time" field.
-	CreateTime time.Time `json:"create_time,omitempty"`
-	// UpdateTime holds the value of the "update_time" field.
-	UpdateTime time.Time `json:"update_time,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Email holds the value of the "email" field.
 	Email string `json:"email,omitempty"`
 	// Token holds the value of the "token" field.
@@ -39,7 +39,7 @@ func (*EmailVerification) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case emailverification.FieldEmail, emailverification.FieldToken:
 			values[i] = new(sql.NullString)
-		case emailverification.FieldCreateTime, emailverification.FieldUpdateTime, emailverification.FieldExpiredAt:
+		case emailverification.FieldCreatedAt, emailverification.FieldUpdatedAt, emailverification.FieldExpiredAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -62,17 +62,17 @@ func (ev *EmailVerification) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			ev.ID = int(value.Int64)
-		case emailverification.FieldCreateTime:
+		case emailverification.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
 			} else if value.Valid {
-				ev.CreateTime = value.Time
+				ev.CreatedAt = value.Time
 			}
-		case emailverification.FieldUpdateTime:
+		case emailverification.FieldUpdatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field update_time", values[i])
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
-				ev.UpdateTime = value.Time
+				ev.UpdatedAt = value.Time
 			}
 		case emailverification.FieldEmail:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -128,11 +128,11 @@ func (ev *EmailVerification) String() string {
 	var builder strings.Builder
 	builder.WriteString("EmailVerification(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ev.ID))
-	builder.WriteString("create_time=")
-	builder.WriteString(ev.CreateTime.Format(time.ANSIC))
+	builder.WriteString("created_at=")
+	builder.WriteString(ev.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("update_time=")
-	builder.WriteString(ev.UpdateTime.Format(time.ANSIC))
+	builder.WriteString("updated_at=")
+	builder.WriteString(ev.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
 	builder.WriteString("email=")
 	builder.WriteString(ev.Email)

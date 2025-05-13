@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +17,10 @@ type Grade struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Code holds the value of the "code" field.
@@ -23,7 +28,7 @@ type Grade struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GradeQuery when eager-loading is set.
 	Edges                  GradeEdges `json:"edges"`
-	lesson_schedule_grades *int64
+	lesson_schedule_grades *int
 	selectValues           sql.SelectValues
 }
 
@@ -54,6 +59,8 @@ func (*Grade) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case grade.FieldName, grade.FieldCode:
 			values[i] = new(sql.NullString)
+		case grade.FieldCreatedAt, grade.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		case grade.ForeignKeys[0]: // lesson_schedule_grades
 			values[i] = new(sql.NullInt64)
 		default:
@@ -77,6 +84,18 @@ func (gr *Grade) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			gr.ID = int(value.Int64)
+		case grade.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				gr.CreatedAt = value.Time
+			}
+		case grade.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				gr.UpdatedAt = value.Time
+			}
 		case grade.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -93,8 +112,8 @@ func (gr *Grade) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_grades", value)
 			} else if value.Valid {
-				gr.lesson_schedule_grades = new(int64)
-				*gr.lesson_schedule_grades = int64(value.Int64)
+				gr.lesson_schedule_grades = new(int)
+				*gr.lesson_schedule_grades = int(value.Int64)
 			}
 		default:
 			gr.selectValues.Set(columns[i], values[i])
@@ -137,6 +156,12 @@ func (gr *Grade) String() string {
 	var builder strings.Builder
 	builder.WriteString("Grade(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", gr.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(gr.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(gr.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(gr.Name)
 	builder.WriteString(", ")

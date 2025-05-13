@@ -19,6 +19,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
 
 // LessonPlanQuery is the builder for querying LessonPlan entities.
@@ -28,11 +29,12 @@ type LessonPlanQuery struct {
 	order                   []lessonplan.OrderOption
 	inters                  []Interceptor
 	predicates              []predicate.LessonPlan
-	withSchedules           *LessonScheduleQuery
 	withCompany             *CompanyQuery
+	withSchedules           *LessonScheduleQuery
 	withGrades              *GradeQuery
 	withSubjects            *SubjectQuery
 	withEducationCategories *EducationCategoryQuery
+	withUploadFiles         *UploadFileQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -69,28 +71,6 @@ func (lpq *LessonPlanQuery) Order(o ...lessonplan.OrderOption) *LessonPlanQuery 
 	return lpq
 }
 
-// QuerySchedules chains the current query on the "schedules" edge.
-func (lpq *LessonPlanQuery) QuerySchedules() *LessonScheduleQuery {
-	query := (&LessonScheduleClient{config: lpq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := lpq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := lpq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, selector),
-			sqlgraph.To(lessonschedule.Table, lessonschedule.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.SchedulesTable, lessonplan.SchedulesColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(lpq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
 // QueryCompany chains the current query on the "company" edge.
 func (lpq *LessonPlanQuery) QueryCompany() *CompanyQuery {
 	query := (&CompanyClient{config: lpq.config}).Query()
@@ -106,6 +86,28 @@ func (lpq *LessonPlanQuery) QueryCompany() *CompanyQuery {
 			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, selector),
 			sqlgraph.To(company.Table, company.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, lessonplan.CompanyTable, lessonplan.CompanyColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySchedules chains the current query on the "schedules" edge.
+func (lpq *LessonPlanQuery) QuerySchedules() *LessonScheduleQuery {
+	query := (&LessonScheduleClient{config: lpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, selector),
+			sqlgraph.To(lessonschedule.Table, lessonschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.SchedulesTable, lessonplan.SchedulesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(lpq.driver.Dialect(), step)
 		return fromU, nil
@@ -179,6 +181,28 @@ func (lpq *LessonPlanQuery) QueryEducationCategories() *EducationCategoryQuery {
 	return query
 }
 
+// QueryUploadFiles chains the current query on the "upload_files" edge.
+func (lpq *LessonPlanQuery) QueryUploadFiles() *UploadFileQuery {
+	query := (&UploadFileClient{config: lpq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := lpq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := lpq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, selector),
+			sqlgraph.To(uploadfile.Table, uploadfile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.UploadFilesTable, lessonplan.UploadFilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(lpq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first LessonPlan entity from the query.
 // Returns a *NotFoundError when no LessonPlan was found.
 func (lpq *LessonPlanQuery) First(ctx context.Context) (*LessonPlan, error) {
@@ -203,8 +227,8 @@ func (lpq *LessonPlanQuery) FirstX(ctx context.Context) *LessonPlan {
 
 // FirstID returns the first LessonPlan ID from the query.
 // Returns a *NotFoundError when no LessonPlan ID was found.
-func (lpq *LessonPlanQuery) FirstID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (lpq *LessonPlanQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lpq.Limit(1).IDs(setContextOp(ctx, lpq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -216,7 +240,7 @@ func (lpq *LessonPlanQuery) FirstID(ctx context.Context) (id int64, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (lpq *LessonPlanQuery) FirstIDX(ctx context.Context) int64 {
+func (lpq *LessonPlanQuery) FirstIDX(ctx context.Context) int {
 	id, err := lpq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -254,8 +278,8 @@ func (lpq *LessonPlanQuery) OnlyX(ctx context.Context) *LessonPlan {
 // OnlyID is like Only, but returns the only LessonPlan ID in the query.
 // Returns a *NotSingularError when more than one LessonPlan ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (lpq *LessonPlanQuery) OnlyID(ctx context.Context) (id int64, err error) {
-	var ids []int64
+func (lpq *LessonPlanQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = lpq.Limit(2).IDs(setContextOp(ctx, lpq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -271,7 +295,7 @@ func (lpq *LessonPlanQuery) OnlyID(ctx context.Context) (id int64, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (lpq *LessonPlanQuery) OnlyIDX(ctx context.Context) int64 {
+func (lpq *LessonPlanQuery) OnlyIDX(ctx context.Context) int {
 	id, err := lpq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -299,7 +323,7 @@ func (lpq *LessonPlanQuery) AllX(ctx context.Context) []*LessonPlan {
 }
 
 // IDs executes the query and returns a list of LessonPlan IDs.
-func (lpq *LessonPlanQuery) IDs(ctx context.Context) (ids []int64, err error) {
+func (lpq *LessonPlanQuery) IDs(ctx context.Context) (ids []int, err error) {
 	if lpq.ctx.Unique == nil && lpq.path != nil {
 		lpq.Unique(true)
 	}
@@ -311,7 +335,7 @@ func (lpq *LessonPlanQuery) IDs(ctx context.Context) (ids []int64, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lpq *LessonPlanQuery) IDsX(ctx context.Context) []int64 {
+func (lpq *LessonPlanQuery) IDsX(ctx context.Context) []int {
 	ids, err := lpq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -371,26 +395,16 @@ func (lpq *LessonPlanQuery) Clone() *LessonPlanQuery {
 		order:                   append([]lessonplan.OrderOption{}, lpq.order...),
 		inters:                  append([]Interceptor{}, lpq.inters...),
 		predicates:              append([]predicate.LessonPlan{}, lpq.predicates...),
-		withSchedules:           lpq.withSchedules.Clone(),
 		withCompany:             lpq.withCompany.Clone(),
+		withSchedules:           lpq.withSchedules.Clone(),
 		withGrades:              lpq.withGrades.Clone(),
 		withSubjects:            lpq.withSubjects.Clone(),
 		withEducationCategories: lpq.withEducationCategories.Clone(),
+		withUploadFiles:         lpq.withUploadFiles.Clone(),
 		// clone intermediate query.
 		sql:  lpq.sql.Clone(),
 		path: lpq.path,
 	}
-}
-
-// WithSchedules tells the query-builder to eager-load the nodes that are connected to
-// the "schedules" edge. The optional arguments are used to configure the query builder of the edge.
-func (lpq *LessonPlanQuery) WithSchedules(opts ...func(*LessonScheduleQuery)) *LessonPlanQuery {
-	query := (&LessonScheduleClient{config: lpq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	lpq.withSchedules = query
-	return lpq
 }
 
 // WithCompany tells the query-builder to eager-load the nodes that are connected to
@@ -401,6 +415,17 @@ func (lpq *LessonPlanQuery) WithCompany(opts ...func(*CompanyQuery)) *LessonPlan
 		opt(query)
 	}
 	lpq.withCompany = query
+	return lpq
+}
+
+// WithSchedules tells the query-builder to eager-load the nodes that are connected to
+// the "schedules" edge. The optional arguments are used to configure the query builder of the edge.
+func (lpq *LessonPlanQuery) WithSchedules(opts ...func(*LessonScheduleQuery)) *LessonPlanQuery {
+	query := (&LessonScheduleClient{config: lpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lpq.withSchedules = query
 	return lpq
 }
 
@@ -437,18 +462,29 @@ func (lpq *LessonPlanQuery) WithEducationCategories(opts ...func(*EducationCateg
 	return lpq
 }
 
+// WithUploadFiles tells the query-builder to eager-load the nodes that are connected to
+// the "upload_files" edge. The optional arguments are used to configure the query builder of the edge.
+func (lpq *LessonPlanQuery) WithUploadFiles(opts ...func(*UploadFileQuery)) *LessonPlanQuery {
+	query := (&UploadFileClient{config: lpq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	lpq.withUploadFiles = query
+	return lpq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
 // Example:
 //
 //	var v []struct {
-//		CompanyID int64 `json:"company_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.LessonPlan.Query().
-//		GroupBy(lessonplan.FieldCompanyID).
+//		GroupBy(lessonplan.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (lpq *LessonPlanQuery) GroupBy(field string, fields ...string) *LessonPlanGroupBy {
@@ -466,11 +502,11 @@ func (lpq *LessonPlanQuery) GroupBy(field string, fields ...string) *LessonPlanG
 // Example:
 //
 //	var v []struct {
-//		CompanyID int64 `json:"company_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.LessonPlan.Query().
-//		Select(lessonplan.FieldCompanyID).
+//		Select(lessonplan.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (lpq *LessonPlanQuery) Select(fields ...string) *LessonPlanSelect {
 	lpq.ctx.Fields = append(lpq.ctx.Fields, fields...)
@@ -515,12 +551,13 @@ func (lpq *LessonPlanQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*LessonPlan{}
 		_spec       = lpq.querySpec()
-		loadedTypes = [5]bool{
-			lpq.withSchedules != nil,
+		loadedTypes = [6]bool{
 			lpq.withCompany != nil,
+			lpq.withSchedules != nil,
 			lpq.withGrades != nil,
 			lpq.withSubjects != nil,
 			lpq.withEducationCategories != nil,
+			lpq.withUploadFiles != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -541,16 +578,16 @@ func (lpq *LessonPlanQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := lpq.withCompany; query != nil {
+		if err := lpq.loadCompany(ctx, query, nodes, nil,
+			func(n *LessonPlan, e *Company) { n.Edges.Company = e }); err != nil {
+			return nil, err
+		}
+	}
 	if query := lpq.withSchedules; query != nil {
 		if err := lpq.loadSchedules(ctx, query, nodes,
 			func(n *LessonPlan) { n.Edges.Schedules = []*LessonSchedule{} },
 			func(n *LessonPlan, e *LessonSchedule) { n.Edges.Schedules = append(n.Edges.Schedules, e) }); err != nil {
-			return nil, err
-		}
-	}
-	if query := lpq.withCompany; query != nil {
-		if err := lpq.loadCompany(ctx, query, nodes, nil,
-			func(n *LessonPlan, e *Company) { n.Edges.Company = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -577,12 +614,48 @@ func (lpq *LessonPlanQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 			return nil, err
 		}
 	}
+	if query := lpq.withUploadFiles; query != nil {
+		if err := lpq.loadUploadFiles(ctx, query, nodes,
+			func(n *LessonPlan) { n.Edges.UploadFiles = []*UploadFile{} },
+			func(n *LessonPlan, e *UploadFile) { n.Edges.UploadFiles = append(n.Edges.UploadFiles, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
+func (lpq *LessonPlanQuery) loadCompany(ctx context.Context, query *CompanyQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *Company)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*LessonPlan)
+	for i := range nodes {
+		fk := nodes[i].CompanyID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(company.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "company_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (lpq *LessonPlanQuery) loadSchedules(ctx context.Context, query *LessonScheduleQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *LessonSchedule)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int64]*LessonPlan)
+	nodeids := make(map[int]*LessonPlan)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -610,38 +683,9 @@ func (lpq *LessonPlanQuery) loadSchedules(ctx context.Context, query *LessonSche
 	}
 	return nil
 }
-func (lpq *LessonPlanQuery) loadCompany(ctx context.Context, query *CompanyQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *Company)) error {
-	ids := make([]int64, 0, len(nodes))
-	nodeids := make(map[int64][]*LessonPlan)
-	for i := range nodes {
-		fk := nodes[i].CompanyID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(company.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "company_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (lpq *LessonPlanQuery) loadGrades(ctx context.Context, query *GradeQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *Grade)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int64]*LessonPlan)
+	byID := make(map[int]*LessonPlan)
 	nids := make(map[int]map[*LessonPlan]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
@@ -674,7 +718,7 @@ func (lpq *LessonPlanQuery) loadGrades(ctx context.Context, query *GradeQuery, n
 				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := values[0].(*sql.NullInt64).Int64
+				outValue := int(values[0].(*sql.NullInt64).Int64)
 				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
 					nids[inValue] = map[*LessonPlan]struct{}{byID[outValue]: {}}
@@ -702,7 +746,7 @@ func (lpq *LessonPlanQuery) loadGrades(ctx context.Context, query *GradeQuery, n
 }
 func (lpq *LessonPlanQuery) loadSubjects(ctx context.Context, query *SubjectQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *Subject)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int64]*LessonPlan)
+	byID := make(map[int]*LessonPlan)
 	nids := make(map[int]map[*LessonPlan]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
@@ -735,7 +779,7 @@ func (lpq *LessonPlanQuery) loadSubjects(ctx context.Context, query *SubjectQuer
 				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := values[0].(*sql.NullInt64).Int64
+				outValue := int(values[0].(*sql.NullInt64).Int64)
 				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
 					nids[inValue] = map[*LessonPlan]struct{}{byID[outValue]: {}}
@@ -763,7 +807,7 @@ func (lpq *LessonPlanQuery) loadSubjects(ctx context.Context, query *SubjectQuer
 }
 func (lpq *LessonPlanQuery) loadEducationCategories(ctx context.Context, query *EducationCategoryQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *EducationCategory)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int64]*LessonPlan)
+	byID := make(map[int]*LessonPlan)
 	nids := make(map[int]map[*LessonPlan]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
@@ -796,7 +840,7 @@ func (lpq *LessonPlanQuery) loadEducationCategories(ctx context.Context, query *
 				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := values[0].(*sql.NullInt64).Int64
+				outValue := int(values[0].(*sql.NullInt64).Int64)
 				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
 					nids[inValue] = map[*LessonPlan]struct{}{byID[outValue]: {}}
@@ -822,6 +866,37 @@ func (lpq *LessonPlanQuery) loadEducationCategories(ctx context.Context, query *
 	}
 	return nil
 }
+func (lpq *LessonPlanQuery) loadUploadFiles(ctx context.Context, query *UploadFileQuery, nodes []*LessonPlan, init func(*LessonPlan), assign func(*LessonPlan, *UploadFile)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*LessonPlan)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.UploadFile(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(lessonplan.UploadFilesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.lesson_plan_upload_files
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "lesson_plan_upload_files" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "lesson_plan_upload_files" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (lpq *LessonPlanQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := lpq.querySpec()
@@ -833,7 +908,7 @@ func (lpq *LessonPlanQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (lpq *LessonPlanQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessonplan.Table, lessonplan.Columns, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewQuerySpec(lessonplan.Table, lessonplan.Columns, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt))
 	_spec.From = lpq.sql
 	if unique := lpq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

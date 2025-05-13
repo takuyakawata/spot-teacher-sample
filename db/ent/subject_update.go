@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -25,6 +26,12 @@ type SubjectUpdate struct {
 // Where appends a list predicates to the SubjectUpdate builder.
 func (su *SubjectUpdate) Where(ps ...predicate.Subject) *SubjectUpdate {
 	su.mutation.Where(ps...)
+	return su
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (su *SubjectUpdate) SetUpdatedAt(t time.Time) *SubjectUpdate {
+	su.mutation.SetUpdatedAt(t)
 	return su
 }
 
@@ -57,14 +64,14 @@ func (su *SubjectUpdate) SetNillableCode(s *string) *SubjectUpdate {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (su *SubjectUpdate) AddLessonPlanIDs(ids ...int64) *SubjectUpdate {
+func (su *SubjectUpdate) AddLessonPlanIDs(ids ...int) *SubjectUpdate {
 	su.mutation.AddLessonPlanIDs(ids...)
 	return su
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (su *SubjectUpdate) AddLessonPlans(l ...*LessonPlan) *SubjectUpdate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -83,14 +90,14 @@ func (su *SubjectUpdate) ClearLessonPlans() *SubjectUpdate {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (su *SubjectUpdate) RemoveLessonPlanIDs(ids ...int64) *SubjectUpdate {
+func (su *SubjectUpdate) RemoveLessonPlanIDs(ids ...int) *SubjectUpdate {
 	su.mutation.RemoveLessonPlanIDs(ids...)
 	return su
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (su *SubjectUpdate) RemoveLessonPlans(l ...*LessonPlan) *SubjectUpdate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -99,6 +106,7 @@ func (su *SubjectUpdate) RemoveLessonPlans(l ...*LessonPlan) *SubjectUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (su *SubjectUpdate) Save(ctx context.Context) (int, error) {
+	su.defaults()
 	return withHooks(ctx, su.sqlSave, su.mutation, su.hooks)
 }
 
@@ -121,6 +129,14 @@ func (su *SubjectUpdate) Exec(ctx context.Context) error {
 func (su *SubjectUpdate) ExecX(ctx context.Context) {
 	if err := su.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (su *SubjectUpdate) defaults() {
+	if _, ok := su.mutation.UpdatedAt(); !ok {
+		v := subject.UpdateDefaultUpdatedAt()
+		su.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -151,6 +167,9 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := su.mutation.UpdatedAt(); ok {
+		_spec.SetField(subject.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := su.mutation.Name(); ok {
 		_spec.SetField(subject.FieldName, field.TypeString, value)
 	}
@@ -165,7 +184,7 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -178,7 +197,7 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -194,7 +213,7 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -220,6 +239,12 @@ type SubjectUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *SubjectMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (suo *SubjectUpdateOne) SetUpdatedAt(t time.Time) *SubjectUpdateOne {
+	suo.mutation.SetUpdatedAt(t)
+	return suo
 }
 
 // SetName sets the "name" field.
@@ -251,14 +276,14 @@ func (suo *SubjectUpdateOne) SetNillableCode(s *string) *SubjectUpdateOne {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (suo *SubjectUpdateOne) AddLessonPlanIDs(ids ...int64) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) AddLessonPlanIDs(ids ...int) *SubjectUpdateOne {
 	suo.mutation.AddLessonPlanIDs(ids...)
 	return suo
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (suo *SubjectUpdateOne) AddLessonPlans(l ...*LessonPlan) *SubjectUpdateOne {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -277,14 +302,14 @@ func (suo *SubjectUpdateOne) ClearLessonPlans() *SubjectUpdateOne {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (suo *SubjectUpdateOne) RemoveLessonPlanIDs(ids ...int64) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) RemoveLessonPlanIDs(ids ...int) *SubjectUpdateOne {
 	suo.mutation.RemoveLessonPlanIDs(ids...)
 	return suo
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (suo *SubjectUpdateOne) RemoveLessonPlans(l ...*LessonPlan) *SubjectUpdateOne {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -306,6 +331,7 @@ func (suo *SubjectUpdateOne) Select(field string, fields ...string) *SubjectUpda
 
 // Save executes the query and returns the updated Subject entity.
 func (suo *SubjectUpdateOne) Save(ctx context.Context) (*Subject, error) {
+	suo.defaults()
 	return withHooks(ctx, suo.sqlSave, suo.mutation, suo.hooks)
 }
 
@@ -328,6 +354,14 @@ func (suo *SubjectUpdateOne) Exec(ctx context.Context) error {
 func (suo *SubjectUpdateOne) ExecX(ctx context.Context) {
 	if err := suo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (suo *SubjectUpdateOne) defaults() {
+	if _, ok := suo.mutation.UpdatedAt(); !ok {
+		v := subject.UpdateDefaultUpdatedAt()
+		suo.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -375,6 +409,9 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			}
 		}
 	}
+	if value, ok := suo.mutation.UpdatedAt(); ok {
+		_spec.SetField(subject.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := suo.mutation.Name(); ok {
 		_spec.SetField(subject.FieldName, field.TypeString, value)
 	}
@@ -389,7 +426,7 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -402,7 +439,7 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -418,7 +455,7 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

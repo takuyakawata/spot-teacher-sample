@@ -22,6 +22,34 @@ type CompanyCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (cc *CompanyCreate) SetCreatedAt(t time.Time) *CompanyCreate {
+	cc.mutation.SetCreatedAt(t)
+	return cc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (cc *CompanyCreate) SetNillableCreatedAt(t *time.Time) *CompanyCreate {
+	if t != nil {
+		cc.SetCreatedAt(*t)
+	}
+	return cc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cc *CompanyCreate) SetUpdatedAt(t time.Time) *CompanyCreate {
+	cc.mutation.SetUpdatedAt(t)
+	return cc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (cc *CompanyCreate) SetNillableUpdatedAt(t *time.Time) *CompanyCreate {
+	if t != nil {
+		cc.SetUpdatedAt(*t)
+	}
+	return cc
+}
+
 // SetName sets the "name" field.
 func (cc *CompanyCreate) SetName(s string) *CompanyCreate {
 	cc.mutation.SetName(s)
@@ -80,49 +108,15 @@ func (cc *CompanyCreate) SetNillableURL(s *string) *CompanyCreate {
 	return cc
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (cc *CompanyCreate) SetCreatedAt(t time.Time) *CompanyCreate {
-	cc.mutation.SetCreatedAt(t)
-	return cc
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (cc *CompanyCreate) SetNillableCreatedAt(t *time.Time) *CompanyCreate {
-	if t != nil {
-		cc.SetCreatedAt(*t)
-	}
-	return cc
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (cc *CompanyCreate) SetUpdatedAt(t time.Time) *CompanyCreate {
-	cc.mutation.SetUpdatedAt(t)
-	return cc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (cc *CompanyCreate) SetNillableUpdatedAt(t *time.Time) *CompanyCreate {
-	if t != nil {
-		cc.SetUpdatedAt(*t)
-	}
-	return cc
-}
-
-// SetID sets the "id" field.
-func (cc *CompanyCreate) SetID(i int64) *CompanyCreate {
-	cc.mutation.SetID(i)
-	return cc
-}
-
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (cc *CompanyCreate) AddLessonPlanIDs(ids ...int64) *CompanyCreate {
+func (cc *CompanyCreate) AddLessonPlanIDs(ids ...int) *CompanyCreate {
 	cc.mutation.AddLessonPlanIDs(ids...)
 	return cc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (cc *CompanyCreate) AddLessonPlans(l ...*LessonPlan) *CompanyCreate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -130,14 +124,14 @@ func (cc *CompanyCreate) AddLessonPlans(l ...*LessonPlan) *CompanyCreate {
 }
 
 // AddMemberIDs adds the "members" edge to the User entity by IDs.
-func (cc *CompanyCreate) AddMemberIDs(ids ...int64) *CompanyCreate {
+func (cc *CompanyCreate) AddMemberIDs(ids ...int) *CompanyCreate {
 	cc.mutation.AddMemberIDs(ids...)
 	return cc
 }
 
 // AddMembers adds the "members" edges to the User entity.
 func (cc *CompanyCreate) AddMembers(u ...*User) *CompanyCreate {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -191,6 +185,12 @@ func (cc *CompanyCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (cc *CompanyCreate) check() error {
+	if _, ok := cc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Company.created_at"`)}
+	}
+	if _, ok := cc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Company.updated_at"`)}
+	}
 	if _, ok := cc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Company.name"`)}
 	}
@@ -231,12 +231,6 @@ func (cc *CompanyCreate) check() error {
 			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "Company.phone_number": %w`, err)}
 		}
 	}
-	if _, ok := cc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Company.created_at"`)}
-	}
-	if _, ok := cc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Company.updated_at"`)}
-	}
 	return nil
 }
 
@@ -251,10 +245,8 @@ func (cc *CompanyCreate) sqlSave(ctx context.Context) (*Company, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int64(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -263,11 +255,15 @@ func (cc *CompanyCreate) sqlSave(ctx context.Context) (*Company, error) {
 func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Company{config: cc.config}
-		_spec = sqlgraph.NewCreateSpec(company.Table, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(company.Table, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
 	)
-	if id, ok := cc.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := cc.mutation.CreatedAt(); ok {
+		_spec.SetField(company.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := cc.mutation.UpdatedAt(); ok {
+		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
@@ -297,14 +293,6 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 		_spec.SetField(company.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
-	if value, ok := cc.mutation.CreatedAt(); ok {
-		_spec.SetField(company.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := cc.mutation.UpdatedAt(); ok {
-		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
 	if nodes := cc.mutation.LessonPlansIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -313,7 +301,7 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -329,7 +317,7 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -385,9 +373,9 @@ func (ccb *CompanyCreateBulk) Save(ctx context.Context) ([]*Company, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int64(id)
+					nodes[i].ID = int(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

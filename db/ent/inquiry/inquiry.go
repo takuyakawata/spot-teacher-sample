@@ -15,6 +15,10 @@ const (
 	Label = "inquiry"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldLessonScheduleID holds the string denoting the lesson_schedule_id field in the database.
 	FieldLessonScheduleID = "lesson_schedule_id"
 	// FieldSchoolID holds the string denoting the school_id field in the database.
@@ -25,12 +29,6 @@ const (
 	FieldCategory = "category"
 	// FieldInquiryDetail holds the string denoting the inquiry_detail field in the database.
 	FieldInquiryDetail = "inquiry_detail"
-	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
-	FieldDeletedAt = "deleted_at"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
 	// EdgeLesson holds the string denoting the lesson edge name in mutations.
 	EdgeLesson = "lesson"
 	// EdgeSchool holds the string denoting the school edge name in mutations.
@@ -65,14 +63,13 @@ const (
 // Columns holds all SQL columns for inquiry fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldLessonScheduleID,
 	FieldSchoolID,
 	FieldUserID,
 	FieldCategory,
 	FieldInquiryDetail,
-	FieldDeletedAt,
-	FieldCreatedAt,
-	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -86,20 +83,18 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// LessonScheduleIDValidator is a validator for the "lesson_schedule_id" field. It is called by the builders before save.
-	LessonScheduleIDValidator func(int64) error
-	// SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
-	SchoolIDValidator func(int64) error
-	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(int64) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int64) error
+	// LessonScheduleIDValidator is a validator for the "lesson_schedule_id" field. It is called by the builders before save.
+	LessonScheduleIDValidator func(int) error
+	// SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
+	SchoolIDValidator func(int) error
+	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	UserIDValidator func(int) error
 )
 
 // Category defines the type for the "category" enum field.
@@ -138,6 +133,16 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
 // ByLessonScheduleID orders the results by the lesson_schedule_id field.
 func ByLessonScheduleID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLessonScheduleID, opts...).ToFunc()
@@ -161,21 +166,6 @@ func ByCategory(opts ...sql.OrderTermOption) OrderOption {
 // ByInquiryDetail orders the results by the inquiry_detail field.
 func ByInquiryDetail(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldInquiryDetail, opts...).ToFunc()
-}
-
-// ByDeletedAt orders the results by the deleted_at field.
-func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
-}
-
-// ByCreatedAt orders the results by the created_at field.
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
-}
-
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByLessonField orders the results by lesson field.
@@ -216,6 +206,6 @@ func newTeacherStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(TeacherInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, TeacherTable, TeacherColumn),
+		sqlgraph.Edge(sqlgraph.M2O, true, TeacherTable, TeacherColumn),
 	)
 }

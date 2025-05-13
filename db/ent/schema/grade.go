@@ -15,15 +15,18 @@ type Grade struct {
 // Fields of the Grade.
 func (Grade) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("id").
-			Positive().
-			Unique(),
 		field.String("name").
 			NotEmpty().
 			Unique(),
 		field.String("code").
 			NotEmpty().
 			Unique(),
+	}
+}
+
+func (Grade) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 

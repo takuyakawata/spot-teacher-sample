@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +17,10 @@ type EducationCategory struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Code holds the value of the "code" field.
@@ -23,7 +28,7 @@ type EducationCategory struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EducationCategoryQuery when eager-loading is set.
 	Edges                                EducationCategoryEdges `json:"edges"`
-	lesson_schedule_education_categories *int64
+	lesson_schedule_education_categories *int
 	selectValues                         sql.SelectValues
 }
 
@@ -54,6 +59,8 @@ func (*EducationCategory) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case educationcategory.FieldName, educationcategory.FieldCode:
 			values[i] = new(sql.NullString)
+		case educationcategory.FieldCreatedAt, educationcategory.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		case educationcategory.ForeignKeys[0]: // lesson_schedule_education_categories
 			values[i] = new(sql.NullInt64)
 		default:
@@ -77,6 +84,18 @@ func (ec *EducationCategory) assignValues(columns []string, values []any) error 
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			ec.ID = int(value.Int64)
+		case educationcategory.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				ec.CreatedAt = value.Time
+			}
+		case educationcategory.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				ec.UpdatedAt = value.Time
+			}
 		case educationcategory.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -93,8 +112,8 @@ func (ec *EducationCategory) assignValues(columns []string, values []any) error 
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_education_categories", value)
 			} else if value.Valid {
-				ec.lesson_schedule_education_categories = new(int64)
-				*ec.lesson_schedule_education_categories = int64(value.Int64)
+				ec.lesson_schedule_education_categories = new(int)
+				*ec.lesson_schedule_education_categories = int(value.Int64)
 			}
 		default:
 			ec.selectValues.Set(columns[i], values[i])
@@ -137,6 +156,12 @@ func (ec *EducationCategory) String() string {
 	var builder strings.Builder
 	builder.WriteString("EducationCategory(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", ec.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(ec.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(ec.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(ec.Name)
 	builder.WriteString(", ")

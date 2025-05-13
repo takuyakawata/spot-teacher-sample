@@ -10,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
 )
@@ -19,6 +20,34 @@ type SchoolCreate struct {
 	config
 	mutation *SchoolMutation
 	hooks    []Hook
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (sc *SchoolCreate) SetCreatedAt(t time.Time) *SchoolCreate {
+	sc.mutation.SetCreatedAt(t)
+	return sc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (sc *SchoolCreate) SetNillableCreatedAt(t *time.Time) *SchoolCreate {
+	if t != nil {
+		sc.SetCreatedAt(*t)
+	}
+	return sc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (sc *SchoolCreate) SetUpdatedAt(t time.Time) *SchoolCreate {
+	sc.mutation.SetUpdatedAt(t)
+	return sc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (sc *SchoolCreate) SetNillableUpdatedAt(t *time.Time) *SchoolCreate {
+	if t != nil {
+		sc.SetUpdatedAt(*t)
+	}
+	return sc
 }
 
 // SetSchoolType sets the "school_type" field.
@@ -99,53 +128,34 @@ func (sc *SchoolCreate) SetNillableURL(s *string) *SchoolCreate {
 	return sc
 }
 
-// SetCreatedAt sets the "created_at" field.
-func (sc *SchoolCreate) SetCreatedAt(t time.Time) *SchoolCreate {
-	sc.mutation.SetCreatedAt(t)
-	return sc
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (sc *SchoolCreate) SetNillableCreatedAt(t *time.Time) *SchoolCreate {
-	if t != nil {
-		sc.SetCreatedAt(*t)
-	}
-	return sc
-}
-
-// SetUpdatedAt sets the "updated_at" field.
-func (sc *SchoolCreate) SetUpdatedAt(t time.Time) *SchoolCreate {
-	sc.mutation.SetUpdatedAt(t)
-	return sc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (sc *SchoolCreate) SetNillableUpdatedAt(t *time.Time) *SchoolCreate {
-	if t != nil {
-		sc.SetUpdatedAt(*t)
-	}
-	return sc
-}
-
-// SetID sets the "id" field.
-func (sc *SchoolCreate) SetID(i int64) *SchoolCreate {
-	sc.mutation.SetID(i)
-	return sc
-}
-
 // AddTeacherIDs adds the "teachers" edge to the User entity by IDs.
-func (sc *SchoolCreate) AddTeacherIDs(ids ...int64) *SchoolCreate {
+func (sc *SchoolCreate) AddTeacherIDs(ids ...int) *SchoolCreate {
 	sc.mutation.AddTeacherIDs(ids...)
 	return sc
 }
 
 // AddTeachers adds the "teachers" edges to the User entity.
 func (sc *SchoolCreate) AddTeachers(u ...*User) *SchoolCreate {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
 	return sc.AddTeacherIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (sc *SchoolCreate) AddLessonReservationIDs(ids ...int) *SchoolCreate {
+	sc.mutation.AddLessonReservationIDs(ids...)
+	return sc
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (sc *SchoolCreate) AddLessonReservations(l ...*LessonReservation) *SchoolCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return sc.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the SchoolMutation object of the builder.
@@ -195,6 +205,12 @@ func (sc *SchoolCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (sc *SchoolCreate) check() error {
+	if _, ok := sc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "School.created_at"`)}
+	}
+	if _, ok := sc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "School.updated_at"`)}
+	}
 	if _, ok := sc.mutation.SchoolType(); !ok {
 		return &ValidationError{Name: "school_type", err: errors.New(`ent: missing required field "School.school_type"`)}
 	}
@@ -248,12 +264,6 @@ func (sc *SchoolCreate) check() error {
 			return &ValidationError{Name: "post_code", err: fmt.Errorf(`ent: validator failed for field "School.post_code": %w`, err)}
 		}
 	}
-	if _, ok := sc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "School.created_at"`)}
-	}
-	if _, ok := sc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "School.updated_at"`)}
-	}
 	return nil
 }
 
@@ -268,10 +278,8 @@ func (sc *SchoolCreate) sqlSave(ctx context.Context) (*School, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int64(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	sc.mutation.id = &_node.ID
 	sc.mutation.done = true
 	return _node, nil
@@ -280,11 +288,15 @@ func (sc *SchoolCreate) sqlSave(ctx context.Context) (*School, error) {
 func (sc *SchoolCreate) createSpec() (*School, *sqlgraph.CreateSpec) {
 	var (
 		_node = &School{config: sc.config}
-		_spec = sqlgraph.NewCreateSpec(school.Table, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(school.Table, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt))
 	)
-	if id, ok := sc.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := sc.mutation.CreatedAt(); ok {
+		_spec.SetField(school.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := sc.mutation.UpdatedAt(); ok {
+		_spec.SetField(school.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := sc.mutation.SchoolType(); ok {
 		_spec.SetField(school.FieldSchoolType, field.TypeEnum, value)
@@ -322,14 +334,6 @@ func (sc *SchoolCreate) createSpec() (*School, *sqlgraph.CreateSpec) {
 		_spec.SetField(school.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
-	if value, ok := sc.mutation.CreatedAt(); ok {
-		_spec.SetField(school.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
-	if value, ok := sc.mutation.UpdatedAt(); ok {
-		_spec.SetField(school.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
 	if nodes := sc.mutation.TeachersIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -338,7 +342,23 @@ func (sc *SchoolCreate) createSpec() (*School, *sqlgraph.CreateSpec) {
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -394,9 +414,9 @@ func (scb *SchoolCreateBulk) Save(ctx context.Context) ([]*School, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int64(id)
+					nodes[i].ID = int(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

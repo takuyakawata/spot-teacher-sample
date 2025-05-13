@@ -15,6 +15,10 @@ const (
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// FieldUserType holds the string denoting the user_type field in the database.
 	FieldUserType = "user_type"
 	// FieldSchoolID holds the string denoting the school_id field in the database.
@@ -31,14 +35,14 @@ const (
 	FieldPhoneNumber = "phone_number"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
 	// EdgeSchool holds the string denoting the school edge name in mutations.
 	EdgeSchool = "school"
 	// EdgeCompany holds the string denoting the company edge name in mutations.
 	EdgeCompany = "company"
+	// EdgeInquiries holds the string denoting the inquiries edge name in mutations.
+	EdgeInquiries = "inquiries"
+	// EdgeLessonReservations holds the string denoting the lesson_reservations edge name in mutations.
+	EdgeLessonReservations = "lesson_reservations"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// SchoolTable is the table that holds the school relation/edge.
@@ -55,11 +59,27 @@ const (
 	CompanyInverseTable = "companies"
 	// CompanyColumn is the table column denoting the company relation/edge.
 	CompanyColumn = "company_id"
+	// InquiriesTable is the table that holds the inquiries relation/edge.
+	InquiriesTable = "inquiries"
+	// InquiriesInverseTable is the table name for the Inquiry entity.
+	// It exists in this package in order to avoid circular dependency with the "inquiry" package.
+	InquiriesInverseTable = "inquiries"
+	// InquiriesColumn is the table column denoting the inquiries relation/edge.
+	InquiriesColumn = "user_id"
+	// LessonReservationsTable is the table that holds the lesson_reservations relation/edge.
+	LessonReservationsTable = "lesson_reservations"
+	// LessonReservationsInverseTable is the table name for the LessonReservation entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonreservation" package.
+	LessonReservationsInverseTable = "lesson_reservations"
+	// LessonReservationsColumn is the table column denoting the lesson_reservations relation/edge.
+	LessonReservationsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 	FieldUserType,
 	FieldSchoolID,
 	FieldCompanyID,
@@ -68,8 +88,6 @@ var Columns = []string{
 	FieldEmail,
 	FieldPhoneNumber,
 	FieldPassword,
-	FieldUpdatedAt,
-	FieldCreatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -83,10 +101,16 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
-	SchoolIDValidator func(int64) error
+	SchoolIDValidator func(int) error
 	// CompanyIDValidator is a validator for the "company_id" field. It is called by the builders before save.
-	CompanyIDValidator func(int64) error
+	CompanyIDValidator func(int) error
 	// FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
 	FirstNameValidator func(string) error
 	// FamilyNameValidator is a validator for the "family_name" field. It is called by the builders before save.
@@ -95,14 +119,6 @@ var (
 	EmailValidator func(string) error
 	// PhoneNumberValidator is a validator for the "phone_number" field. It is called by the builders before save.
 	PhoneNumberValidator func(string) error
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt func() time.Time
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int64) error
 )
 
 // UserType defines the type for the "user_type" enum field.
@@ -138,6 +154,16 @@ type OrderOption func(*sql.Selector)
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByUserType orders the results by the user_type field.
@@ -180,16 +206,6 @@ func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassword, opts...).ToFunc()
 }
 
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
-}
-
-// ByCreatedAt orders the results by the created_at field.
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
-}
-
 // BySchoolField orders the results by school field.
 func BySchoolField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -201,6 +217,34 @@ func BySchoolField(field string, opts ...sql.OrderTermOption) OrderOption {
 func ByCompanyField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newCompanyStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByInquiriesCount orders the results by inquiries count.
+func ByInquiriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newInquiriesStep(), opts...)
+	}
+}
+
+// ByInquiries orders the results by inquiries terms.
+func ByInquiries(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newInquiriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLessonReservationsCount orders the results by lesson_reservations count.
+func ByLessonReservationsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonReservationsStep(), opts...)
+	}
+}
+
+// ByLessonReservations orders the results by lesson_reservations terms.
+func ByLessonReservations(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonReservationsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newSchoolStep() *sqlgraph.Step {
@@ -215,5 +259,19 @@ func newCompanyStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(CompanyInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, CompanyTable, CompanyColumn),
+	)
+}
+func newInquiriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(InquiriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, InquiriesTable, InquiriesColumn),
+	)
+}
+func newLessonReservationsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonReservationsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LessonReservationsTable, LessonReservationsColumn),
 	)
 }

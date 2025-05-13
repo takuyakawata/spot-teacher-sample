@@ -18,6 +18,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
 
 // LessonPlanUpdate is the builder for updating LessonPlan entities.
@@ -33,14 +34,20 @@ func (lpu *LessonPlanUpdate) Where(ps ...predicate.LessonPlan) *LessonPlanUpdate
 	return lpu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (lpu *LessonPlanUpdate) SetUpdatedAt(t time.Time) *LessonPlanUpdate {
+	lpu.mutation.SetUpdatedAt(t)
+	return lpu
+}
+
 // SetCompanyID sets the "company_id" field.
-func (lpu *LessonPlanUpdate) SetCompanyID(i int64) *LessonPlanUpdate {
+func (lpu *LessonPlanUpdate) SetCompanyID(i int) *LessonPlanUpdate {
 	lpu.mutation.SetCompanyID(i)
 	return lpu
 }
 
 // SetNillableCompanyID sets the "company_id" field if the given value is not nil.
-func (lpu *LessonPlanUpdate) SetNillableCompanyID(i *int64) *LessonPlanUpdate {
+func (lpu *LessonPlanUpdate) SetNillableCompanyID(i *int) *LessonPlanUpdate {
 	if i != nil {
 		lpu.SetCompanyID(*i)
 	}
@@ -248,30 +255,24 @@ func (lpu *LessonPlanUpdate) SetNillableEndTime(t *time.Time) *LessonPlanUpdate 
 	return lpu
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (lpu *LessonPlanUpdate) SetUpdatedAt(t time.Time) *LessonPlanUpdate {
-	lpu.mutation.SetUpdatedAt(t)
-	return lpu
+// SetCompany sets the "company" edge to the Company entity.
+func (lpu *LessonPlanUpdate) SetCompany(c *Company) *LessonPlanUpdate {
+	return lpu.SetCompanyID(c.ID)
 }
 
 // AddScheduleIDs adds the "schedules" edge to the LessonSchedule entity by IDs.
-func (lpu *LessonPlanUpdate) AddScheduleIDs(ids ...int64) *LessonPlanUpdate {
+func (lpu *LessonPlanUpdate) AddScheduleIDs(ids ...int) *LessonPlanUpdate {
 	lpu.mutation.AddScheduleIDs(ids...)
 	return lpu
 }
 
 // AddSchedules adds the "schedules" edges to the LessonSchedule entity.
 func (lpu *LessonPlanUpdate) AddSchedules(l ...*LessonSchedule) *LessonPlanUpdate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return lpu.AddScheduleIDs(ids...)
-}
-
-// SetCompany sets the "company" edge to the Company entity.
-func (lpu *LessonPlanUpdate) SetCompany(c *Company) *LessonPlanUpdate {
-	return lpu.SetCompanyID(c.ID)
 }
 
 // AddGradeIDs adds the "grades" edge to the Grade entity by IDs.
@@ -319,9 +320,30 @@ func (lpu *LessonPlanUpdate) AddEducationCategories(e ...*EducationCategory) *Le
 	return lpu.AddEducationCategoryIDs(ids...)
 }
 
+// AddUploadFileIDs adds the "upload_files" edge to the UploadFile entity by IDs.
+func (lpu *LessonPlanUpdate) AddUploadFileIDs(ids ...int) *LessonPlanUpdate {
+	lpu.mutation.AddUploadFileIDs(ids...)
+	return lpu
+}
+
+// AddUploadFiles adds the "upload_files" edges to the UploadFile entity.
+func (lpu *LessonPlanUpdate) AddUploadFiles(u ...*UploadFile) *LessonPlanUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return lpu.AddUploadFileIDs(ids...)
+}
+
 // Mutation returns the LessonPlanMutation object of the builder.
 func (lpu *LessonPlanUpdate) Mutation() *LessonPlanMutation {
 	return lpu.mutation
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (lpu *LessonPlanUpdate) ClearCompany() *LessonPlanUpdate {
+	lpu.mutation.ClearCompany()
+	return lpu
 }
 
 // ClearSchedules clears all "schedules" edges to the LessonSchedule entity.
@@ -331,24 +353,18 @@ func (lpu *LessonPlanUpdate) ClearSchedules() *LessonPlanUpdate {
 }
 
 // RemoveScheduleIDs removes the "schedules" edge to LessonSchedule entities by IDs.
-func (lpu *LessonPlanUpdate) RemoveScheduleIDs(ids ...int64) *LessonPlanUpdate {
+func (lpu *LessonPlanUpdate) RemoveScheduleIDs(ids ...int) *LessonPlanUpdate {
 	lpu.mutation.RemoveScheduleIDs(ids...)
 	return lpu
 }
 
 // RemoveSchedules removes "schedules" edges to LessonSchedule entities.
 func (lpu *LessonPlanUpdate) RemoveSchedules(l ...*LessonSchedule) *LessonPlanUpdate {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return lpu.RemoveScheduleIDs(ids...)
-}
-
-// ClearCompany clears the "company" edge to the Company entity.
-func (lpu *LessonPlanUpdate) ClearCompany() *LessonPlanUpdate {
-	lpu.mutation.ClearCompany()
-	return lpu
 }
 
 // ClearGrades clears all "grades" edges to the Grade entity.
@@ -412,6 +428,27 @@ func (lpu *LessonPlanUpdate) RemoveEducationCategories(e ...*EducationCategory) 
 		ids[i] = e[i].ID
 	}
 	return lpu.RemoveEducationCategoryIDs(ids...)
+}
+
+// ClearUploadFiles clears all "upload_files" edges to the UploadFile entity.
+func (lpu *LessonPlanUpdate) ClearUploadFiles() *LessonPlanUpdate {
+	lpu.mutation.ClearUploadFiles()
+	return lpu
+}
+
+// RemoveUploadFileIDs removes the "upload_files" edge to UploadFile entities by IDs.
+func (lpu *LessonPlanUpdate) RemoveUploadFileIDs(ids ...int) *LessonPlanUpdate {
+	lpu.mutation.RemoveUploadFileIDs(ids...)
+	return lpu
+}
+
+// RemoveUploadFiles removes "upload_files" edges to UploadFile entities.
+func (lpu *LessonPlanUpdate) RemoveUploadFiles(u ...*UploadFile) *LessonPlanUpdate {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return lpu.RemoveUploadFileIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -512,13 +549,16 @@ func (lpu *LessonPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := lpu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonplan.Table, lessonplan.Columns, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(lessonplan.Table, lessonplan.Columns, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt))
 	if ps := lpu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := lpu.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonplan.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := lpu.mutation.Title(); ok {
 		_spec.SetField(lessonplan.FieldTitle, field.TypeString, value)
@@ -574,8 +614,34 @@ func (lpu *LessonPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := lpu.mutation.EndTime(); ok {
 		_spec.SetField(lessonplan.FieldEndTime, field.TypeTime, value)
 	}
-	if value, ok := lpu.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonplan.FieldUpdatedAt, field.TypeTime, value)
+	if lpu.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonplan.CompanyTable,
+			Columns: []string{lessonplan.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lpu.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonplan.CompanyTable,
+			Columns: []string{lessonplan.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if lpu.mutation.SchedulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -585,7 +651,7 @@ func (lpu *LessonPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -598,7 +664,7 @@ func (lpu *LessonPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -614,36 +680,7 @@ func (lpu *LessonPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if lpu.mutation.CompanyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   lessonplan.CompanyTable,
-			Columns: []string{lessonplan.CompanyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := lpu.mutation.CompanyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   lessonplan.CompanyTable,
-			Columns: []string{lessonplan.CompanyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -786,6 +823,51 @@ func (lpu *LessonPlanUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if lpu.mutation.UploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: []string{lessonplan.UploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lpu.mutation.RemovedUploadFilesIDs(); len(nodes) > 0 && !lpu.mutation.UploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: []string{lessonplan.UploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lpu.mutation.UploadFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: []string{lessonplan.UploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, lpu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{lessonplan.Label}
@@ -806,14 +888,20 @@ type LessonPlanUpdateOne struct {
 	mutation *LessonPlanMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (lpuo *LessonPlanUpdateOne) SetUpdatedAt(t time.Time) *LessonPlanUpdateOne {
+	lpuo.mutation.SetUpdatedAt(t)
+	return lpuo
+}
+
 // SetCompanyID sets the "company_id" field.
-func (lpuo *LessonPlanUpdateOne) SetCompanyID(i int64) *LessonPlanUpdateOne {
+func (lpuo *LessonPlanUpdateOne) SetCompanyID(i int) *LessonPlanUpdateOne {
 	lpuo.mutation.SetCompanyID(i)
 	return lpuo
 }
 
 // SetNillableCompanyID sets the "company_id" field if the given value is not nil.
-func (lpuo *LessonPlanUpdateOne) SetNillableCompanyID(i *int64) *LessonPlanUpdateOne {
+func (lpuo *LessonPlanUpdateOne) SetNillableCompanyID(i *int) *LessonPlanUpdateOne {
 	if i != nil {
 		lpuo.SetCompanyID(*i)
 	}
@@ -1021,30 +1109,24 @@ func (lpuo *LessonPlanUpdateOne) SetNillableEndTime(t *time.Time) *LessonPlanUpd
 	return lpuo
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (lpuo *LessonPlanUpdateOne) SetUpdatedAt(t time.Time) *LessonPlanUpdateOne {
-	lpuo.mutation.SetUpdatedAt(t)
-	return lpuo
+// SetCompany sets the "company" edge to the Company entity.
+func (lpuo *LessonPlanUpdateOne) SetCompany(c *Company) *LessonPlanUpdateOne {
+	return lpuo.SetCompanyID(c.ID)
 }
 
 // AddScheduleIDs adds the "schedules" edge to the LessonSchedule entity by IDs.
-func (lpuo *LessonPlanUpdateOne) AddScheduleIDs(ids ...int64) *LessonPlanUpdateOne {
+func (lpuo *LessonPlanUpdateOne) AddScheduleIDs(ids ...int) *LessonPlanUpdateOne {
 	lpuo.mutation.AddScheduleIDs(ids...)
 	return lpuo
 }
 
 // AddSchedules adds the "schedules" edges to the LessonSchedule entity.
 func (lpuo *LessonPlanUpdateOne) AddSchedules(l ...*LessonSchedule) *LessonPlanUpdateOne {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return lpuo.AddScheduleIDs(ids...)
-}
-
-// SetCompany sets the "company" edge to the Company entity.
-func (lpuo *LessonPlanUpdateOne) SetCompany(c *Company) *LessonPlanUpdateOne {
-	return lpuo.SetCompanyID(c.ID)
 }
 
 // AddGradeIDs adds the "grades" edge to the Grade entity by IDs.
@@ -1092,9 +1174,30 @@ func (lpuo *LessonPlanUpdateOne) AddEducationCategories(e ...*EducationCategory)
 	return lpuo.AddEducationCategoryIDs(ids...)
 }
 
+// AddUploadFileIDs adds the "upload_files" edge to the UploadFile entity by IDs.
+func (lpuo *LessonPlanUpdateOne) AddUploadFileIDs(ids ...int) *LessonPlanUpdateOne {
+	lpuo.mutation.AddUploadFileIDs(ids...)
+	return lpuo
+}
+
+// AddUploadFiles adds the "upload_files" edges to the UploadFile entity.
+func (lpuo *LessonPlanUpdateOne) AddUploadFiles(u ...*UploadFile) *LessonPlanUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return lpuo.AddUploadFileIDs(ids...)
+}
+
 // Mutation returns the LessonPlanMutation object of the builder.
 func (lpuo *LessonPlanUpdateOne) Mutation() *LessonPlanMutation {
 	return lpuo.mutation
+}
+
+// ClearCompany clears the "company" edge to the Company entity.
+func (lpuo *LessonPlanUpdateOne) ClearCompany() *LessonPlanUpdateOne {
+	lpuo.mutation.ClearCompany()
+	return lpuo
 }
 
 // ClearSchedules clears all "schedules" edges to the LessonSchedule entity.
@@ -1104,24 +1207,18 @@ func (lpuo *LessonPlanUpdateOne) ClearSchedules() *LessonPlanUpdateOne {
 }
 
 // RemoveScheduleIDs removes the "schedules" edge to LessonSchedule entities by IDs.
-func (lpuo *LessonPlanUpdateOne) RemoveScheduleIDs(ids ...int64) *LessonPlanUpdateOne {
+func (lpuo *LessonPlanUpdateOne) RemoveScheduleIDs(ids ...int) *LessonPlanUpdateOne {
 	lpuo.mutation.RemoveScheduleIDs(ids...)
 	return lpuo
 }
 
 // RemoveSchedules removes "schedules" edges to LessonSchedule entities.
 func (lpuo *LessonPlanUpdateOne) RemoveSchedules(l ...*LessonSchedule) *LessonPlanUpdateOne {
-	ids := make([]int64, len(l))
+	ids := make([]int, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return lpuo.RemoveScheduleIDs(ids...)
-}
-
-// ClearCompany clears the "company" edge to the Company entity.
-func (lpuo *LessonPlanUpdateOne) ClearCompany() *LessonPlanUpdateOne {
-	lpuo.mutation.ClearCompany()
-	return lpuo
 }
 
 // ClearGrades clears all "grades" edges to the Grade entity.
@@ -1185,6 +1282,27 @@ func (lpuo *LessonPlanUpdateOne) RemoveEducationCategories(e ...*EducationCatego
 		ids[i] = e[i].ID
 	}
 	return lpuo.RemoveEducationCategoryIDs(ids...)
+}
+
+// ClearUploadFiles clears all "upload_files" edges to the UploadFile entity.
+func (lpuo *LessonPlanUpdateOne) ClearUploadFiles() *LessonPlanUpdateOne {
+	lpuo.mutation.ClearUploadFiles()
+	return lpuo
+}
+
+// RemoveUploadFileIDs removes the "upload_files" edge to UploadFile entities by IDs.
+func (lpuo *LessonPlanUpdateOne) RemoveUploadFileIDs(ids ...int) *LessonPlanUpdateOne {
+	lpuo.mutation.RemoveUploadFileIDs(ids...)
+	return lpuo
+}
+
+// RemoveUploadFiles removes "upload_files" edges to UploadFile entities.
+func (lpuo *LessonPlanUpdateOne) RemoveUploadFiles(u ...*UploadFile) *LessonPlanUpdateOne {
+	ids := make([]int, len(u))
+	for i := range u {
+		ids[i] = u[i].ID
+	}
+	return lpuo.RemoveUploadFileIDs(ids...)
 }
 
 // Where appends a list predicates to the LessonPlanUpdate builder.
@@ -1298,7 +1416,7 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 	if err := lpuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonplan.Table, lessonplan.Columns, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(lessonplan.Table, lessonplan.Columns, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt))
 	id, ok := lpuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LessonPlan.id" for update`)}
@@ -1322,6 +1440,9 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := lpuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonplan.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := lpuo.mutation.Title(); ok {
 		_spec.SetField(lessonplan.FieldTitle, field.TypeString, value)
@@ -1377,8 +1498,34 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 	if value, ok := lpuo.mutation.EndTime(); ok {
 		_spec.SetField(lessonplan.FieldEndTime, field.TypeTime, value)
 	}
-	if value, ok := lpuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonplan.FieldUpdatedAt, field.TypeTime, value)
+	if lpuo.mutation.CompanyCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonplan.CompanyTable,
+			Columns: []string{lessonplan.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lpuo.mutation.CompanyIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   lessonplan.CompanyTable,
+			Columns: []string{lessonplan.CompanyColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if lpuo.mutation.SchedulesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1388,7 +1535,7 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1401,7 +1548,7 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1417,36 +1564,7 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if lpuo.mutation.CompanyCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   lessonplan.CompanyTable,
-			Columns: []string{lessonplan.CompanyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := lpuo.mutation.CompanyIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   lessonplan.CompanyTable,
-			Columns: []string{lessonplan.CompanyColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1582,6 +1700,51 @@ func (lpuo *LessonPlanUpdateOne) sqlSave(ctx context.Context) (_node *LessonPlan
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lpuo.mutation.UploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: []string{lessonplan.UploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lpuo.mutation.RemovedUploadFilesIDs(); len(nodes) > 0 && !lpuo.mutation.UploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: []string{lessonplan.UploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lpuo.mutation.UploadFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: []string{lessonplan.UploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

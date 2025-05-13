@@ -14,6 +14,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
@@ -32,14 +33,20 @@ func (lsu *LessonScheduleUpdate) Where(ps ...predicate.LessonSchedule) *LessonSc
 	return lsu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (lsu *LessonScheduleUpdate) SetUpdatedAt(t time.Time) *LessonScheduleUpdate {
+	lsu.mutation.SetUpdatedAt(t)
+	return lsu
+}
+
 // SetLessonPlanID sets the "lesson_plan_id" field.
-func (lsu *LessonScheduleUpdate) SetLessonPlanID(i int64) *LessonScheduleUpdate {
+func (lsu *LessonScheduleUpdate) SetLessonPlanID(i int) *LessonScheduleUpdate {
 	lsu.mutation.SetLessonPlanID(i)
 	return lsu
 }
 
 // SetNillableLessonPlanID sets the "lesson_plan_id" field if the given value is not nil.
-func (lsu *LessonScheduleUpdate) SetNillableLessonPlanID(i *int64) *LessonScheduleUpdate {
+func (lsu *LessonScheduleUpdate) SetNillableLessonPlanID(i *int) *LessonScheduleUpdate {
 	if i != nil {
 		lsu.SetLessonPlanID(*i)
 	}
@@ -191,14 +198,8 @@ func (lsu *LessonScheduleUpdate) SetNillableEndTime(t *time.Time) *LessonSchedul
 	return lsu
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (lsu *LessonScheduleUpdate) SetUpdatedAt(t time.Time) *LessonScheduleUpdate {
-	lsu.mutation.SetUpdatedAt(t)
-	return lsu
-}
-
 // SetPlanID sets the "plan" edge to the LessonPlan entity by ID.
-func (lsu *LessonScheduleUpdate) SetPlanID(id int64) *LessonScheduleUpdate {
+func (lsu *LessonScheduleUpdate) SetPlanID(id int) *LessonScheduleUpdate {
 	lsu.mutation.SetPlanID(id)
 	return lsu
 }
@@ -251,6 +252,21 @@ func (lsu *LessonScheduleUpdate) AddEducationCategories(e ...*EducationCategory)
 		ids[i] = e[i].ID
 	}
 	return lsu.AddEducationCategoryIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (lsu *LessonScheduleUpdate) AddLessonReservationIDs(ids ...int) *LessonScheduleUpdate {
+	lsu.mutation.AddLessonReservationIDs(ids...)
+	return lsu
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (lsu *LessonScheduleUpdate) AddLessonReservations(l ...*LessonReservation) *LessonScheduleUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lsu.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the LessonScheduleMutation object of the builder.
@@ -325,6 +341,27 @@ func (lsu *LessonScheduleUpdate) RemoveEducationCategories(e ...*EducationCatego
 		ids[i] = e[i].ID
 	}
 	return lsu.RemoveEducationCategoryIDs(ids...)
+}
+
+// ClearLessonReservations clears all "lesson_reservations" edges to the LessonReservation entity.
+func (lsu *LessonScheduleUpdate) ClearLessonReservations() *LessonScheduleUpdate {
+	lsu.mutation.ClearLessonReservations()
+	return lsu
+}
+
+// RemoveLessonReservationIDs removes the "lesson_reservations" edge to LessonReservation entities by IDs.
+func (lsu *LessonScheduleUpdate) RemoveLessonReservationIDs(ids ...int) *LessonScheduleUpdate {
+	lsu.mutation.RemoveLessonReservationIDs(ids...)
+	return lsu
+}
+
+// RemoveLessonReservations removes "lesson_reservations" edges to LessonReservation entities.
+func (lsu *LessonScheduleUpdate) RemoveLessonReservations(l ...*LessonReservation) *LessonScheduleUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lsu.RemoveLessonReservationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -405,13 +442,16 @@ func (lsu *LessonScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if err := lsu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonschedule.Table, lessonschedule.Columns, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(lessonschedule.Table, lessonschedule.Columns, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt))
 	if ps := lsu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := lsu.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonschedule.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := lsu.mutation.Title(); ok {
 		_spec.SetField(lessonschedule.FieldTitle, field.TypeString, value)
@@ -449,9 +489,6 @@ func (lsu *LessonScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if value, ok := lsu.mutation.EndTime(); ok {
 		_spec.SetField(lessonschedule.FieldEndTime, field.TypeTime, value)
 	}
-	if value, ok := lsu.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonschedule.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if lsu.mutation.PlanCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -460,7 +497,7 @@ func (lsu *LessonScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Columns: []string{lessonschedule.PlanColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -473,7 +510,7 @@ func (lsu *LessonScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Columns: []string{lessonschedule.PlanColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -616,6 +653,51 @@ func (lsu *LessonScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if lsu.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lsu.mutation.RemovedLessonReservationsIDs(); len(nodes) > 0 && !lsu.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lsu.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, lsu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{lessonschedule.Label}
@@ -636,14 +718,20 @@ type LessonScheduleUpdateOne struct {
 	mutation *LessonScheduleMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (lsuo *LessonScheduleUpdateOne) SetUpdatedAt(t time.Time) *LessonScheduleUpdateOne {
+	lsuo.mutation.SetUpdatedAt(t)
+	return lsuo
+}
+
 // SetLessonPlanID sets the "lesson_plan_id" field.
-func (lsuo *LessonScheduleUpdateOne) SetLessonPlanID(i int64) *LessonScheduleUpdateOne {
+func (lsuo *LessonScheduleUpdateOne) SetLessonPlanID(i int) *LessonScheduleUpdateOne {
 	lsuo.mutation.SetLessonPlanID(i)
 	return lsuo
 }
 
 // SetNillableLessonPlanID sets the "lesson_plan_id" field if the given value is not nil.
-func (lsuo *LessonScheduleUpdateOne) SetNillableLessonPlanID(i *int64) *LessonScheduleUpdateOne {
+func (lsuo *LessonScheduleUpdateOne) SetNillableLessonPlanID(i *int) *LessonScheduleUpdateOne {
 	if i != nil {
 		lsuo.SetLessonPlanID(*i)
 	}
@@ -795,14 +883,8 @@ func (lsuo *LessonScheduleUpdateOne) SetNillableEndTime(t *time.Time) *LessonSch
 	return lsuo
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (lsuo *LessonScheduleUpdateOne) SetUpdatedAt(t time.Time) *LessonScheduleUpdateOne {
-	lsuo.mutation.SetUpdatedAt(t)
-	return lsuo
-}
-
 // SetPlanID sets the "plan" edge to the LessonPlan entity by ID.
-func (lsuo *LessonScheduleUpdateOne) SetPlanID(id int64) *LessonScheduleUpdateOne {
+func (lsuo *LessonScheduleUpdateOne) SetPlanID(id int) *LessonScheduleUpdateOne {
 	lsuo.mutation.SetPlanID(id)
 	return lsuo
 }
@@ -855,6 +937,21 @@ func (lsuo *LessonScheduleUpdateOne) AddEducationCategories(e ...*EducationCateg
 		ids[i] = e[i].ID
 	}
 	return lsuo.AddEducationCategoryIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (lsuo *LessonScheduleUpdateOne) AddLessonReservationIDs(ids ...int) *LessonScheduleUpdateOne {
+	lsuo.mutation.AddLessonReservationIDs(ids...)
+	return lsuo
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (lsuo *LessonScheduleUpdateOne) AddLessonReservations(l ...*LessonReservation) *LessonScheduleUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lsuo.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the LessonScheduleMutation object of the builder.
@@ -929,6 +1026,27 @@ func (lsuo *LessonScheduleUpdateOne) RemoveEducationCategories(e ...*EducationCa
 		ids[i] = e[i].ID
 	}
 	return lsuo.RemoveEducationCategoryIDs(ids...)
+}
+
+// ClearLessonReservations clears all "lesson_reservations" edges to the LessonReservation entity.
+func (lsuo *LessonScheduleUpdateOne) ClearLessonReservations() *LessonScheduleUpdateOne {
+	lsuo.mutation.ClearLessonReservations()
+	return lsuo
+}
+
+// RemoveLessonReservationIDs removes the "lesson_reservations" edge to LessonReservation entities by IDs.
+func (lsuo *LessonScheduleUpdateOne) RemoveLessonReservationIDs(ids ...int) *LessonScheduleUpdateOne {
+	lsuo.mutation.RemoveLessonReservationIDs(ids...)
+	return lsuo
+}
+
+// RemoveLessonReservations removes "lesson_reservations" edges to LessonReservation entities.
+func (lsuo *LessonScheduleUpdateOne) RemoveLessonReservations(l ...*LessonReservation) *LessonScheduleUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lsuo.RemoveLessonReservationIDs(ids...)
 }
 
 // Where appends a list predicates to the LessonScheduleUpdate builder.
@@ -1022,7 +1140,7 @@ func (lsuo *LessonScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Lesson
 	if err := lsuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonschedule.Table, lessonschedule.Columns, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(lessonschedule.Table, lessonschedule.Columns, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt))
 	id, ok := lsuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LessonSchedule.id" for update`)}
@@ -1046,6 +1164,9 @@ func (lsuo *LessonScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Lesson
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := lsuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonschedule.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := lsuo.mutation.Title(); ok {
 		_spec.SetField(lessonschedule.FieldTitle, field.TypeString, value)
@@ -1083,9 +1204,6 @@ func (lsuo *LessonScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Lesson
 	if value, ok := lsuo.mutation.EndTime(); ok {
 		_spec.SetField(lessonschedule.FieldEndTime, field.TypeTime, value)
 	}
-	if value, ok := lsuo.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonschedule.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if lsuo.mutation.PlanCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1094,7 +1212,7 @@ func (lsuo *LessonScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Lesson
 			Columns: []string{lessonschedule.PlanColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1107,7 +1225,7 @@ func (lsuo *LessonScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Lesson
 			Columns: []string{lessonschedule.PlanColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1243,6 +1361,51 @@ func (lsuo *LessonScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Lesson
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if lsuo.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lsuo.mutation.RemovedLessonReservationsIDs(); len(nodes) > 0 && !lsuo.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := lsuo.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

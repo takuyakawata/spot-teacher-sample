@@ -1,12 +1,10 @@
 package schema
 
 import (
-	"entgo.io/ent/schema/index"
-	"time"
-
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 type Inquiry struct {
@@ -15,16 +13,13 @@ type Inquiry struct {
 
 func (Inquiry) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int64("id").
+		field.Int("lesson_schedule_id").
 			Positive(),
 
-		field.Int64("lesson_schedule_id").
+		field.Int("school_id").
 			Positive(),
 
-		field.Int64("school_id").
-			Positive(),
-
-		field.Int64("user_id").
+		field.Int("user_id").
 			Positive(),
 
 		field.Enum("category").
@@ -32,18 +27,6 @@ func (Inquiry) Fields() []ent.Field {
 			Default("OTHER"),
 
 		field.Text("inquiry_detail"),
-
-		field.Time("deleted_at").
-			Optional().
-			Nillable(),
-
-		field.Time("created_at").
-			Default(time.Now).
-			Immutable(),
-
-		field.Time("updated_at").
-			Default(time.Now).
-			UpdateDefault(time.Now),
 	}
 }
 
@@ -59,10 +42,17 @@ func (Inquiry) Edges() []ent.Edge {
 			Unique().
 			Required(),
 
-		edge.To("teacher", User.Type).
+		edge.From("teacher", User.Type).
+			Ref("inquiries").
 			Field("user_id").
 			Unique().
 			Required(),
+	}
+}
+
+func (Inquiry) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
 	}
 }
 

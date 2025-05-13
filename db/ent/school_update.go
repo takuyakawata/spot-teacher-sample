@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/school"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/user"
@@ -26,6 +27,12 @@ type SchoolUpdate struct {
 // Where appends a list predicates to the SchoolUpdate builder.
 func (su *SchoolUpdate) Where(ps ...predicate.School) *SchoolUpdate {
 	su.mutation.Where(ps...)
+	return su
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (su *SchoolUpdate) SetUpdatedAt(t time.Time) *SchoolUpdate {
+	su.mutation.SetUpdatedAt(t)
 	return su
 }
 
@@ -180,25 +187,34 @@ func (su *SchoolUpdate) ClearURL() *SchoolUpdate {
 	return su
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (su *SchoolUpdate) SetUpdatedAt(t time.Time) *SchoolUpdate {
-	su.mutation.SetUpdatedAt(t)
-	return su
-}
-
 // AddTeacherIDs adds the "teachers" edge to the User entity by IDs.
-func (su *SchoolUpdate) AddTeacherIDs(ids ...int64) *SchoolUpdate {
+func (su *SchoolUpdate) AddTeacherIDs(ids ...int) *SchoolUpdate {
 	su.mutation.AddTeacherIDs(ids...)
 	return su
 }
 
 // AddTeachers adds the "teachers" edges to the User entity.
 func (su *SchoolUpdate) AddTeachers(u ...*User) *SchoolUpdate {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
 	return su.AddTeacherIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (su *SchoolUpdate) AddLessonReservationIDs(ids ...int) *SchoolUpdate {
+	su.mutation.AddLessonReservationIDs(ids...)
+	return su
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (su *SchoolUpdate) AddLessonReservations(l ...*LessonReservation) *SchoolUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return su.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the SchoolMutation object of the builder.
@@ -213,18 +229,39 @@ func (su *SchoolUpdate) ClearTeachers() *SchoolUpdate {
 }
 
 // RemoveTeacherIDs removes the "teachers" edge to User entities by IDs.
-func (su *SchoolUpdate) RemoveTeacherIDs(ids ...int64) *SchoolUpdate {
+func (su *SchoolUpdate) RemoveTeacherIDs(ids ...int) *SchoolUpdate {
 	su.mutation.RemoveTeacherIDs(ids...)
 	return su
 }
 
 // RemoveTeachers removes "teachers" edges to User entities.
 func (su *SchoolUpdate) RemoveTeachers(u ...*User) *SchoolUpdate {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
 	return su.RemoveTeacherIDs(ids...)
+}
+
+// ClearLessonReservations clears all "lesson_reservations" edges to the LessonReservation entity.
+func (su *SchoolUpdate) ClearLessonReservations() *SchoolUpdate {
+	su.mutation.ClearLessonReservations()
+	return su
+}
+
+// RemoveLessonReservationIDs removes the "lesson_reservations" edge to LessonReservation entities by IDs.
+func (su *SchoolUpdate) RemoveLessonReservationIDs(ids ...int) *SchoolUpdate {
+	su.mutation.RemoveLessonReservationIDs(ids...)
+	return su
+}
+
+// RemoveLessonReservations removes "lesson_reservations" edges to LessonReservation entities.
+func (su *SchoolUpdate) RemoveLessonReservations(l ...*LessonReservation) *SchoolUpdate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return su.RemoveLessonReservationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -307,13 +344,16 @@ func (su *SchoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := su.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt))
 	if ps := su.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := su.mutation.UpdatedAt(); ok {
+		_spec.SetField(school.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := su.mutation.SchoolType(); ok {
 		_spec.SetField(school.FieldSchoolType, field.TypeEnum, value)
@@ -354,9 +394,6 @@ func (su *SchoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.mutation.URLCleared() {
 		_spec.ClearField(school.FieldURL, field.TypeString)
 	}
-	if value, ok := su.mutation.UpdatedAt(); ok {
-		_spec.SetField(school.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if su.mutation.TeachersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -365,7 +402,7 @@ func (su *SchoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -378,7 +415,7 @@ func (su *SchoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -394,7 +431,52 @@ func (su *SchoolUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedLessonReservationsIDs(); len(nodes) > 0 && !su.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -420,6 +502,12 @@ type SchoolUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *SchoolMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (suo *SchoolUpdateOne) SetUpdatedAt(t time.Time) *SchoolUpdateOne {
+	suo.mutation.SetUpdatedAt(t)
+	return suo
 }
 
 // SetSchoolType sets the "school_type" field.
@@ -573,25 +661,34 @@ func (suo *SchoolUpdateOne) ClearURL() *SchoolUpdateOne {
 	return suo
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (suo *SchoolUpdateOne) SetUpdatedAt(t time.Time) *SchoolUpdateOne {
-	suo.mutation.SetUpdatedAt(t)
-	return suo
-}
-
 // AddTeacherIDs adds the "teachers" edge to the User entity by IDs.
-func (suo *SchoolUpdateOne) AddTeacherIDs(ids ...int64) *SchoolUpdateOne {
+func (suo *SchoolUpdateOne) AddTeacherIDs(ids ...int) *SchoolUpdateOne {
 	suo.mutation.AddTeacherIDs(ids...)
 	return suo
 }
 
 // AddTeachers adds the "teachers" edges to the User entity.
 func (suo *SchoolUpdateOne) AddTeachers(u ...*User) *SchoolUpdateOne {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
 	return suo.AddTeacherIDs(ids...)
+}
+
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (suo *SchoolUpdateOne) AddLessonReservationIDs(ids ...int) *SchoolUpdateOne {
+	suo.mutation.AddLessonReservationIDs(ids...)
+	return suo
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (suo *SchoolUpdateOne) AddLessonReservations(l ...*LessonReservation) *SchoolUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return suo.AddLessonReservationIDs(ids...)
 }
 
 // Mutation returns the SchoolMutation object of the builder.
@@ -606,18 +703,39 @@ func (suo *SchoolUpdateOne) ClearTeachers() *SchoolUpdateOne {
 }
 
 // RemoveTeacherIDs removes the "teachers" edge to User entities by IDs.
-func (suo *SchoolUpdateOne) RemoveTeacherIDs(ids ...int64) *SchoolUpdateOne {
+func (suo *SchoolUpdateOne) RemoveTeacherIDs(ids ...int) *SchoolUpdateOne {
 	suo.mutation.RemoveTeacherIDs(ids...)
 	return suo
 }
 
 // RemoveTeachers removes "teachers" edges to User entities.
 func (suo *SchoolUpdateOne) RemoveTeachers(u ...*User) *SchoolUpdateOne {
-	ids := make([]int64, len(u))
+	ids := make([]int, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
 	return suo.RemoveTeacherIDs(ids...)
+}
+
+// ClearLessonReservations clears all "lesson_reservations" edges to the LessonReservation entity.
+func (suo *SchoolUpdateOne) ClearLessonReservations() *SchoolUpdateOne {
+	suo.mutation.ClearLessonReservations()
+	return suo
+}
+
+// RemoveLessonReservationIDs removes the "lesson_reservations" edge to LessonReservation entities by IDs.
+func (suo *SchoolUpdateOne) RemoveLessonReservationIDs(ids ...int) *SchoolUpdateOne {
+	suo.mutation.RemoveLessonReservationIDs(ids...)
+	return suo
+}
+
+// RemoveLessonReservations removes "lesson_reservations" edges to LessonReservation entities.
+func (suo *SchoolUpdateOne) RemoveLessonReservations(l ...*LessonReservation) *SchoolUpdateOne {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return suo.RemoveLessonReservationIDs(ids...)
 }
 
 // Where appends a list predicates to the SchoolUpdate builder.
@@ -713,7 +831,7 @@ func (suo *SchoolUpdateOne) sqlSave(ctx context.Context) (_node *School, err err
 	if err := suo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64))
+	_spec := sqlgraph.NewUpdateSpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt))
 	id, ok := suo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "School.id" for update`)}
@@ -737,6 +855,9 @@ func (suo *SchoolUpdateOne) sqlSave(ctx context.Context) (_node *School, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := suo.mutation.UpdatedAt(); ok {
+		_spec.SetField(school.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := suo.mutation.SchoolType(); ok {
 		_spec.SetField(school.FieldSchoolType, field.TypeEnum, value)
@@ -777,9 +898,6 @@ func (suo *SchoolUpdateOne) sqlSave(ctx context.Context) (_node *School, err err
 	if suo.mutation.URLCleared() {
 		_spec.ClearField(school.FieldURL, field.TypeString)
 	}
-	if value, ok := suo.mutation.UpdatedAt(); ok {
-		_spec.SetField(school.FieldUpdatedAt, field.TypeTime, value)
-	}
 	if suo.mutation.TeachersCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -788,7 +906,7 @@ func (suo *SchoolUpdateOne) sqlSave(ctx context.Context) (_node *School, err err
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -801,7 +919,7 @@ func (suo *SchoolUpdateOne) sqlSave(ctx context.Context) (_node *School, err err
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -817,7 +935,52 @@ func (suo *SchoolUpdateOne) sqlSave(ctx context.Context) (_node *School, err err
 			Columns: []string{school.TeachersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedLessonReservationsIDs(); len(nodes) > 0 && !suo.mutation.LessonReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   school.LessonReservationsTable,
+			Columns: []string{school.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

@@ -17,9 +17,13 @@ import (
 type LessonPlan struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int64 `json:"id,omitempty"`
+	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// CompanyID holds the value of the "company_id" field.
-	CompanyID int64 `json:"company_id,omitempty"`
+	CompanyID int `json:"company_id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
@@ -42,10 +46,6 @@ type LessonPlan struct {
 	StartTime time.Time `json:"start_time,omitempty"`
 	// EndTime holds the value of the "end_time" field.
 	EndTime time.Time `json:"end_time,omitempty"`
-	// UpdatedAt holds the value of the "updated_at" field.
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// CreatedAt holds the value of the "created_at" field.
-	CreatedAt time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the LessonPlanQuery when eager-loading is set.
 	Edges        LessonPlanEdges `json:"edges"`
@@ -54,28 +54,21 @@ type LessonPlan struct {
 
 // LessonPlanEdges holds the relations/edges for other nodes in the graph.
 type LessonPlanEdges struct {
-	// Schedules holds the value of the schedules edge.
-	Schedules []*LessonSchedule `json:"schedules,omitempty"`
 	// Company holds the value of the company edge.
 	Company *Company `json:"company,omitempty"`
+	// Schedules holds the value of the schedules edge.
+	Schedules []*LessonSchedule `json:"schedules,omitempty"`
 	// Grades holds the value of the grades edge.
 	Grades []*Grade `json:"grades,omitempty"`
 	// Subjects holds the value of the subjects edge.
 	Subjects []*Subject `json:"subjects,omitempty"`
 	// EducationCategories holds the value of the education_categories edge.
 	EducationCategories []*EducationCategory `json:"education_categories,omitempty"`
+	// UploadFiles holds the value of the upload_files edge.
+	UploadFiles []*UploadFile `json:"upload_files,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
-}
-
-// SchedulesOrErr returns the Schedules value or an error if the edge
-// was not loaded in eager-loading.
-func (e LessonPlanEdges) SchedulesOrErr() ([]*LessonSchedule, error) {
-	if e.loadedTypes[0] {
-		return e.Schedules, nil
-	}
-	return nil, &NotLoadedError{edge: "schedules"}
+	loadedTypes [6]bool
 }
 
 // CompanyOrErr returns the Company value or an error if the edge
@@ -83,10 +76,19 @@ func (e LessonPlanEdges) SchedulesOrErr() ([]*LessonSchedule, error) {
 func (e LessonPlanEdges) CompanyOrErr() (*Company, error) {
 	if e.Company != nil {
 		return e.Company, nil
-	} else if e.loadedTypes[1] {
+	} else if e.loadedTypes[0] {
 		return nil, &NotFoundError{label: company.Label}
 	}
 	return nil, &NotLoadedError{edge: "company"}
+}
+
+// SchedulesOrErr returns the Schedules value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonPlanEdges) SchedulesOrErr() ([]*LessonSchedule, error) {
+	if e.loadedTypes[1] {
+		return e.Schedules, nil
+	}
+	return nil, &NotLoadedError{edge: "schedules"}
 }
 
 // GradesOrErr returns the Grades value or an error if the edge
@@ -116,6 +118,15 @@ func (e LessonPlanEdges) EducationCategoriesOrErr() ([]*EducationCategory, error
 	return nil, &NotLoadedError{edge: "education_categories"}
 }
 
+// UploadFilesOrErr returns the UploadFiles value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonPlanEdges) UploadFilesOrErr() ([]*UploadFile, error) {
+	if e.loadedTypes[5] {
+		return e.UploadFiles, nil
+	}
+	return nil, &NotLoadedError{edge: "upload_files"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*LessonPlan) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -125,7 +136,7 @@ func (*LessonPlan) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case lessonplan.FieldTitle, lessonplan.FieldDescription, lessonplan.FieldLocation, lessonplan.FieldLessonType:
 			values[i] = new(sql.NullString)
-		case lessonplan.FieldStartTime, lessonplan.FieldEndTime, lessonplan.FieldUpdatedAt, lessonplan.FieldCreatedAt:
+		case lessonplan.FieldCreatedAt, lessonplan.FieldUpdatedAt, lessonplan.FieldStartTime, lessonplan.FieldEndTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -147,12 +158,24 @@ func (lp *LessonPlan) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			lp.ID = int64(value.Int64)
+			lp.ID = int(value.Int64)
+		case lessonplan.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				lp.CreatedAt = value.Time
+			}
+		case lessonplan.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				lp.UpdatedAt = value.Time
+			}
 		case lessonplan.FieldCompanyID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field company_id", values[i])
 			} else if value.Valid {
-				lp.CompanyID = value.Int64
+				lp.CompanyID = int(value.Int64)
 			}
 		case lessonplan.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -220,18 +243,6 @@ func (lp *LessonPlan) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				lp.EndTime = value.Time
 			}
-		case lessonplan.FieldUpdatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
-			} else if value.Valid {
-				lp.UpdatedAt = value.Time
-			}
-		case lessonplan.FieldCreatedAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field created_at", values[i])
-			} else if value.Valid {
-				lp.CreatedAt = value.Time
-			}
 		default:
 			lp.selectValues.Set(columns[i], values[i])
 		}
@@ -245,14 +256,14 @@ func (lp *LessonPlan) Value(name string) (ent.Value, error) {
 	return lp.selectValues.Get(name)
 }
 
-// QuerySchedules queries the "schedules" edge of the LessonPlan entity.
-func (lp *LessonPlan) QuerySchedules() *LessonScheduleQuery {
-	return NewLessonPlanClient(lp.config).QuerySchedules(lp)
-}
-
 // QueryCompany queries the "company" edge of the LessonPlan entity.
 func (lp *LessonPlan) QueryCompany() *CompanyQuery {
 	return NewLessonPlanClient(lp.config).QueryCompany(lp)
+}
+
+// QuerySchedules queries the "schedules" edge of the LessonPlan entity.
+func (lp *LessonPlan) QuerySchedules() *LessonScheduleQuery {
+	return NewLessonPlanClient(lp.config).QuerySchedules(lp)
 }
 
 // QueryGrades queries the "grades" edge of the LessonPlan entity.
@@ -268,6 +279,11 @@ func (lp *LessonPlan) QuerySubjects() *SubjectQuery {
 // QueryEducationCategories queries the "education_categories" edge of the LessonPlan entity.
 func (lp *LessonPlan) QueryEducationCategories() *EducationCategoryQuery {
 	return NewLessonPlanClient(lp.config).QueryEducationCategories(lp)
+}
+
+// QueryUploadFiles queries the "upload_files" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryUploadFiles() *UploadFileQuery {
+	return NewLessonPlanClient(lp.config).QueryUploadFiles(lp)
 }
 
 // Update returns a builder for updating this LessonPlan.
@@ -293,6 +309,12 @@ func (lp *LessonPlan) String() string {
 	var builder strings.Builder
 	builder.WriteString("LessonPlan(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", lp.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(lp.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(lp.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("company_id=")
 	builder.WriteString(fmt.Sprintf("%v", lp.CompanyID))
 	builder.WriteString(", ")
@@ -328,12 +350,6 @@ func (lp *LessonPlan) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("end_time=")
 	builder.WriteString(lp.EndTime.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("updated_at=")
-	builder.WriteString(lp.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", ")
-	builder.WriteString("created_at=")
-	builder.WriteString(lp.CreatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

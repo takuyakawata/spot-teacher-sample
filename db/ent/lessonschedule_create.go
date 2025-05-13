@@ -13,6 +13,7 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 )
@@ -24,8 +25,36 @@ type LessonScheduleCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (lsc *LessonScheduleCreate) SetCreatedAt(t time.Time) *LessonScheduleCreate {
+	lsc.mutation.SetCreatedAt(t)
+	return lsc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (lsc *LessonScheduleCreate) SetNillableCreatedAt(t *time.Time) *LessonScheduleCreate {
+	if t != nil {
+		lsc.SetCreatedAt(*t)
+	}
+	return lsc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (lsc *LessonScheduleCreate) SetUpdatedAt(t time.Time) *LessonScheduleCreate {
+	lsc.mutation.SetUpdatedAt(t)
+	return lsc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (lsc *LessonScheduleCreate) SetNillableUpdatedAt(t *time.Time) *LessonScheduleCreate {
+	if t != nil {
+		lsc.SetUpdatedAt(*t)
+	}
+	return lsc
+}
+
 // SetLessonPlanID sets the "lesson_plan_id" field.
-func (lsc *LessonScheduleCreate) SetLessonPlanID(i int64) *LessonScheduleCreate {
+func (lsc *LessonScheduleCreate) SetLessonPlanID(i int) *LessonScheduleCreate {
 	lsc.mutation.SetLessonPlanID(i)
 	return lsc
 }
@@ -100,42 +129,8 @@ func (lsc *LessonScheduleCreate) SetEndTime(t time.Time) *LessonScheduleCreate {
 	return lsc
 }
 
-// SetUpdatedAt sets the "updated_at" field.
-func (lsc *LessonScheduleCreate) SetUpdatedAt(t time.Time) *LessonScheduleCreate {
-	lsc.mutation.SetUpdatedAt(t)
-	return lsc
-}
-
-// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
-func (lsc *LessonScheduleCreate) SetNillableUpdatedAt(t *time.Time) *LessonScheduleCreate {
-	if t != nil {
-		lsc.SetUpdatedAt(*t)
-	}
-	return lsc
-}
-
-// SetCreatedAt sets the "created_at" field.
-func (lsc *LessonScheduleCreate) SetCreatedAt(t time.Time) *LessonScheduleCreate {
-	lsc.mutation.SetCreatedAt(t)
-	return lsc
-}
-
-// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
-func (lsc *LessonScheduleCreate) SetNillableCreatedAt(t *time.Time) *LessonScheduleCreate {
-	if t != nil {
-		lsc.SetCreatedAt(*t)
-	}
-	return lsc
-}
-
-// SetID sets the "id" field.
-func (lsc *LessonScheduleCreate) SetID(i int64) *LessonScheduleCreate {
-	lsc.mutation.SetID(i)
-	return lsc
-}
-
 // SetPlanID sets the "plan" edge to the LessonPlan entity by ID.
-func (lsc *LessonScheduleCreate) SetPlanID(id int64) *LessonScheduleCreate {
+func (lsc *LessonScheduleCreate) SetPlanID(id int) *LessonScheduleCreate {
 	lsc.mutation.SetPlanID(id)
 	return lsc
 }
@@ -190,6 +185,21 @@ func (lsc *LessonScheduleCreate) AddEducationCategories(e ...*EducationCategory)
 	return lsc.AddEducationCategoryIDs(ids...)
 }
 
+// AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
+func (lsc *LessonScheduleCreate) AddLessonReservationIDs(ids ...int) *LessonScheduleCreate {
+	lsc.mutation.AddLessonReservationIDs(ids...)
+	return lsc
+}
+
+// AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
+func (lsc *LessonScheduleCreate) AddLessonReservations(l ...*LessonReservation) *LessonScheduleCreate {
+	ids := make([]int, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lsc.AddLessonReservationIDs(ids...)
+}
+
 // Mutation returns the LessonScheduleMutation object of the builder.
 func (lsc *LessonScheduleCreate) Mutation() *LessonScheduleMutation {
 	return lsc.mutation
@@ -225,18 +235,24 @@ func (lsc *LessonScheduleCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (lsc *LessonScheduleCreate) defaults() {
-	if _, ok := lsc.mutation.UpdatedAt(); !ok {
-		v := lessonschedule.DefaultUpdatedAt()
-		lsc.mutation.SetUpdatedAt(v)
-	}
 	if _, ok := lsc.mutation.CreatedAt(); !ok {
 		v := lessonschedule.DefaultCreatedAt()
 		lsc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := lsc.mutation.UpdatedAt(); !ok {
+		v := lessonschedule.DefaultUpdatedAt()
+		lsc.mutation.SetUpdatedAt(v)
 	}
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (lsc *LessonScheduleCreate) check() error {
+	if _, ok := lsc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "LessonSchedule.created_at"`)}
+	}
+	if _, ok := lsc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "LessonSchedule.updated_at"`)}
+	}
 	if _, ok := lsc.mutation.LessonPlanID(); !ok {
 		return &ValidationError{Name: "lesson_plan_id", err: errors.New(`ent: missing required field "LessonSchedule.lesson_plan_id"`)}
 	}
@@ -291,17 +307,6 @@ func (lsc *LessonScheduleCreate) check() error {
 	if _, ok := lsc.mutation.EndTime(); !ok {
 		return &ValidationError{Name: "end_time", err: errors.New(`ent: missing required field "LessonSchedule.end_time"`)}
 	}
-	if _, ok := lsc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "LessonSchedule.updated_at"`)}
-	}
-	if _, ok := lsc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "LessonSchedule.created_at"`)}
-	}
-	if v, ok := lsc.mutation.ID(); ok {
-		if err := lessonschedule.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "LessonSchedule.id": %w`, err)}
-		}
-	}
 	if len(lsc.mutation.PlanIDs()) == 0 {
 		return &ValidationError{Name: "plan", err: errors.New(`ent: missing required edge "LessonSchedule.plan"`)}
 	}
@@ -319,10 +324,8 @@ func (lsc *LessonScheduleCreate) sqlSave(ctx context.Context) (*LessonSchedule, 
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int64(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	lsc.mutation.id = &_node.ID
 	lsc.mutation.done = true
 	return _node, nil
@@ -331,11 +334,15 @@ func (lsc *LessonScheduleCreate) sqlSave(ctx context.Context) (*LessonSchedule, 
 func (lsc *LessonScheduleCreate) createSpec() (*LessonSchedule, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LessonSchedule{config: lsc.config}
-		_spec = sqlgraph.NewCreateSpec(lessonschedule.Table, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64))
+		_spec = sqlgraph.NewCreateSpec(lessonschedule.Table, sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt))
 	)
-	if id, ok := lsc.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
+	if value, ok := lsc.mutation.CreatedAt(); ok {
+		_spec.SetField(lessonschedule.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := lsc.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonschedule.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if value, ok := lsc.mutation.Title(); ok {
 		_spec.SetField(lessonschedule.FieldTitle, field.TypeString, value)
@@ -373,14 +380,6 @@ func (lsc *LessonScheduleCreate) createSpec() (*LessonSchedule, *sqlgraph.Create
 		_spec.SetField(lessonschedule.FieldEndTime, field.TypeTime, value)
 		_node.EndTime = value
 	}
-	if value, ok := lsc.mutation.UpdatedAt(); ok {
-		_spec.SetField(lessonschedule.FieldUpdatedAt, field.TypeTime, value)
-		_node.UpdatedAt = value
-	}
-	if value, ok := lsc.mutation.CreatedAt(); ok {
-		_spec.SetField(lessonschedule.FieldCreatedAt, field.TypeTime, value)
-		_node.CreatedAt = value
-	}
 	if nodes := lsc.mutation.PlanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -389,7 +388,7 @@ func (lsc *LessonScheduleCreate) createSpec() (*LessonSchedule, *sqlgraph.Create
 			Columns: []string{lessonschedule.PlanColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -446,6 +445,22 @@ func (lsc *LessonScheduleCreate) createSpec() (*LessonSchedule, *sqlgraph.Create
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := lsc.mutation.LessonReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   lessonschedule.LessonReservationsTable,
+			Columns: []string{lessonschedule.LessonReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -494,9 +509,9 @@ func (lscb *LessonScheduleCreateBulk) Save(ctx context.Context) ([]*LessonSchedu
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int64(id)
+					nodes[i].ID = int(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

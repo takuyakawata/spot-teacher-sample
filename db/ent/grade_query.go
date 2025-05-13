@@ -300,12 +300,12 @@ func (gq *GradeQuery) WithLessonPlans(opts ...func(*LessonPlanQuery)) *GradeQuer
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Grade.Query().
-//		GroupBy(grade.FieldName).
+//		GroupBy(grade.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (gq *GradeQuery) GroupBy(field string, fields ...string) *GradeGroupBy {
@@ -323,11 +323,11 @@ func (gq *GradeQuery) GroupBy(field string, fields ...string) *GradeGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Grade.Query().
-//		Select(grade.FieldName).
+//		Select(grade.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (gq *GradeQuery) Select(fields ...string) *GradeSelect {
 	gq.ctx.Fields = append(gq.ctx.Fields, fields...)
@@ -411,7 +411,7 @@ func (gq *GradeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Grade,
 func (gq *GradeQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*Grade, init func(*Grade), assign func(*Grade, *LessonPlan)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[int]*Grade)
-	nids := make(map[int64]map[*Grade]struct{})
+	nids := make(map[int]map[*Grade]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -444,7 +444,7 @@ func (gq *GradeQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuer
 			}
 			spec.Assign = func(columns []string, values []any) error {
 				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := values[1].(*sql.NullInt64).Int64
+				inValue := int(values[1].(*sql.NullInt64).Int64)
 				if nids[inValue] == nil {
 					nids[inValue] = map[*Grade]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])

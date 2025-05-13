@@ -4,9 +4,9 @@ package lessonreservation
 
 import (
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -32,14 +32,53 @@ const (
 	FieldRemarks = "remarks"
 	// FieldReservationConfirmAt holds the string denoting the reservation_confirm_at field in the database.
 	FieldReservationConfirmAt = "reservation_confirm_at"
-	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
-	FieldDeletedAt = "deleted_at"
-	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
-	FieldUpdatedAt = "updated_at"
-	// FieldCreatedAt holds the string denoting the created_at field in the database.
-	FieldCreatedAt = "created_at"
+	// EdgeLessonSchedule holds the string denoting the lesson_schedule edge name in mutations.
+	EdgeLessonSchedule = "lesson_schedule"
+	// EdgeSchool holds the string denoting the school edge name in mutations.
+	EdgeSchool = "school"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+	// EdgeLessonReservationPreferredDates holds the string denoting the lesson_reservation_preferred_dates edge name in mutations.
+	EdgeLessonReservationPreferredDates = "lesson_reservation_preferred_dates"
+	// EdgeLessonConfirmation holds the string denoting the lesson_confirmation edge name in mutations.
+	EdgeLessonConfirmation = "lesson_confirmation"
 	// Table holds the table name of the lessonreservation in the database.
 	Table = "lesson_reservations"
+	// LessonScheduleTable is the table that holds the lesson_schedule relation/edge.
+	LessonScheduleTable = "lesson_reservations"
+	// LessonScheduleInverseTable is the table name for the LessonSchedule entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonschedule" package.
+	LessonScheduleInverseTable = "lesson_schedules"
+	// LessonScheduleColumn is the table column denoting the lesson_schedule relation/edge.
+	LessonScheduleColumn = "lesson_schedule_id"
+	// SchoolTable is the table that holds the school relation/edge.
+	SchoolTable = "lesson_reservations"
+	// SchoolInverseTable is the table name for the School entity.
+	// It exists in this package in order to avoid circular dependency with the "school" package.
+	SchoolInverseTable = "schools"
+	// SchoolColumn is the table column denoting the school relation/edge.
+	SchoolColumn = "school_id"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "lesson_reservations"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_id"
+	// LessonReservationPreferredDatesTable is the table that holds the lesson_reservation_preferred_dates relation/edge.
+	LessonReservationPreferredDatesTable = "lesson_reservation_preferred_dates"
+	// LessonReservationPreferredDatesInverseTable is the table name for the LessonReservationPreferredDate entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonreservationpreferreddate" package.
+	LessonReservationPreferredDatesInverseTable = "lesson_reservation_preferred_dates"
+	// LessonReservationPreferredDatesColumn is the table column denoting the lesson_reservation_preferred_dates relation/edge.
+	LessonReservationPreferredDatesColumn = "lesson_reservation_id"
+	// LessonConfirmationTable is the table that holds the lesson_confirmation relation/edge.
+	LessonConfirmationTable = "lesson_confirmations"
+	// LessonConfirmationInverseTable is the table name for the LessonConfirmation entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonconfirmation" package.
+	LessonConfirmationInverseTable = "lesson_confirmations"
+	// LessonConfirmationColumn is the table column denoting the lesson_confirmation relation/edge.
+	LessonConfirmationColumn = "lesson_reservation_id"
 )
 
 // Columns holds all SQL columns for lessonreservation fields.
@@ -54,9 +93,6 @@ var Columns = []string{
 	FieldSubject,
 	FieldRemarks,
 	FieldReservationConfirmAt,
-	FieldDeletedAt,
-	FieldUpdatedAt,
-	FieldCreatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -71,19 +107,11 @@ func ValidColumn(column string) bool {
 
 var (
 	// LessonScheduleIDValidator is a validator for the "lesson_schedule_id" field. It is called by the builders before save.
-	LessonScheduleIDValidator func(int64) error
+	LessonScheduleIDValidator func(int) error
 	// SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
-	SchoolIDValidator func(int64) error
+	SchoolIDValidator func(int) error
 	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(int64) error
-	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
-	DefaultUpdatedAt func() time.Time
-	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
-	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
-	DefaultCreatedAt func() time.Time
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int64) error
+	UserIDValidator func(int) error
 )
 
 // ReservationStatus defines the type for the "reservation_status" enum field.
@@ -163,17 +191,86 @@ func ByReservationConfirmAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReservationConfirmAt, opts...).ToFunc()
 }
 
-// ByDeletedAt orders the results by the deleted_at field.
-func ByDeletedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldDeletedAt, opts...).ToFunc()
+// ByLessonScheduleField orders the results by lesson_schedule field.
+func ByLessonScheduleField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonScheduleStep(), sql.OrderByField(field, opts...))
+	}
 }
 
-// ByUpdatedAt orders the results by the updated_at field.
-func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+// BySchoolField orders the results by school field.
+func BySchoolField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newSchoolStep(), sql.OrderByField(field, opts...))
+	}
 }
 
-// ByCreatedAt orders the results by the created_at field.
-func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+// ByUserField orders the results by user field.
+func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByLessonReservationPreferredDatesCount orders the results by lesson_reservation_preferred_dates count.
+func ByLessonReservationPreferredDatesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonReservationPreferredDatesStep(), opts...)
+	}
+}
+
+// ByLessonReservationPreferredDates orders the results by lesson_reservation_preferred_dates terms.
+func ByLessonReservationPreferredDates(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonReservationPreferredDatesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLessonConfirmationCount orders the results by lesson_confirmation count.
+func ByLessonConfirmationCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonConfirmationStep(), opts...)
+	}
+}
+
+// ByLessonConfirmation orders the results by lesson_confirmation terms.
+func ByLessonConfirmation(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonConfirmationStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newLessonScheduleStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonScheduleInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, LessonScheduleTable, LessonScheduleColumn),
+	)
+}
+func newSchoolStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(SchoolInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, SchoolTable, SchoolColumn),
+	)
+}
+func newUserStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(UserInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
+	)
+}
+func newLessonReservationPreferredDatesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonReservationPreferredDatesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LessonReservationPreferredDatesTable, LessonReservationPreferredDatesColumn),
+	)
+}
+func newLessonConfirmationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonConfirmationInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, LessonConfirmationTable, LessonConfirmationColumn),
+	)
 }

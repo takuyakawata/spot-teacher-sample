@@ -28,9 +28,9 @@ func (evu *EmailVerificationUpdate) Where(ps ...predicate.EmailVerification) *Em
 	return evu
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (evu *EmailVerificationUpdate) SetUpdateTime(t time.Time) *EmailVerificationUpdate {
-	evu.mutation.SetUpdateTime(t)
+// SetUpdatedAt sets the "updated_at" field.
+func (evu *EmailVerificationUpdate) SetUpdatedAt(t time.Time) *EmailVerificationUpdate {
+	evu.mutation.SetUpdatedAt(t)
 	return evu
 }
 
@@ -111,9 +111,9 @@ func (evu *EmailVerificationUpdate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (evu *EmailVerificationUpdate) defaults() {
-	if _, ok := evu.mutation.UpdateTime(); !ok {
-		v := emailverification.UpdateDefaultUpdateTime()
-		evu.mutation.SetUpdateTime(v)
+	if _, ok := evu.mutation.UpdatedAt(); !ok {
+		v := emailverification.UpdateDefaultUpdatedAt()
+		evu.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -126,8 +126,8 @@ func (evu *EmailVerificationUpdate) sqlSave(ctx context.Context) (n int, err err
 			}
 		}
 	}
-	if value, ok := evu.mutation.UpdateTime(); ok {
-		_spec.SetField(emailverification.FieldUpdateTime, field.TypeTime, value)
+	if value, ok := evu.mutation.UpdatedAt(); ok {
+		_spec.SetField(emailverification.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := evu.mutation.Email(); ok {
 		_spec.SetField(emailverification.FieldEmail, field.TypeString, value)
@@ -158,9 +158,9 @@ type EmailVerificationUpdateOne struct {
 	mutation *EmailVerificationMutation
 }
 
-// SetUpdateTime sets the "update_time" field.
-func (evuo *EmailVerificationUpdateOne) SetUpdateTime(t time.Time) *EmailVerificationUpdateOne {
-	evuo.mutation.SetUpdateTime(t)
+// SetUpdatedAt sets the "updated_at" field.
+func (evuo *EmailVerificationUpdateOne) SetUpdatedAt(t time.Time) *EmailVerificationUpdateOne {
+	evuo.mutation.SetUpdatedAt(t)
 	return evuo
 }
 
@@ -254,9 +254,9 @@ func (evuo *EmailVerificationUpdateOne) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (evuo *EmailVerificationUpdateOne) defaults() {
-	if _, ok := evuo.mutation.UpdateTime(); !ok {
-		v := emailverification.UpdateDefaultUpdateTime()
-		evuo.mutation.SetUpdateTime(v)
+	if _, ok := evuo.mutation.UpdatedAt(); !ok {
+		v := emailverification.UpdateDefaultUpdatedAt()
+		evuo.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -286,8 +286,8 @@ func (evuo *EmailVerificationUpdateOne) sqlSave(ctx context.Context) (_node *Ema
 			}
 		}
 	}
-	if value, ok := evuo.mutation.UpdateTime(); ok {
-		_spec.SetField(emailverification.FieldUpdateTime, field.TypeTime, value)
+	if value, ok := evuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(emailverification.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := evuo.mutation.Email(); ok {
 		_spec.SetField(emailverification.FieldEmail, field.TypeString, value)
