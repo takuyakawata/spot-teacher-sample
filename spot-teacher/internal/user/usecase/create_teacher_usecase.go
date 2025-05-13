@@ -16,8 +16,8 @@ func NewCreateTeacherUseCase(teacherRepository domain.TeacherRepository) *Create
 }
 
 type CreateTeacherUseCaseInput struct {
-	FirstName       domain.TeacherName
-	FamilyName      domain.TeacherName
+	FirstName       sharedDomain.UserName
+	FamilyName      sharedDomain.UserName
 	SchoolID        schoolDomain.SchoolID
 	Email           sharedDomain.EmailAddress
 	PhoneNumber     *sharedDomain.PhoneNumber

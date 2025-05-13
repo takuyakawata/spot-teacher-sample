@@ -20,4 +20,6 @@ type SchoolRepository interface {
 
 	// FindAll retrieves all schools
 	FindAll(ctx context.Context) ([]*School, error)
+
+	FindByName(ctx context.Context, name SchoolName) (*School, error)
 }

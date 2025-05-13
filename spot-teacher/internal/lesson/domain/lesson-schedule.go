@@ -8,17 +8,17 @@ import (
 	"time"
 )
 
-type Schedule struct {
-	ID        ScheduleID
-	PlanID    PlanID
-	Name      ScheduleName
-	StartDate ScheduleDate
-	EndDate   ScheduleDate
+type LessonSchedule struct {
+	ID        LessonScheduleID
+	PlanID    LessonPlanID
+	Name      LessonScheduleName
+	StartDate LessonScheduleDate
+	EndDate   LessonScheduleDate
 	StartTime TimeOfDay
 	EndTime   TimeOfDay
 }
 
-type ScheduleDate struct {
+type LessonScheduleDate struct {
 	year  int
 	month time.Month
 	day   sharedDomain.Day
@@ -44,21 +44,21 @@ func (t TimeOfDay) Value() time.Time {
 	return time.Time(t)
 }
 
-type ScheduleID int64
+type LessonScheduleID int64
 
-func NewScheduleID(value int64) (ScheduleID, error) {
+func NewScheduleID(value int64) (LessonScheduleID, error) {
 	if value <= 0 {
 		return 0, errors.New("product ID must be positive")
 	}
-	return ScheduleID(value), nil
+	return LessonScheduleID(value), nil
 }
-func (p ScheduleID) Value() int64 {
+func (p LessonScheduleID) Value() int64 {
 	return int64(p)
 }
 
-type ScheduleName string
+type LessonScheduleName string
 
-func NewScheduleName(value string) (ScheduleName, error) {
+func NewLessonScheduleName(value string) (LessonScheduleName, error) {
 	const maxLength = 50
 	trimmedValue := strings.TrimSpace(value)
 	if value == "" {
@@ -67,9 +67,9 @@ func NewScheduleName(value string) (ScheduleName, error) {
 	if len(trimmedValue) > maxLength {
 		return "", errors.New("product name cannot be longer than 50 characters")
 	}
-	return ScheduleName(value), nil
+	return LessonScheduleName(value), nil
 }
 
-func (p ScheduleName) Value() string {
+func (p LessonScheduleName) Value() string {
 	return string(p)
 }

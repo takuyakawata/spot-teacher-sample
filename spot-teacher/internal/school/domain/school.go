@@ -2,6 +2,7 @@ package domain
 
 import (
 	"errors"
+	"fmt"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
 	"strings"
 )
@@ -78,4 +79,13 @@ const (
 
 var schoolTypeNames = [...]string{
 	"小学校", "中学校", "高校",
+}
+
+type SchoolAlreadyExistsError struct {
+	Name SchoolName
+}
+
+// Error は error インターフェースのメソッドを実装します。
+func (e *SchoolAlreadyExistsError) Error() string {
+	return fmt.Sprintf("this school '%s' already exists", e.Name)
 }

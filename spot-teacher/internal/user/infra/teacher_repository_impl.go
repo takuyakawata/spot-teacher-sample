@@ -66,6 +66,24 @@ func (r *TeacherRepositoryImpl) FindByEmail(ctx context.Context, email sharedDom
 	return teacher, nil
 }
 
+func (r *TeacherRepositoryImpl) FindBySchoolID(ctx context.Context, schoolID schoolDomain.SchoolID) ([]*domain.Teacher, error) {
+	users, err := r.client.User.Query().Where(user.SchoolIDEQ(int(schoolID.Value()))).All(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	teachers := make([]*domain.Teacher, 0, len(users))
+	for _, u := range users {
+		teacher, err := ToEntity(u)
+		if err != nil {
+			return nil, err
+		}
+		teachers = append(teachers, teacher)
+	}
+
+	return teachers, nil
+}
+
 func ToEntity(user *ent.User) (*domain.Teacher, error) {
 	var teacherPassword sharedDomain.Password
 	if user.Password != nil {

@@ -193,6 +193,14 @@ func (r *SchoolRepositoryImpl) FindAll(ctx context.Context) ([]*domain.School, e
 	return schools, nil
 }
 
+func (r *SchoolRepositoryImpl) FindByName(ctx context.Context, name domain.SchoolName) (*domain.School, error) {
+	schoolEnt, err := r.client.School.Query().Where(entSchool.NameEQ(name.Value())).Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return ToEntity(schoolEnt)
+}
+
 // ToEntity converts an ent.School to a domain.School
 func ToEntity(schoolEnt *ent.School) (*domain.School, error) {
 	// Create SchoolID

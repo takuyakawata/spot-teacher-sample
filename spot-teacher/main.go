@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/inject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent"
+	productInject "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/product/inject"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/router"
+	schoolInject "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/school/inject"
 
 	"net/http"
 	"sync" // 並行処理での競合を防ぐために使用
@@ -34,7 +36,9 @@ func initEcho() {
 		// --- 3. DI によるハンドラーの生成 ---
 		// cmd/main.go と同様に DI を行います。
 		// エラーハンドリングも適切に追加してください。
-		prodH := inject.InitializeProductHandler()
+		client := ent.NewClient()
+		prodH := productInject.InitializeProductHandler()
+		schoolH := schoolInject.InitializeSchoolHandler(client)
 		// err != nil { e.Logger.Fatal(err) } のようなエラー処理は Serverless Function では適切ではありません。
 		// 初期化に失敗した場合は、関数の実行を中断するか、エラーレスポンスを返すなどの対応が必要です。
 		// 簡単のためここではエラー処理を省略しますが、プロダクションでは必須です。
@@ -48,7 +52,7 @@ func initEcho() {
 		// Vercel のデプロイパスに合わせてルーティングを調整してください。
 		// apiGroup := e.Group("/api")
 		// router.RegisterRoutesForApiGroup(apiGroup, prodH) // router パッケージにグループを受け取る関数を追加するなど
-		router.RegisterAll(e, prodH) // この例ではそのまま登録
+		router.RegisterAll(e, prodH, schoolH) // この例ではそのまま登録
 	})
 }
 
@@ -79,8 +83,10 @@ func main() {
 	})
 	// ここで、特定のURLパスとHTTPメソッドに対する処理を結びつけます
 	/* DI で各ハンドラセットを生成 routing */
-	prodH := inject.InitializeProductHandler()
-	router.RegisterAll(e, prodH)
+	client := ent.NewClient()
+	prodH := productInject.InitializeProductHandler()
+	schoolH := schoolInject.InitializeSchoolHandler(client)
+	router.RegisterAll(e, prodH, schoolH)
 	/// --- 4. サーバーの起動 ---
 	port := ":8080"
 	e.Logger.Infof("Starting server on port %s", port)

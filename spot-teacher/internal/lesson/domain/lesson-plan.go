@@ -6,20 +6,20 @@ import (
 	"time"
 )
 
-type Plan struct {
-	ID                PlanID
+type LessonPlan struct {
+	ID                LessonPlanID
 	CompanyID         compnayDomain.CompanyID
 	Title             string
 	Description       *string
 	Grade             []Grade
 	Subject           []Subject
 	EducationCategory []EducationCategory
-	StartDate         PlanDate
-	EndDate           PlanDate
+	StartDate         LessonPlanDate
+	EndDate           LessonPlanDate
 }
 
-type PlanID int64
-type PlanDate struct {
+type LessonPlanID int64
+type LessonPlanDate struct {
 	month time.Month
 	day   sharedDomain.Day
 }
