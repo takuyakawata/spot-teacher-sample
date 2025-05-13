@@ -90,11 +90,21 @@ func ToEntity(user *ent.User) (*domain.Teacher, error) {
 		schoolID = schoolDomain.SchoolID(*user.SchoolID)
 	}
 
+	firstName, err := sharedDomain.NewUserName(user.FirstName)
+	if err != nil {
+		return nil, err
+	}
+
+	familyName, err := sharedDomain.NewUserName(user.FamilyName)
+	if err != nil {
+		return nil, err
+	}
+
 	teacher := domain.Teacher{
 		ID:          domain.TeacherID(user.ID),
 		SchoolID:    schoolID,
-		FirstName:   domain.TeacherName(user.FirstName),
-		FamilyName:  domain.TeacherName(user.FamilyName),
+		FirstName:   firstName,
+		FamilyName:  familyName,
 		Email:       sharedDomain.EmailAddress(user.Email),
 		PhoneNumber: teacherPhoneNumber,
 		Password:    teacherPassword,

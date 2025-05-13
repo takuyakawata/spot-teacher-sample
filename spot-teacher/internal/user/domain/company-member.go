@@ -9,8 +9,8 @@ import (
 type CompanyMember struct {
 	ID          CompanyMemberID
 	CompanyID   companyDomain.CompanyID
-	firstName   TeacherName
-	FamilyName  TeacherName
+	firstName   sharedDomain.UserName
+	FamilyName  sharedDomain.UserName
 	Email       sharedDomain.EmailAddress
 	PhoneNumber *sharedDomain.PhoneNumber
 }

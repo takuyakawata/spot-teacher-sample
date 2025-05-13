@@ -2,11 +2,13 @@ package infra_test
 
 import (
 	"context"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/user/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/user/infra"
 	"testing"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	_ "github.com/mattn/go-sqlite3"
@@ -16,8 +18,9 @@ import (
 )
 
 func setupInMemoryClient(t *testing.T) *ent.Client {
-	// SQLite のインメモリ DSN
-	drv, err := sql.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+	// SQLite のインメモリ DSN - use a unique database name for each test to avoid conflicts
+	dbName := fmt.Sprintf("file:ent_%d?mode=memory&cache=shared&_fk=1", time.Now().UnixNano())
+	drv, err := sql.Open("sqlite3", dbName)
 	require.NoError(t, err)
 
 	c := ent.NewClient(ent.Driver(drv))
@@ -140,10 +143,10 @@ func createTestTeacher(t *testing.T) *domain.Teacher {
 	schoolID, err := schoolDomain.NewSchoolID(1)
 	require.NoError(t, err)
 
-	firstName, err := domain.NewTeacherName("太郎")
+	firstName, err := sharedDomain.NewUserName("太郎")
 	require.NoError(t, err)
 
-	familyName, err := domain.NewTeacherName("山田")
+	familyName, err := sharedDomain.NewUserName("山田")
 	require.NoError(t, err)
 
 	email, err := sharedDomain.NewEmailAddress("yamada@example.com")
