@@ -1,9 +1,21 @@
 package domain
 
-type Grade int
+import "fmt"
+
+type Grade GradeEnum
+
+func NewGrade(value GradeEnum) (Grade, error) {
+	if value < ElementaryOne || value > HighSchoolThree {
+		return 0, fmt.Errorf("invalid grade value: %d", value)
+	}
+
+	return Grade(value), nil
+}
+
+type GradeEnum int
 
 const (
-	ElementaryOne Grade = iota
+	ElementaryOne GradeEnum = iota
 	ElementaryTwo
 	ElementaryThree
 	ElementaryFour
@@ -17,6 +29,7 @@ const (
 	HighSchoolThree
 )
 
+// 使わないかも　frontで定義すべきかな
 var gradeNames = [...]string{
 	"小学校1年生",
 	"小学校2年生",
