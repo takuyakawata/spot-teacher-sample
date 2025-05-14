@@ -2,20 +2,20 @@ package domain
 
 import (
 	"errors"
-	compnayDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
-	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
-	sharedDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
+	compnay "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
+	lessonCategory "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
+	shared "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
 	"time"
 )
 
 type LessonPlan struct {
 	ID                 LessonPlanID
-	CompanyID          compnayDomain.CompanyID
+	CompanyID          compnay.CompanyID
 	Title              string
 	Description        *string
-	Grade              []domain.Grade
-	Subject            []domain.Subject
-	EducationCategory  []domain.EducationCategory
+	Grade              []lessonCategory.Grade
+	Subject            []lessonCategory.Subject
+	EducationCategory  []lessonCategory.EducationCategory
 	StartDate          LessonPlanDate
 	EndDate            LessonPlanDate
 	LessonType         LessonType
@@ -46,10 +46,10 @@ func (p LessonPlanID) Value() int64 {
 
 type LessonPlanDate struct {
 	month time.Month
-	day   sharedDomain.Day
+	day   shared.Day
 }
 
-func NewLessonPlanDate(month time.Month, day sharedDomain.Day) LessonPlanDate {
+func NewLessonPlanDate(month time.Month, day shared.Day) LessonPlanDate {
 	return LessonPlanDate{
 		month: month,
 		day:   day,
@@ -60,6 +60,6 @@ func (d LessonPlanDate) Month() time.Month {
 	return d.month
 }
 
-func (d LessonPlanDate) Day() sharedDomain.Day {
+func (d LessonPlanDate) Day() shared.Day {
 	return d.day
 }

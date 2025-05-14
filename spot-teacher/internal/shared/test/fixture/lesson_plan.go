@@ -3,21 +3,22 @@ package fixture
 import (
 	"context"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent"
-	companyDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
+	company "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson/infra"
-	sharedDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
+	lessonCategory "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
+	shared "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
 	"time"
 )
 
 // BuildLessonPlan creates a test lesson plan domain instance
-func BuildLessonPlan(companyID companyDomain.CompanyID) (*domain.LessonPlan, error) {
+func BuildLessonPlan(companyID company.CompanyID) (*domain.LessonPlan, error) {
 	// Create start and end dates
-	startDay, err := sharedDomain.NewDay(1)
+	startDay, err := shared.NewDay(1)
 	if err != nil {
 		return nil, err
 	}
-	endDay, err := sharedDomain.NewDay(31)
+	endDay, err := shared.NewDay(31)
 	if err != nil {
 		return nil, err
 	}
@@ -32,9 +33,9 @@ func BuildLessonPlan(companyID companyDomain.CompanyID) (*domain.LessonPlan, err
 		CompanyID:          companyID,
 		Title:              "Test Lesson Plan",
 		Description:        &description,
-		Grade:              []domain.Grade{domain.ElementaryOne, domain.ElementaryTwo},
-		Subject:            []domain.Subject{domain.Subject("math"), domain.Subject("english")},
-		EducationCategory:  []domain.EducationCategory{domain.EducationCategory("elementary")},
+		Grade:              []lessonCategory.Grade{lessonCategory.Grade(lessonCategory.ElementaryOne), lessonCategory.Grade(lessonCategory.ElementaryTwo)},
+		Subject:            []lessonCategory.Subject{lessonCategory.Subject("math"), lessonCategory.Subject("english")},
+		EducationCategory:  []lessonCategory.EducationCategory{lessonCategory.EducationCategory("elementary")},
 		StartDate:          startDate,
 		EndDate:            endDate,
 		LessonType:         domain.LessonTypeOnline,
@@ -44,12 +45,12 @@ func BuildLessonPlan(companyID companyDomain.CompanyID) (*domain.LessonPlan, err
 
 // BuildLessonPlanWithCustomData creates a test lesson plan domain instance with custom data
 func BuildLessonPlanWithCustomData(
-	companyID companyDomain.CompanyID,
+	companyID company.CompanyID,
 	title string,
 	description *string,
-	grades []domain.Grade,
-	subjects []domain.Subject,
-	educationCategories []domain.EducationCategory,
+	grades []lessonCategory.Grade,
+	subjects []lessonCategory.Subject,
+	educationCategories []lessonCategory.EducationCategory,
 	startMonth time.Month,
 	startDay int,
 	endMonth time.Month,
@@ -58,11 +59,11 @@ func BuildLessonPlanWithCustomData(
 	annualMaxExecution int,
 ) (*domain.LessonPlan, error) {
 	// Create start and end dates
-	startDayObj, err := sharedDomain.NewDay(startDay)
+	startDayObj, err := shared.NewDay(startDay)
 	if err != nil {
 		return nil, err
 	}
-	endDayObj, err := sharedDomain.NewDay(endDay)
+	endDayObj, err := shared.NewDay(endDay)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +86,7 @@ func BuildLessonPlanWithCustomData(
 }
 
 // CreateLessonPlan creates a test lesson plan in the database
-func CreateLessonPlan(client *ent.Client, companyID companyDomain.CompanyID) (*domain.LessonPlan, error) {
+func CreateLessonPlan(client *ent.Client, companyID company.CompanyID) (*domain.LessonPlan, error) {
 	// Create a lesson plan domain instance
 	lessonPlan, err := BuildLessonPlan(companyID)
 	if err != nil {
@@ -102,12 +103,12 @@ func CreateLessonPlan(client *ent.Client, companyID companyDomain.CompanyID) (*d
 // CreateLessonPlanWithCustomData creates a test lesson plan in the database with custom data
 func CreateLessonPlanWithCustomData(
 	client *ent.Client,
-	companyID companyDomain.CompanyID,
+	companyID company.CompanyID,
 	title string,
 	description *string,
-	grades []domain.Grade,
-	subjects []domain.Subject,
-	educationCategories []domain.EducationCategory,
+	grades []lessonCategory.Grade,
+	subjects []lessonCategory.Subject,
+	educationCategories []lessonCategory.EducationCategory,
 	startMonth time.Month,
 	startDay int,
 	endMonth time.Month,

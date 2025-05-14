@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson/infra"
+	lessonCategory "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/test/fixture"
 	"testing"
 	"time"
@@ -90,9 +91,9 @@ func TestLessonPlanRepository_Update(t *testing.T) {
 		companyID,
 		updatedTitle,
 		&updatedDescription,
-		[]domain.Grade{domain.ElementaryTwo, domain.ElementaryThree},
-		[]domain.Subject{domain.Subject("english"), domain.Subject("science")},
-		[]domain.EducationCategory{domain.EducationCategory("elementary"), domain.EducationCategory("juniorHigh")},
+		[]lessonCategory.Grade{lessonCategory.Grade(lessonCategory.ElementaryTwo), lessonCategory.Grade(lessonCategory.ElementaryThree)},
+		[]lessonCategory.Subject{lessonCategory.Subject("english"), lessonCategory.Subject("science")},
+		[]lessonCategory.EducationCategory{lessonCategory.EducationCategory("elementary"), lessonCategory.EducationCategory("juniorHigh")},
 		time.February,
 		15,
 		time.November,
@@ -185,9 +186,9 @@ func TestLessonPlanRepository_FilterByCompanyID(t *testing.T) {
 		companyID2,
 		title2,
 		&description2,
-		[]domain.Grade{domain.ElementaryTwo},
-		[]domain.Subject{domain.Subject("english")},
-		[]domain.EducationCategory{domain.EducationCategory("elementary")},
+		[]lessonCategory.Grade{lessonCategory.Grade(lessonCategory.ElementaryTwo)},
+		[]lessonCategory.Subject{lessonCategory.Subject("english")},
+		[]lessonCategory.EducationCategory{lessonCategory.EducationCategory("elementary")},
 		time.January,
 		1,
 		time.December,

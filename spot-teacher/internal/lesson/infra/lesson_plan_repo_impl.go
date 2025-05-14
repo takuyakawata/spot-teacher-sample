@@ -9,9 +9,10 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
-	companyDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
+	company "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson/domain"
-	sharedDomain "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
+	lessonCategory "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
+	shared "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
 	"time"
 )
 
@@ -47,14 +48,16 @@ func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.Le
 
 	// Add grades
 	for _, gradeValue := range lessonPlan.Grade {
+		gradeStr := gradeToString(lessonCategory.GradeEnum(gradeValue))
 		entGrade, err := r.client.Grade.Query().
-			Where(grade.Name(gradeToString(gradeValue))).
+			Where(grade.Name(gradeStr)).
 			First(ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				// Create the grade if it doesn't exist
 				entGrade, err = r.client.Grade.Create().
-					SetName(gradeToString(gradeValue)).
+					SetName(gradeStr).
+					SetCode(fmt.Sprintf("GRADE_%d", lessonCategory.GradeEnum(gradeValue))).
 					Save(ctx)
 				if err != nil {
 					return nil, fmt.Errorf("infra.ent: failed to create grade: %w", err)
@@ -78,7 +81,6 @@ func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.Le
 			First(ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				// Create the subject if it doesn't exist
 				entSubject, err = r.client.Subject.Create().
 					SetName(string(subjectValue)).
 					Save(ctx)
@@ -169,14 +171,16 @@ func (r *lessonPlanRepository) Update(ctx context.Context, lessonPlan *domain.Le
 
 	// Add grades
 	for _, gradeValue := range lessonPlan.Grade {
+		gradeStr := gradeToString(lessonCategory.GradeEnum(gradeValue))
 		entGrade, err := r.client.Grade.Query().
-			Where(grade.Name(gradeToString(gradeValue))).
+			Where(grade.Name(gradeStr)).
 			First(ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				// Create the grade if it doesn't exist
 				entGrade, err = r.client.Grade.Create().
-					SetName(gradeToString(gradeValue)).
+					SetName(gradeStr).
+					SetCode(fmt.Sprintf("GRADE_%d", lessonCategory.GradeEnum(gradeValue))).
 					Save(ctx)
 				if err != nil {
 					return nil, fmt.Errorf("infra.ent: failed to create grade: %w", err)
@@ -277,7 +281,7 @@ func (r *lessonPlanRepository) FindByID(ctx context.Context, id domain.LessonPla
 	return mapEntLessonPlanToDomain(ctx, r.client, entLessonPlan)
 }
 
-func (r *lessonPlanRepository) FilterByCompanyID(ctx context.Context, companyID companyDomain.CompanyID) ([]*domain.LessonPlan, error) {
+func (r *lessonPlanRepository) FilterByCompanyID(ctx context.Context, companyID company.CompanyID) ([]*domain.LessonPlan, error) {
 	entLessonPlans, err := r.client.LessonPlan.Query().
 		Where(lessonplan.CompanyID(int(companyID))).
 		WithGrades().
@@ -310,7 +314,7 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 	domainID := domain.LessonPlanID(entLP.ID)
 
 	// Map CompanyID
-	companyID := companyDomain.CompanyID(entLP.CompanyID)
+	companyID := company.CompanyID(entLP.CompanyID)
 
 	// Map Description
 	var description *string
@@ -320,12 +324,12 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 	}
 
 	// Map StartDate and EndDate
-	startDay, err := sharedDomain.NewDay(entLP.StartDay)
+	startDay, err := shared.NewDay(entLP.StartDay)
 	if err != nil {
 		return nil, fmt.Errorf("infra.ent: invalid start day: %w", err)
 	}
 
-	endDay, err := sharedDomain.NewDay(entLP.EndDay)
+	endDay, err := shared.NewDay(entLP.EndDay)
 	if err != nil {
 		return nil, fmt.Errorf("infra.ent: invalid end day: %w", err)
 	}
@@ -334,7 +338,7 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 	endDate := domain.NewLessonPlanDate(time.Month(entLP.EndMonth), endDay)
 
 	// Map Grades
-	grades := make([]domain.Grade, 0)
+	grades := make([]lessonCategory.Grade, 0)
 	if entLP.Edges.Grades != nil {
 		for _, entGrade := range entLP.Edges.Grades {
 			grade := stringToGrade(entGrade.Name)
@@ -343,19 +347,19 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 	}
 
 	// Map Subjects
-	subjects := make([]domain.Subject, 0)
+	subjects := make([]lessonCategory.Subject, 0)
 	if entLP.Edges.Subjects != nil {
 		for _, entSubject := range entLP.Edges.Subjects {
-			subject := domain.Subject(entSubject.Name)
+			subject := lessonCategory.Subject(entSubject.Name)
 			subjects = append(subjects, subject)
 		}
 	}
 
 	// Map EducationCategories
-	educationCategories := make([]domain.EducationCategory, 0)
+	educationCategories := make([]lessonCategory.EducationCategory, 0)
 	if entLP.Edges.EducationCategories != nil {
 		for _, entCategory := range entLP.Edges.EducationCategories {
-			category := domain.EducationCategory(entCategory.Name)
+			category := lessonCategory.EducationCategory(entCategory.Name)
 			educationCategories = append(educationCategories, category)
 		}
 	}
@@ -378,29 +382,31 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 }
 
 // Helper function to convert Grade enum to string
-func gradeToString(grade domain.Grade) string {
-	switch grade {
-	case domain.ElementaryOne:
+func gradeToString(gradeEnum lessonCategory.GradeEnum) string {
+	switch gradeEnum {
+	case lessonCategory.ElementaryOne:
 		return "小学校1年生"
-	case domain.ElementaryTwo:
+	case lessonCategory.ElementaryTwo:
 		return "小学校2年生"
-	case domain.ElementaryThree:
+	case lessonCategory.ElementaryThree:
 		return "小学校3年生"
-	case domain.ElementaryFour:
+	case lessonCategory.ElementaryFour:
 		return "小学校4年生"
-	case domain.ElementaryFive:
+	case lessonCategory.ElementaryFive:
 		return "小学校5年生"
-	case domain.JuniorHighOne:
+	case lessonCategory.ElementarySix:
+		return "小学校6年生"
+	case lessonCategory.JuniorHighOne:
 		return "中学校1年生"
-	case domain.JuniorHighTwo:
+	case lessonCategory.JuniorHighTwo:
 		return "中学校2年生"
-	case domain.JuniorHighThree:
+	case lessonCategory.JuniorHighThree:
 		return "中学校3年生"
-	case domain.HighSchoolOne:
+	case lessonCategory.HighSchoolOne:
 		return "高校1年生"
-	case domain.HighSchoolTwo:
+	case lessonCategory.HighSchoolTwo:
 		return "高校2年生"
-	case domain.HighSchoolThree:
+	case lessonCategory.HighSchoolThree:
 		return "高校3年生"
 	default:
 		return "不明"
@@ -408,31 +414,33 @@ func gradeToString(grade domain.Grade) string {
 }
 
 // Helper function to convert string to Grade enum
-func stringToGrade(gradeStr string) domain.Grade {
+func stringToGrade(gradeStr string) lessonCategory.Grade {
 	switch gradeStr {
 	case "小学校1年生":
-		return domain.ElementaryOne
+		return lessonCategory.Grade(lessonCategory.ElementaryOne)
 	case "小学校2年生":
-		return domain.ElementaryTwo
+		return lessonCategory.Grade(lessonCategory.ElementaryTwo)
 	case "小学校3年生":
-		return domain.ElementaryThree
+		return lessonCategory.Grade(lessonCategory.ElementaryThree)
 	case "小学校4年生":
-		return domain.ElementaryFour
+		return lessonCategory.Grade(lessonCategory.ElementaryFour)
 	case "小学校5年生":
-		return domain.ElementaryFive
+		return lessonCategory.Grade(lessonCategory.ElementaryFive)
+	case "小学校6年生":
+		return lessonCategory.Grade(lessonCategory.ElementarySix)
 	case "中学校1年生":
-		return domain.JuniorHighOne
+		return lessonCategory.Grade(lessonCategory.JuniorHighOne)
 	case "中学校2年生":
-		return domain.JuniorHighTwo
+		return lessonCategory.Grade(lessonCategory.JuniorHighTwo)
 	case "中学校3年生":
-		return domain.JuniorHighThree
+		return lessonCategory.Grade(lessonCategory.JuniorHighThree)
 	case "高校1年生":
-		return domain.HighSchoolOne
+		return lessonCategory.Grade(lessonCategory.HighSchoolOne)
 	case "高校2年生":
-		return domain.HighSchoolTwo
+		return lessonCategory.Grade(lessonCategory.HighSchoolTwo)
 	case "高校3年生":
-		return domain.HighSchoolThree
+		return lessonCategory.Grade(lessonCategory.HighSchoolThree)
 	default:
-		return domain.ElementaryOne // Default value
+		return lessonCategory.Grade(lessonCategory.ElementaryOne) // Default value
 	}
 }
