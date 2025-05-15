@@ -17,13 +17,13 @@ import (
 type LessonSchedule struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// LessonPlanID holds the value of the "lesson_plan_id" field.
-	LessonPlanID int `json:"lesson_plan_id,omitempty"`
+	LessonPlanID int64 `json:"lesson_plan_id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
@@ -143,7 +143,7 @@ func (ls *LessonSchedule) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			ls.ID = int(value.Int64)
+			ls.ID = int64(value.Int64)
 		case lessonschedule.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -160,7 +160,7 @@ func (ls *LessonSchedule) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_plan_id", values[i])
 			} else if value.Valid {
-				ls.LessonPlanID = int(value.Int64)
+				ls.LessonPlanID = value.Int64
 			}
 		case lessonschedule.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {

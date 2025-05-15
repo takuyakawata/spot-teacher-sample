@@ -36,13 +36,13 @@ func (lrpdu *LessonReservationPreferredDateUpdate) SetUpdatedAt(t time.Time) *Le
 }
 
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (lrpdu *LessonReservationPreferredDateUpdate) SetLessonReservationID(i int) *LessonReservationPreferredDateUpdate {
+func (lrpdu *LessonReservationPreferredDateUpdate) SetLessonReservationID(i int64) *LessonReservationPreferredDateUpdate {
 	lrpdu.mutation.SetLessonReservationID(i)
 	return lrpdu
 }
 
 // SetNillableLessonReservationID sets the "lesson_reservation_id" field if the given value is not nil.
-func (lrpdu *LessonReservationPreferredDateUpdate) SetNillableLessonReservationID(i *int) *LessonReservationPreferredDateUpdate {
+func (lrpdu *LessonReservationPreferredDateUpdate) SetNillableLessonReservationID(i *int64) *LessonReservationPreferredDateUpdate {
 	if i != nil {
 		lrpdu.SetLessonReservationID(*i)
 	}
@@ -106,7 +106,7 @@ func (lrpdu *LessonReservationPreferredDateUpdate) SetNillableEndTime(t *time.Ti
 }
 
 // SetLessonReservationsID sets the "lessonReservations" edge to the LessonReservation entity by ID.
-func (lrpdu *LessonReservationPreferredDateUpdate) SetLessonReservationsID(id int) *LessonReservationPreferredDateUpdate {
+func (lrpdu *LessonReservationPreferredDateUpdate) SetLessonReservationsID(id int64) *LessonReservationPreferredDateUpdate {
 	lrpdu.mutation.SetLessonReservationsID(id)
 	return lrpdu
 }
@@ -185,7 +185,7 @@ func (lrpdu *LessonReservationPreferredDateUpdate) sqlSave(ctx context.Context) 
 	if err := lrpdu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.Columns, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.Columns, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt64))
 	if ps := lrpdu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -216,7 +216,7 @@ func (lrpdu *LessonReservationPreferredDateUpdate) sqlSave(ctx context.Context) 
 			Columns: []string{lessonreservationpreferreddate.LessonReservationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -229,7 +229,7 @@ func (lrpdu *LessonReservationPreferredDateUpdate) sqlSave(ctx context.Context) 
 			Columns: []string{lessonreservationpreferreddate.LessonReservationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -264,13 +264,13 @@ func (lrpduo *LessonReservationPreferredDateUpdateOne) SetUpdatedAt(t time.Time)
 }
 
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (lrpduo *LessonReservationPreferredDateUpdateOne) SetLessonReservationID(i int) *LessonReservationPreferredDateUpdateOne {
+func (lrpduo *LessonReservationPreferredDateUpdateOne) SetLessonReservationID(i int64) *LessonReservationPreferredDateUpdateOne {
 	lrpduo.mutation.SetLessonReservationID(i)
 	return lrpduo
 }
 
 // SetNillableLessonReservationID sets the "lesson_reservation_id" field if the given value is not nil.
-func (lrpduo *LessonReservationPreferredDateUpdateOne) SetNillableLessonReservationID(i *int) *LessonReservationPreferredDateUpdateOne {
+func (lrpduo *LessonReservationPreferredDateUpdateOne) SetNillableLessonReservationID(i *int64) *LessonReservationPreferredDateUpdateOne {
 	if i != nil {
 		lrpduo.SetLessonReservationID(*i)
 	}
@@ -334,7 +334,7 @@ func (lrpduo *LessonReservationPreferredDateUpdateOne) SetNillableEndTime(t *tim
 }
 
 // SetLessonReservationsID sets the "lessonReservations" edge to the LessonReservation entity by ID.
-func (lrpduo *LessonReservationPreferredDateUpdateOne) SetLessonReservationsID(id int) *LessonReservationPreferredDateUpdateOne {
+func (lrpduo *LessonReservationPreferredDateUpdateOne) SetLessonReservationsID(id int64) *LessonReservationPreferredDateUpdateOne {
 	lrpduo.mutation.SetLessonReservationsID(id)
 	return lrpduo
 }
@@ -426,7 +426,7 @@ func (lrpduo *LessonReservationPreferredDateUpdateOne) sqlSave(ctx context.Conte
 	if err := lrpduo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.Columns, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.Columns, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt64))
 	id, ok := lrpduo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LessonReservationPreferredDate.id" for update`)}
@@ -474,7 +474,7 @@ func (lrpduo *LessonReservationPreferredDateUpdateOne) sqlSave(ctx context.Conte
 			Columns: []string{lessonreservationpreferreddate.LessonReservationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -487,7 +487,7 @@ func (lrpduo *LessonReservationPreferredDateUpdateOne) sqlSave(ctx context.Conte
 			Columns: []string{lessonreservationpreferreddate.LessonReservationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

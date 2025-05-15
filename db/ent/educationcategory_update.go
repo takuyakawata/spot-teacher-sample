@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 )
 
@@ -64,18 +65,33 @@ func (ecu *EducationCategoryUpdate) SetNillableCode(s *string) *EducationCategor
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (ecu *EducationCategoryUpdate) AddLessonPlanIDs(ids ...int) *EducationCategoryUpdate {
+func (ecu *EducationCategoryUpdate) AddLessonPlanIDs(ids ...int64) *EducationCategoryUpdate {
 	ecu.mutation.AddLessonPlanIDs(ids...)
 	return ecu
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (ecu *EducationCategoryUpdate) AddLessonPlans(l ...*LessonPlan) *EducationCategoryUpdate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return ecu.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanEducationCategoryIDs adds the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by IDs.
+func (ecu *EducationCategoryUpdate) AddLessonPlanEducationCategoryIDs(ids ...int64) *EducationCategoryUpdate {
+	ecu.mutation.AddLessonPlanEducationCategoryIDs(ids...)
+	return ecu
+}
+
+// AddLessonPlanEducationCategories adds the "lesson_plan_education_categories" edges to the LessonPlanEducationCategory entity.
+func (ecu *EducationCategoryUpdate) AddLessonPlanEducationCategories(l ...*LessonPlanEducationCategory) *EducationCategoryUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ecu.AddLessonPlanEducationCategoryIDs(ids...)
 }
 
 // Mutation returns the EducationCategoryMutation object of the builder.
@@ -90,18 +106,39 @@ func (ecu *EducationCategoryUpdate) ClearLessonPlans() *EducationCategoryUpdate 
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (ecu *EducationCategoryUpdate) RemoveLessonPlanIDs(ids ...int) *EducationCategoryUpdate {
+func (ecu *EducationCategoryUpdate) RemoveLessonPlanIDs(ids ...int64) *EducationCategoryUpdate {
 	ecu.mutation.RemoveLessonPlanIDs(ids...)
 	return ecu
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (ecu *EducationCategoryUpdate) RemoveLessonPlans(l ...*LessonPlan) *EducationCategoryUpdate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return ecu.RemoveLessonPlanIDs(ids...)
+}
+
+// ClearLessonPlanEducationCategories clears all "lesson_plan_education_categories" edges to the LessonPlanEducationCategory entity.
+func (ecu *EducationCategoryUpdate) ClearLessonPlanEducationCategories() *EducationCategoryUpdate {
+	ecu.mutation.ClearLessonPlanEducationCategories()
+	return ecu
+}
+
+// RemoveLessonPlanEducationCategoryIDs removes the "lesson_plan_education_categories" edge to LessonPlanEducationCategory entities by IDs.
+func (ecu *EducationCategoryUpdate) RemoveLessonPlanEducationCategoryIDs(ids ...int64) *EducationCategoryUpdate {
+	ecu.mutation.RemoveLessonPlanEducationCategoryIDs(ids...)
+	return ecu
+}
+
+// RemoveLessonPlanEducationCategories removes "lesson_plan_education_categories" edges to LessonPlanEducationCategory entities.
+func (ecu *EducationCategoryUpdate) RemoveLessonPlanEducationCategories(l ...*LessonPlanEducationCategory) *EducationCategoryUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ecu.RemoveLessonPlanEducationCategoryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -159,7 +196,7 @@ func (ecu *EducationCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 	if err := ecu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(educationcategory.Table, educationcategory.Columns, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(educationcategory.Table, educationcategory.Columns, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt64))
 	if ps := ecu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -184,9 +221,13 @@ func (ecu *EducationCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecu.config, mutation: newLessonPlanEducationCategoryMutation(ecu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ecu.mutation.RemovedLessonPlansIDs(); len(nodes) > 0 && !ecu.mutation.LessonPlansCleared() {
@@ -197,12 +238,16 @@ func (ecu *EducationCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecu.config, mutation: newLessonPlanEducationCategoryMutation(ecu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ecu.mutation.LessonPlansIDs(); len(nodes) > 0 {
@@ -213,7 +258,56 @@ func (ecu *EducationCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecu.config, mutation: newLessonPlanEducationCategoryMutation(ecu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ecu.mutation.LessonPlanEducationCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ecu.mutation.RemovedLessonPlanEducationCategoriesIDs(); len(nodes) > 0 && !ecu.mutation.LessonPlanEducationCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ecu.mutation.LessonPlanEducationCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -276,18 +370,33 @@ func (ecuo *EducationCategoryUpdateOne) SetNillableCode(s *string) *EducationCat
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (ecuo *EducationCategoryUpdateOne) AddLessonPlanIDs(ids ...int) *EducationCategoryUpdateOne {
+func (ecuo *EducationCategoryUpdateOne) AddLessonPlanIDs(ids ...int64) *EducationCategoryUpdateOne {
 	ecuo.mutation.AddLessonPlanIDs(ids...)
 	return ecuo
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (ecuo *EducationCategoryUpdateOne) AddLessonPlans(l ...*LessonPlan) *EducationCategoryUpdateOne {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return ecuo.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanEducationCategoryIDs adds the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by IDs.
+func (ecuo *EducationCategoryUpdateOne) AddLessonPlanEducationCategoryIDs(ids ...int64) *EducationCategoryUpdateOne {
+	ecuo.mutation.AddLessonPlanEducationCategoryIDs(ids...)
+	return ecuo
+}
+
+// AddLessonPlanEducationCategories adds the "lesson_plan_education_categories" edges to the LessonPlanEducationCategory entity.
+func (ecuo *EducationCategoryUpdateOne) AddLessonPlanEducationCategories(l ...*LessonPlanEducationCategory) *EducationCategoryUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ecuo.AddLessonPlanEducationCategoryIDs(ids...)
 }
 
 // Mutation returns the EducationCategoryMutation object of the builder.
@@ -302,18 +411,39 @@ func (ecuo *EducationCategoryUpdateOne) ClearLessonPlans() *EducationCategoryUpd
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (ecuo *EducationCategoryUpdateOne) RemoveLessonPlanIDs(ids ...int) *EducationCategoryUpdateOne {
+func (ecuo *EducationCategoryUpdateOne) RemoveLessonPlanIDs(ids ...int64) *EducationCategoryUpdateOne {
 	ecuo.mutation.RemoveLessonPlanIDs(ids...)
 	return ecuo
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (ecuo *EducationCategoryUpdateOne) RemoveLessonPlans(l ...*LessonPlan) *EducationCategoryUpdateOne {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return ecuo.RemoveLessonPlanIDs(ids...)
+}
+
+// ClearLessonPlanEducationCategories clears all "lesson_plan_education_categories" edges to the LessonPlanEducationCategory entity.
+func (ecuo *EducationCategoryUpdateOne) ClearLessonPlanEducationCategories() *EducationCategoryUpdateOne {
+	ecuo.mutation.ClearLessonPlanEducationCategories()
+	return ecuo
+}
+
+// RemoveLessonPlanEducationCategoryIDs removes the "lesson_plan_education_categories" edge to LessonPlanEducationCategory entities by IDs.
+func (ecuo *EducationCategoryUpdateOne) RemoveLessonPlanEducationCategoryIDs(ids ...int64) *EducationCategoryUpdateOne {
+	ecuo.mutation.RemoveLessonPlanEducationCategoryIDs(ids...)
+	return ecuo
+}
+
+// RemoveLessonPlanEducationCategories removes "lesson_plan_education_categories" edges to LessonPlanEducationCategory entities.
+func (ecuo *EducationCategoryUpdateOne) RemoveLessonPlanEducationCategories(l ...*LessonPlanEducationCategory) *EducationCategoryUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ecuo.RemoveLessonPlanEducationCategoryIDs(ids...)
 }
 
 // Where appends a list predicates to the EducationCategoryUpdate builder.
@@ -384,7 +514,7 @@ func (ecuo *EducationCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Edu
 	if err := ecuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(educationcategory.Table, educationcategory.Columns, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(educationcategory.Table, educationcategory.Columns, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt64))
 	id, ok := ecuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "EducationCategory.id" for update`)}
@@ -426,9 +556,13 @@ func (ecuo *EducationCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Edu
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecuo.config, mutation: newLessonPlanEducationCategoryMutation(ecuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ecuo.mutation.RemovedLessonPlansIDs(); len(nodes) > 0 && !ecuo.mutation.LessonPlansCleared() {
@@ -439,12 +573,16 @@ func (ecuo *EducationCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Edu
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecuo.config, mutation: newLessonPlanEducationCategoryMutation(ecuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ecuo.mutation.LessonPlansIDs(); len(nodes) > 0 {
@@ -455,7 +593,56 @@ func (ecuo *EducationCategoryUpdateOne) sqlSave(ctx context.Context) (_node *Edu
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecuo.config, mutation: newLessonPlanEducationCategoryMutation(ecuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ecuo.mutation.LessonPlanEducationCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ecuo.mutation.RemovedLessonPlanEducationCategoriesIDs(); len(nodes) > 0 && !ecuo.mutation.LessonPlanEducationCategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ecuo.mutation.LessonPlanEducationCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

@@ -10,47 +10,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.EmailVerification {
+func ID(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.EmailVerification {
+func IDEQ(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.EmailVerification {
+func IDNEQ(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.EmailVerification {
+func IDIn(ids ...int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.EmailVerification {
+func IDNotIn(ids ...int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.EmailVerification {
+func IDGT(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.EmailVerification {
+func IDGTE(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.EmailVerification {
+func IDLT(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.EmailVerification {
+func IDLTE(id int64) predicate.EmailVerification {
 	return predicate.EmailVerification(sql.FieldLTE(FieldID, id))
 }
 

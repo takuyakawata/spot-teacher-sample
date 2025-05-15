@@ -18,12 +18,14 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
+	// FieldCodeNumber holds the string denoting the code_number field in the database.
+	FieldCodeNumber = "code_number"
 	// FieldCode holds the string denoting the code field in the database.
 	FieldCode = "code"
 	// EdgeLessonPlans holds the string denoting the lesson_plans edge name in mutations.
 	EdgeLessonPlans = "lesson_plans"
+	// EdgeLessonPlanGrades holds the string denoting the lesson_plan_grades edge name in mutations.
+	EdgeLessonPlanGrades = "lesson_plan_grades"
 	// Table holds the table name of the grade in the database.
 	Table = "grades"
 	// LessonPlansTable is the table that holds the lesson_plans relation/edge. The primary key declared below.
@@ -31,6 +33,13 @@ const (
 	// LessonPlansInverseTable is the table name for the LessonPlan entity.
 	// It exists in this package in order to avoid circular dependency with the "lessonplan" package.
 	LessonPlansInverseTable = "lesson_plans"
+	// LessonPlanGradesTable is the table that holds the lesson_plan_grades relation/edge.
+	LessonPlanGradesTable = "lesson_plan_grades"
+	// LessonPlanGradesInverseTable is the table name for the LessonPlanGrade entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplangrade" package.
+	LessonPlanGradesInverseTable = "lesson_plan_grades"
+	// LessonPlanGradesColumn is the table column denoting the lesson_plan_grades relation/edge.
+	LessonPlanGradesColumn = "grade_id"
 )
 
 // Columns holds all SQL columns for grade fields.
@@ -38,7 +47,7 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldName,
+	FieldCodeNumber,
 	FieldCode,
 }
 
@@ -76,10 +85,10 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func(string) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // OrderOption defines the ordering options for the Grade queries.
@@ -100,9 +109,9 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
+// ByCodeNumber orders the results by the code_number field.
+func ByCodeNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCodeNumber, opts...).ToFunc()
 }
 
 // ByCode orders the results by the code field.
@@ -123,10 +132,31 @@ func ByLessonPlans(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLessonPlansStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLessonPlanGradesCount orders the results by lesson_plan_grades count.
+func ByLessonPlanGradesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanGradesStep(), opts...)
+	}
+}
+
+// ByLessonPlanGrades orders the results by lesson_plan_grades terms.
+func ByLessonPlanGrades(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanGradesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLessonPlansStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LessonPlansInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, LessonPlansTable, LessonPlansPrimaryKey...),
+	)
+}
+func newLessonPlanGradesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanGradesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanGradesTable, LessonPlanGradesColumn),
 	)
 }

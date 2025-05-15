@@ -11,7 +11,7 @@ type LessonSchedule struct{ ent.Schema }
 
 func (LessonSchedule) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("lesson_plan_id").Positive(),
+		field.Int64("lesson_plan_id").Positive(),
 
 		field.String("title").NotEmpty().MaxLen(100),
 
@@ -35,6 +35,7 @@ func (LessonSchedule) Fields() []ent.Field {
 
 func (LessonSchedule) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

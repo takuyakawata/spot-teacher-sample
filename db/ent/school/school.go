@@ -99,11 +99,13 @@ var (
 	// PhoneNumberValidator is a validator for the "phone_number" field. It is called by the builders before save.
 	PhoneNumberValidator func(string) error
 	// PrefectureValidator is a validator for the "prefecture" field. It is called by the builders before save.
-	PrefectureValidator func(int) error
+	PrefectureValidator func(int64) error
 	// CityValidator is a validator for the "city" field. It is called by the builders before save.
 	CityValidator func(string) error
 	// PostCodeValidator is a validator for the "post_code" field. It is called by the builders before save.
 	PostCodeValidator func(string) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // SchoolType defines the type for the "school_type" enum field.

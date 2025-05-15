@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.LessonSchedule {
+func ID(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.LessonSchedule {
+func IDEQ(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.LessonSchedule {
+func IDNEQ(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.LessonSchedule {
+func IDIn(ids ...int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.LessonSchedule {
+func IDNotIn(ids ...int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.LessonSchedule {
+func IDGT(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.LessonSchedule {
+func IDGTE(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.LessonSchedule {
+func IDLT(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.LessonSchedule {
+func IDLTE(id int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldLTE(FieldID, id))
 }
 
@@ -66,7 +66,7 @@ func UpdatedAt(v time.Time) predicate.LessonSchedule {
 }
 
 // LessonPlanID applies equality check predicate on the "lesson_plan_id" field. It's identical to LessonPlanIDEQ.
-func LessonPlanID(v int) predicate.LessonSchedule {
+func LessonPlanID(v int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldEQ(FieldLessonPlanID, v))
 }
 
@@ -191,22 +191,22 @@ func UpdatedAtLTE(v time.Time) predicate.LessonSchedule {
 }
 
 // LessonPlanIDEQ applies the EQ predicate on the "lesson_plan_id" field.
-func LessonPlanIDEQ(v int) predicate.LessonSchedule {
+func LessonPlanIDEQ(v int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldEQ(FieldLessonPlanID, v))
 }
 
 // LessonPlanIDNEQ applies the NEQ predicate on the "lesson_plan_id" field.
-func LessonPlanIDNEQ(v int) predicate.LessonSchedule {
+func LessonPlanIDNEQ(v int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldNEQ(FieldLessonPlanID, v))
 }
 
 // LessonPlanIDIn applies the In predicate on the "lesson_plan_id" field.
-func LessonPlanIDIn(vs ...int) predicate.LessonSchedule {
+func LessonPlanIDIn(vs ...int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldIn(FieldLessonPlanID, vs...))
 }
 
 // LessonPlanIDNotIn applies the NotIn predicate on the "lesson_plan_id" field.
-func LessonPlanIDNotIn(vs ...int) predicate.LessonSchedule {
+func LessonPlanIDNotIn(vs ...int64) predicate.LessonSchedule {
 	return predicate.LessonSchedule(sql.FieldNotIn(FieldLessonPlanID, vs...))
 }
 

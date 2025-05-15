@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.LessonPlan {
+func ID(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.LessonPlan {
+func IDEQ(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.LessonPlan {
+func IDNEQ(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.LessonPlan {
+func IDIn(ids ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.LessonPlan {
+func IDNotIn(ids ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.LessonPlan {
+func IDGT(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.LessonPlan {
+func IDGTE(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.LessonPlan {
+func IDLT(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.LessonPlan {
+func IDLTE(id int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldID, id))
 }
 
@@ -66,7 +66,7 @@ func UpdatedAt(v time.Time) predicate.LessonPlan {
 }
 
 // CompanyID applies equality check predicate on the "company_id" field. It's identical to CompanyIDEQ.
-func CompanyID(v int) predicate.LessonPlan {
+func CompanyID(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldCompanyID, v))
 }
 
@@ -86,27 +86,27 @@ func Location(v string) predicate.LessonPlan {
 }
 
 // AnnualMaxExecutions applies equality check predicate on the "annual_max_executions" field. It's identical to AnnualMaxExecutionsEQ.
-func AnnualMaxExecutions(v int) predicate.LessonPlan {
+func AnnualMaxExecutions(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldAnnualMaxExecutions, v))
 }
 
 // StartMonth applies equality check predicate on the "start_month" field. It's identical to StartMonthEQ.
-func StartMonth(v int) predicate.LessonPlan {
+func StartMonth(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldStartMonth, v))
 }
 
 // StartDay applies equality check predicate on the "start_day" field. It's identical to StartDayEQ.
-func StartDay(v int) predicate.LessonPlan {
+func StartDay(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldStartDay, v))
 }
 
 // EndMonth applies equality check predicate on the "end_month" field. It's identical to EndMonthEQ.
-func EndMonth(v int) predicate.LessonPlan {
+func EndMonth(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldEndMonth, v))
 }
 
 // EndDay applies equality check predicate on the "end_day" field. It's identical to EndDayEQ.
-func EndDay(v int) predicate.LessonPlan {
+func EndDay(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldEndDay, v))
 }
 
@@ -201,22 +201,22 @@ func UpdatedAtLTE(v time.Time) predicate.LessonPlan {
 }
 
 // CompanyIDEQ applies the EQ predicate on the "company_id" field.
-func CompanyIDEQ(v int) predicate.LessonPlan {
+func CompanyIDEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldCompanyID, v))
 }
 
 // CompanyIDNEQ applies the NEQ predicate on the "company_id" field.
-func CompanyIDNEQ(v int) predicate.LessonPlan {
+func CompanyIDNEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldCompanyID, v))
 }
 
 // CompanyIDIn applies the In predicate on the "company_id" field.
-func CompanyIDIn(vs ...int) predicate.LessonPlan {
+func CompanyIDIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldCompanyID, vs...))
 }
 
 // CompanyIDNotIn applies the NotIn predicate on the "company_id" field.
-func CompanyIDNotIn(vs ...int) predicate.LessonPlan {
+func CompanyIDNotIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldCompanyID, vs...))
 }
 
@@ -456,202 +456,202 @@ func LessonTypeNotIn(vs ...LessonType) predicate.LessonPlan {
 }
 
 // AnnualMaxExecutionsEQ applies the EQ predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsEQ(v int) predicate.LessonPlan {
+func AnnualMaxExecutionsEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldAnnualMaxExecutions, v))
 }
 
 // AnnualMaxExecutionsNEQ applies the NEQ predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsNEQ(v int) predicate.LessonPlan {
+func AnnualMaxExecutionsNEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldAnnualMaxExecutions, v))
 }
 
 // AnnualMaxExecutionsIn applies the In predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsIn(vs ...int) predicate.LessonPlan {
+func AnnualMaxExecutionsIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldAnnualMaxExecutions, vs...))
 }
 
 // AnnualMaxExecutionsNotIn applies the NotIn predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsNotIn(vs ...int) predicate.LessonPlan {
+func AnnualMaxExecutionsNotIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldAnnualMaxExecutions, vs...))
 }
 
 // AnnualMaxExecutionsGT applies the GT predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsGT(v int) predicate.LessonPlan {
+func AnnualMaxExecutionsGT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldAnnualMaxExecutions, v))
 }
 
 // AnnualMaxExecutionsGTE applies the GTE predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsGTE(v int) predicate.LessonPlan {
+func AnnualMaxExecutionsGTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldAnnualMaxExecutions, v))
 }
 
 // AnnualMaxExecutionsLT applies the LT predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsLT(v int) predicate.LessonPlan {
+func AnnualMaxExecutionsLT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldAnnualMaxExecutions, v))
 }
 
 // AnnualMaxExecutionsLTE applies the LTE predicate on the "annual_max_executions" field.
-func AnnualMaxExecutionsLTE(v int) predicate.LessonPlan {
+func AnnualMaxExecutionsLTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldAnnualMaxExecutions, v))
 }
 
 // StartMonthEQ applies the EQ predicate on the "start_month" field.
-func StartMonthEQ(v int) predicate.LessonPlan {
+func StartMonthEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldStartMonth, v))
 }
 
 // StartMonthNEQ applies the NEQ predicate on the "start_month" field.
-func StartMonthNEQ(v int) predicate.LessonPlan {
+func StartMonthNEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldStartMonth, v))
 }
 
 // StartMonthIn applies the In predicate on the "start_month" field.
-func StartMonthIn(vs ...int) predicate.LessonPlan {
+func StartMonthIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldStartMonth, vs...))
 }
 
 // StartMonthNotIn applies the NotIn predicate on the "start_month" field.
-func StartMonthNotIn(vs ...int) predicate.LessonPlan {
+func StartMonthNotIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldStartMonth, vs...))
 }
 
 // StartMonthGT applies the GT predicate on the "start_month" field.
-func StartMonthGT(v int) predicate.LessonPlan {
+func StartMonthGT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldStartMonth, v))
 }
 
 // StartMonthGTE applies the GTE predicate on the "start_month" field.
-func StartMonthGTE(v int) predicate.LessonPlan {
+func StartMonthGTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldStartMonth, v))
 }
 
 // StartMonthLT applies the LT predicate on the "start_month" field.
-func StartMonthLT(v int) predicate.LessonPlan {
+func StartMonthLT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldStartMonth, v))
 }
 
 // StartMonthLTE applies the LTE predicate on the "start_month" field.
-func StartMonthLTE(v int) predicate.LessonPlan {
+func StartMonthLTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldStartMonth, v))
 }
 
 // StartDayEQ applies the EQ predicate on the "start_day" field.
-func StartDayEQ(v int) predicate.LessonPlan {
+func StartDayEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldStartDay, v))
 }
 
 // StartDayNEQ applies the NEQ predicate on the "start_day" field.
-func StartDayNEQ(v int) predicate.LessonPlan {
+func StartDayNEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldStartDay, v))
 }
 
 // StartDayIn applies the In predicate on the "start_day" field.
-func StartDayIn(vs ...int) predicate.LessonPlan {
+func StartDayIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldStartDay, vs...))
 }
 
 // StartDayNotIn applies the NotIn predicate on the "start_day" field.
-func StartDayNotIn(vs ...int) predicate.LessonPlan {
+func StartDayNotIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldStartDay, vs...))
 }
 
 // StartDayGT applies the GT predicate on the "start_day" field.
-func StartDayGT(v int) predicate.LessonPlan {
+func StartDayGT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldStartDay, v))
 }
 
 // StartDayGTE applies the GTE predicate on the "start_day" field.
-func StartDayGTE(v int) predicate.LessonPlan {
+func StartDayGTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldStartDay, v))
 }
 
 // StartDayLT applies the LT predicate on the "start_day" field.
-func StartDayLT(v int) predicate.LessonPlan {
+func StartDayLT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldStartDay, v))
 }
 
 // StartDayLTE applies the LTE predicate on the "start_day" field.
-func StartDayLTE(v int) predicate.LessonPlan {
+func StartDayLTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldStartDay, v))
 }
 
 // EndMonthEQ applies the EQ predicate on the "end_month" field.
-func EndMonthEQ(v int) predicate.LessonPlan {
+func EndMonthEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldEndMonth, v))
 }
 
 // EndMonthNEQ applies the NEQ predicate on the "end_month" field.
-func EndMonthNEQ(v int) predicate.LessonPlan {
+func EndMonthNEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldEndMonth, v))
 }
 
 // EndMonthIn applies the In predicate on the "end_month" field.
-func EndMonthIn(vs ...int) predicate.LessonPlan {
+func EndMonthIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldEndMonth, vs...))
 }
 
 // EndMonthNotIn applies the NotIn predicate on the "end_month" field.
-func EndMonthNotIn(vs ...int) predicate.LessonPlan {
+func EndMonthNotIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldEndMonth, vs...))
 }
 
 // EndMonthGT applies the GT predicate on the "end_month" field.
-func EndMonthGT(v int) predicate.LessonPlan {
+func EndMonthGT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldEndMonth, v))
 }
 
 // EndMonthGTE applies the GTE predicate on the "end_month" field.
-func EndMonthGTE(v int) predicate.LessonPlan {
+func EndMonthGTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldEndMonth, v))
 }
 
 // EndMonthLT applies the LT predicate on the "end_month" field.
-func EndMonthLT(v int) predicate.LessonPlan {
+func EndMonthLT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldEndMonth, v))
 }
 
 // EndMonthLTE applies the LTE predicate on the "end_month" field.
-func EndMonthLTE(v int) predicate.LessonPlan {
+func EndMonthLTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldEndMonth, v))
 }
 
 // EndDayEQ applies the EQ predicate on the "end_day" field.
-func EndDayEQ(v int) predicate.LessonPlan {
+func EndDayEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldEQ(FieldEndDay, v))
 }
 
 // EndDayNEQ applies the NEQ predicate on the "end_day" field.
-func EndDayNEQ(v int) predicate.LessonPlan {
+func EndDayNEQ(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNEQ(FieldEndDay, v))
 }
 
 // EndDayIn applies the In predicate on the "end_day" field.
-func EndDayIn(vs ...int) predicate.LessonPlan {
+func EndDayIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldIn(FieldEndDay, vs...))
 }
 
 // EndDayNotIn applies the NotIn predicate on the "end_day" field.
-func EndDayNotIn(vs ...int) predicate.LessonPlan {
+func EndDayNotIn(vs ...int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldNotIn(FieldEndDay, vs...))
 }
 
 // EndDayGT applies the GT predicate on the "end_day" field.
-func EndDayGT(v int) predicate.LessonPlan {
+func EndDayGT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGT(FieldEndDay, v))
 }
 
 // EndDayGTE applies the GTE predicate on the "end_day" field.
-func EndDayGTE(v int) predicate.LessonPlan {
+func EndDayGTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldGTE(FieldEndDay, v))
 }
 
 // EndDayLT applies the LT predicate on the "end_day" field.
-func EndDayLT(v int) predicate.LessonPlan {
+func EndDayLT(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLT(FieldEndDay, v))
 }
 
 // EndDayLTE applies the LTE predicate on the "end_day" field.
-func EndDayLTE(v int) predicate.LessonPlan {
+func EndDayLTE(v int64) predicate.LessonPlan {
 	return predicate.LessonPlan(sql.FieldLTE(FieldEndDay, v))
 }
 
@@ -781,21 +781,21 @@ func HasSchedulesWith(preds ...predicate.LessonSchedule) predicate.LessonPlan {
 	})
 }
 
-// HasGrades applies the HasEdge predicate on the "grades" edge.
-func HasGrades() predicate.LessonPlan {
+// HasUploadFiles applies the HasEdge predicate on the "upload_files" edge.
+func HasUploadFiles() predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, GradesTable, GradesPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.M2M, false, UploadFilesTable, UploadFilesPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasGradesWith applies the HasEdge predicate on the "grades" edge with a given conditions (other predicates).
-func HasGradesWith(preds ...predicate.Grade) predicate.LessonPlan {
+// HasUploadFilesWith applies the HasEdge predicate on the "upload_files" edge with a given conditions (other predicates).
+func HasUploadFilesWith(preds ...predicate.UploadFile) predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
-		step := newGradesStep()
+		step := newUploadFilesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -827,6 +827,29 @@ func HasSubjectsWith(preds ...predicate.Subject) predicate.LessonPlan {
 	})
 }
 
+// HasGrades applies the HasEdge predicate on the "grades" edge.
+func HasGrades() predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, GradesTable, GradesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasGradesWith applies the HasEdge predicate on the "grades" edge with a given conditions (other predicates).
+func HasGradesWith(preds ...predicate.Grade) predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := newGradesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasEducationCategories applies the HasEdge predicate on the "education_categories" edge.
 func HasEducationCategories() predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
@@ -850,21 +873,90 @@ func HasEducationCategoriesWith(preds ...predicate.EducationCategory) predicate.
 	})
 }
 
-// HasUploadFiles applies the HasEdge predicate on the "upload_files" edge.
-func HasUploadFiles() predicate.LessonPlan {
+// HasLessonPlanUploadFiles applies the HasEdge predicate on the "lesson_plan_upload_files" edge.
+func HasLessonPlanUploadFiles() predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, UploadFilesTable, UploadFilesColumn),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanUploadFilesTable, LessonPlanUploadFilesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasUploadFilesWith applies the HasEdge predicate on the "upload_files" edge with a given conditions (other predicates).
-func HasUploadFilesWith(preds ...predicate.UploadFile) predicate.LessonPlan {
+// HasLessonPlanUploadFilesWith applies the HasEdge predicate on the "lesson_plan_upload_files" edge with a given conditions (other predicates).
+func HasLessonPlanUploadFilesWith(preds ...predicate.LessonPlanUploadFile) predicate.LessonPlan {
 	return predicate.LessonPlan(func(s *sql.Selector) {
-		step := newUploadFilesStep()
+		step := newLessonPlanUploadFilesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessonPlanSubjects applies the HasEdge predicate on the "lesson_plan_subjects" edge.
+func HasLessonPlanSubjects() predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanSubjectsTable, LessonPlanSubjectsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonPlanSubjectsWith applies the HasEdge predicate on the "lesson_plan_subjects" edge with a given conditions (other predicates).
+func HasLessonPlanSubjectsWith(preds ...predicate.LessonPlanSubject) predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := newLessonPlanSubjectsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessonPlanGrades applies the HasEdge predicate on the "lesson_plan_grades" edge.
+func HasLessonPlanGrades() predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanGradesTable, LessonPlanGradesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonPlanGradesWith applies the HasEdge predicate on the "lesson_plan_grades" edge with a given conditions (other predicates).
+func HasLessonPlanGradesWith(preds ...predicate.LessonPlanGrade) predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := newLessonPlanGradesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessonPlanEducationCategories applies the HasEdge predicate on the "lesson_plan_education_categories" edge.
+func HasLessonPlanEducationCategories() predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanEducationCategoriesTable, LessonPlanEducationCategoriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonPlanEducationCategoriesWith applies the HasEdge predicate on the "lesson_plan_education_categories" edge with a given conditions (other predicates).
+func HasLessonPlanEducationCategoriesWith(preds ...predicate.LessonPlanEducationCategory) predicate.LessonPlan {
+	return predicate.LessonPlan(func(s *sql.Selector) {
+		step := newLessonPlanEducationCategoriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

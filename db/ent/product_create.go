@@ -74,6 +74,12 @@ func (pc *ProductCreate) SetNillableDescription(s *string) *ProductCreate {
 	return pc
 }
 
+// SetID sets the "id" field.
+func (pc *ProductCreate) SetID(i int64) *ProductCreate {
+	pc.mutation.SetID(i)
+	return pc
+}
+
 // Mutation returns the ProductMutation object of the builder.
 func (pc *ProductCreate) Mutation() *ProductMutation {
 	return pc.mutation
@@ -148,6 +154,11 @@ func (pc *ProductCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf(`ent: validator failed for field "Product.description": %w`, err)}
 		}
 	}
+	if v, ok := pc.mutation.ID(); ok {
+		if err := product.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Product.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -162,8 +173,10 @@ func (pc *ProductCreate) sqlSave(ctx context.Context) (*Product, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	pc.mutation.id = &_node.ID
 	pc.mutation.done = true
 	return _node, nil
@@ -172,8 +185,12 @@ func (pc *ProductCreate) sqlSave(ctx context.Context) (*Product, error) {
 func (pc *ProductCreate) createSpec() (*Product, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Product{config: pc.config}
-		_spec = sqlgraph.NewCreateSpec(product.Table, sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(product.Table, sqlgraph.NewFieldSpec(product.FieldID, field.TypeInt64))
 	)
+	if id, ok := pc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(product.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -242,9 +259,9 @@ func (pcb *ProductCreateBulk) Save(ctx context.Context) ([]*Product, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

@@ -17,13 +17,13 @@ import (
 type LessonPlan struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// CompanyID holds the value of the "company_id" field.
-	CompanyID int `json:"company_id,omitempty"`
+	CompanyID int64 `json:"company_id,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Description holds the value of the "description" field.
@@ -33,15 +33,15 @@ type LessonPlan struct {
 	// LessonType holds the value of the "lesson_type" field.
 	LessonType lessonplan.LessonType `json:"lesson_type,omitempty"`
 	// 年間可能実施回数
-	AnnualMaxExecutions int `json:"annual_max_executions,omitempty"`
+	AnnualMaxExecutions int64 `json:"annual_max_executions,omitempty"`
 	// StartMonth holds the value of the "start_month" field.
-	StartMonth int `json:"start_month,omitempty"`
+	StartMonth int64 `json:"start_month,omitempty"`
 	// StartDay holds the value of the "start_day" field.
-	StartDay int `json:"start_day,omitempty"`
+	StartDay int64 `json:"start_day,omitempty"`
 	// EndMonth holds the value of the "end_month" field.
-	EndMonth int `json:"end_month,omitempty"`
+	EndMonth int64 `json:"end_month,omitempty"`
 	// EndDay holds the value of the "end_day" field.
-	EndDay int `json:"end_day,omitempty"`
+	EndDay int64 `json:"end_day,omitempty"`
 	// StartTime holds the value of the "start_time" field.
 	StartTime time.Time `json:"start_time,omitempty"`
 	// EndTime holds the value of the "end_time" field.
@@ -58,17 +58,25 @@ type LessonPlanEdges struct {
 	Company *Company `json:"company,omitempty"`
 	// Schedules holds the value of the schedules edge.
 	Schedules []*LessonSchedule `json:"schedules,omitempty"`
-	// Grades holds the value of the grades edge.
-	Grades []*Grade `json:"grades,omitempty"`
-	// Subjects holds the value of the subjects edge.
-	Subjects []*Subject `json:"subjects,omitempty"`
-	// EducationCategories holds the value of the education_categories edge.
-	EducationCategories []*EducationCategory `json:"education_categories,omitempty"`
 	// UploadFiles holds the value of the upload_files edge.
 	UploadFiles []*UploadFile `json:"upload_files,omitempty"`
+	// Subjects holds the value of the subjects edge.
+	Subjects []*Subject `json:"subjects,omitempty"`
+	// Grades holds the value of the grades edge.
+	Grades []*Grade `json:"grades,omitempty"`
+	// EducationCategories holds the value of the education_categories edge.
+	EducationCategories []*EducationCategory `json:"education_categories,omitempty"`
+	// LessonPlanUploadFiles holds the value of the lesson_plan_upload_files edge.
+	LessonPlanUploadFiles []*LessonPlanUploadFile `json:"lesson_plan_upload_files,omitempty"`
+	// LessonPlanSubjects holds the value of the lesson_plan_subjects edge.
+	LessonPlanSubjects []*LessonPlanSubject `json:"lesson_plan_subjects,omitempty"`
+	// LessonPlanGrades holds the value of the lesson_plan_grades edge.
+	LessonPlanGrades []*LessonPlanGrade `json:"lesson_plan_grades,omitempty"`
+	// LessonPlanEducationCategories holds the value of the lesson_plan_education_categories edge.
+	LessonPlanEducationCategories []*LessonPlanEducationCategory `json:"lesson_plan_education_categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [10]bool
 }
 
 // CompanyOrErr returns the Company value or an error if the edge
@@ -91,13 +99,13 @@ func (e LessonPlanEdges) SchedulesOrErr() ([]*LessonSchedule, error) {
 	return nil, &NotLoadedError{edge: "schedules"}
 }
 
-// GradesOrErr returns the Grades value or an error if the edge
+// UploadFilesOrErr returns the UploadFiles value or an error if the edge
 // was not loaded in eager-loading.
-func (e LessonPlanEdges) GradesOrErr() ([]*Grade, error) {
+func (e LessonPlanEdges) UploadFilesOrErr() ([]*UploadFile, error) {
 	if e.loadedTypes[2] {
-		return e.Grades, nil
+		return e.UploadFiles, nil
 	}
-	return nil, &NotLoadedError{edge: "grades"}
+	return nil, &NotLoadedError{edge: "upload_files"}
 }
 
 // SubjectsOrErr returns the Subjects value or an error if the edge
@@ -109,22 +117,58 @@ func (e LessonPlanEdges) SubjectsOrErr() ([]*Subject, error) {
 	return nil, &NotLoadedError{edge: "subjects"}
 }
 
+// GradesOrErr returns the Grades value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonPlanEdges) GradesOrErr() ([]*Grade, error) {
+	if e.loadedTypes[4] {
+		return e.Grades, nil
+	}
+	return nil, &NotLoadedError{edge: "grades"}
+}
+
 // EducationCategoriesOrErr returns the EducationCategories value or an error if the edge
 // was not loaded in eager-loading.
 func (e LessonPlanEdges) EducationCategoriesOrErr() ([]*EducationCategory, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.EducationCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "education_categories"}
 }
 
-// UploadFilesOrErr returns the UploadFiles value or an error if the edge
+// LessonPlanUploadFilesOrErr returns the LessonPlanUploadFiles value or an error if the edge
 // was not loaded in eager-loading.
-func (e LessonPlanEdges) UploadFilesOrErr() ([]*UploadFile, error) {
-	if e.loadedTypes[5] {
-		return e.UploadFiles, nil
+func (e LessonPlanEdges) LessonPlanUploadFilesOrErr() ([]*LessonPlanUploadFile, error) {
+	if e.loadedTypes[6] {
+		return e.LessonPlanUploadFiles, nil
 	}
-	return nil, &NotLoadedError{edge: "upload_files"}
+	return nil, &NotLoadedError{edge: "lesson_plan_upload_files"}
+}
+
+// LessonPlanSubjectsOrErr returns the LessonPlanSubjects value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonPlanEdges) LessonPlanSubjectsOrErr() ([]*LessonPlanSubject, error) {
+	if e.loadedTypes[7] {
+		return e.LessonPlanSubjects, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_plan_subjects"}
+}
+
+// LessonPlanGradesOrErr returns the LessonPlanGrades value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonPlanEdges) LessonPlanGradesOrErr() ([]*LessonPlanGrade, error) {
+	if e.loadedTypes[8] {
+		return e.LessonPlanGrades, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_plan_grades"}
+}
+
+// LessonPlanEducationCategoriesOrErr returns the LessonPlanEducationCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e LessonPlanEdges) LessonPlanEducationCategoriesOrErr() ([]*LessonPlanEducationCategory, error) {
+	if e.loadedTypes[9] {
+		return e.LessonPlanEducationCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_plan_education_categories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -158,7 +202,7 @@ func (lp *LessonPlan) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			lp.ID = int(value.Int64)
+			lp.ID = int64(value.Int64)
 		case lessonplan.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -175,7 +219,7 @@ func (lp *LessonPlan) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field company_id", values[i])
 			} else if value.Valid {
-				lp.CompanyID = int(value.Int64)
+				lp.CompanyID = value.Int64
 			}
 		case lessonplan.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -205,31 +249,31 @@ func (lp *LessonPlan) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field annual_max_executions", values[i])
 			} else if value.Valid {
-				lp.AnnualMaxExecutions = int(value.Int64)
+				lp.AnnualMaxExecutions = value.Int64
 			}
 		case lessonplan.FieldStartMonth:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field start_month", values[i])
 			} else if value.Valid {
-				lp.StartMonth = int(value.Int64)
+				lp.StartMonth = value.Int64
 			}
 		case lessonplan.FieldStartDay:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field start_day", values[i])
 			} else if value.Valid {
-				lp.StartDay = int(value.Int64)
+				lp.StartDay = value.Int64
 			}
 		case lessonplan.FieldEndMonth:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field end_month", values[i])
 			} else if value.Valid {
-				lp.EndMonth = int(value.Int64)
+				lp.EndMonth = value.Int64
 			}
 		case lessonplan.FieldEndDay:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field end_day", values[i])
 			} else if value.Valid {
-				lp.EndDay = int(value.Int64)
+				lp.EndDay = value.Int64
 			}
 		case lessonplan.FieldStartTime:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -266,9 +310,9 @@ func (lp *LessonPlan) QuerySchedules() *LessonScheduleQuery {
 	return NewLessonPlanClient(lp.config).QuerySchedules(lp)
 }
 
-// QueryGrades queries the "grades" edge of the LessonPlan entity.
-func (lp *LessonPlan) QueryGrades() *GradeQuery {
-	return NewLessonPlanClient(lp.config).QueryGrades(lp)
+// QueryUploadFiles queries the "upload_files" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryUploadFiles() *UploadFileQuery {
+	return NewLessonPlanClient(lp.config).QueryUploadFiles(lp)
 }
 
 // QuerySubjects queries the "subjects" edge of the LessonPlan entity.
@@ -276,14 +320,34 @@ func (lp *LessonPlan) QuerySubjects() *SubjectQuery {
 	return NewLessonPlanClient(lp.config).QuerySubjects(lp)
 }
 
+// QueryGrades queries the "grades" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryGrades() *GradeQuery {
+	return NewLessonPlanClient(lp.config).QueryGrades(lp)
+}
+
 // QueryEducationCategories queries the "education_categories" edge of the LessonPlan entity.
 func (lp *LessonPlan) QueryEducationCategories() *EducationCategoryQuery {
 	return NewLessonPlanClient(lp.config).QueryEducationCategories(lp)
 }
 
-// QueryUploadFiles queries the "upload_files" edge of the LessonPlan entity.
-func (lp *LessonPlan) QueryUploadFiles() *UploadFileQuery {
-	return NewLessonPlanClient(lp.config).QueryUploadFiles(lp)
+// QueryLessonPlanUploadFiles queries the "lesson_plan_upload_files" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryLessonPlanUploadFiles() *LessonPlanUploadFileQuery {
+	return NewLessonPlanClient(lp.config).QueryLessonPlanUploadFiles(lp)
+}
+
+// QueryLessonPlanSubjects queries the "lesson_plan_subjects" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryLessonPlanSubjects() *LessonPlanSubjectQuery {
+	return NewLessonPlanClient(lp.config).QueryLessonPlanSubjects(lp)
+}
+
+// QueryLessonPlanGrades queries the "lesson_plan_grades" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryLessonPlanGrades() *LessonPlanGradeQuery {
+	return NewLessonPlanClient(lp.config).QueryLessonPlanGrades(lp)
+}
+
+// QueryLessonPlanEducationCategories queries the "lesson_plan_education_categories" edge of the LessonPlan entity.
+func (lp *LessonPlan) QueryLessonPlanEducationCategories() *LessonPlanEducationCategoryQuery {
+	return NewLessonPlanClient(lp.config).QueryLessonPlanEducationCategories(lp)
 }
 
 // Update returns a builder for updating this LessonPlan.

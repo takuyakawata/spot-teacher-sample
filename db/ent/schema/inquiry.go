@@ -13,13 +13,13 @@ type Inquiry struct {
 
 func (Inquiry) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("lesson_schedule_id").
+		field.Int64("lesson_schedule_id").
 			Positive(),
 
-		field.Int("school_id").
+		field.Int64("school_id").
 			Positive(),
 
-		field.Int("user_id").
+		field.Int64("user_id").
 			Positive(),
 
 		field.Enum("category").
@@ -52,6 +52,7 @@ func (Inquiry) Edges() []ent.Edge {
 
 func (Inquiry) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

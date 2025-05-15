@@ -19,6 +19,10 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonconfirmation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplangrade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplanuploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservationpreferreddate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
@@ -94,6 +98,10 @@ func checkColumn(table, column string) error {
 			inquiry.Table:                        inquiry.ValidColumn,
 			lessonconfirmation.Table:             lessonconfirmation.ValidColumn,
 			lessonplan.Table:                     lessonplan.ValidColumn,
+			lessonplaneducationcategory.Table:    lessonplaneducationcategory.ValidColumn,
+			lessonplangrade.Table:                lessonplangrade.ValidColumn,
+			lessonplansubject.Table:              lessonplansubject.ValidColumn,
+			lessonplanuploadfile.Table:           lessonplanuploadfile.ValidColumn,
 			lessonreservation.Table:              lessonreservation.ValidColumn,
 			lessonreservationpreferreddate.Table: lessonreservationpreferreddate.ValidColumn,
 			lessonschedule.Table:                 lessonschedule.ValidColumn,

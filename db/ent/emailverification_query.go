@@ -82,8 +82,8 @@ func (evq *EmailVerificationQuery) FirstX(ctx context.Context) *EmailVerificatio
 
 // FirstID returns the first EmailVerification ID from the query.
 // Returns a *NotFoundError when no EmailVerification ID was found.
-func (evq *EmailVerificationQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (evq *EmailVerificationQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = evq.Limit(1).IDs(setContextOp(ctx, evq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (evq *EmailVerificationQuery) FirstID(ctx context.Context) (id int, err err
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (evq *EmailVerificationQuery) FirstIDX(ctx context.Context) int {
+func (evq *EmailVerificationQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := evq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -133,8 +133,8 @@ func (evq *EmailVerificationQuery) OnlyX(ctx context.Context) *EmailVerification
 // OnlyID is like Only, but returns the only EmailVerification ID in the query.
 // Returns a *NotSingularError when more than one EmailVerification ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (evq *EmailVerificationQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (evq *EmailVerificationQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = evq.Limit(2).IDs(setContextOp(ctx, evq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -150,7 +150,7 @@ func (evq *EmailVerificationQuery) OnlyID(ctx context.Context) (id int, err erro
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (evq *EmailVerificationQuery) OnlyIDX(ctx context.Context) int {
+func (evq *EmailVerificationQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := evq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,7 +178,7 @@ func (evq *EmailVerificationQuery) AllX(ctx context.Context) []*EmailVerificatio
 }
 
 // IDs executes the query and returns a list of EmailVerification IDs.
-func (evq *EmailVerificationQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (evq *EmailVerificationQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if evq.ctx.Unique == nil && evq.path != nil {
 		evq.Unique(true)
 	}
@@ -190,7 +190,7 @@ func (evq *EmailVerificationQuery) IDs(ctx context.Context) (ids []int, err erro
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (evq *EmailVerificationQuery) IDsX(ctx context.Context) []int {
+func (evq *EmailVerificationQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := evq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -365,7 +365,7 @@ func (evq *EmailVerificationQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (evq *EmailVerificationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(emailverification.Table, emailverification.Columns, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(emailverification.Table, emailverification.Columns, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt64))
 	_spec.From = evq.sql
 	if unique := evq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

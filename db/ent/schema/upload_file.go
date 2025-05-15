@@ -12,7 +12,7 @@ type UploadFile struct{ ent.Schema }
 func (UploadFile) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("photo_key").NotEmpty().Comment("ファイルのユニークキー"),
-		field.Int("user_id").Positive().Comment("写真をアップロードしたユーザーのID"),
+		field.Int64("user_id").Positive().Comment("写真をアップロードしたユーザーのID"),
 	}
 }
 
@@ -20,13 +20,13 @@ func (UploadFile) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("LessonPlan", LessonPlan.Type).
 			Ref("upload_files").
-			Unique().
-			Required(),
+			Through("lesson_plan_upload_files", LessonPlanUploadFile.Type),
 	}
 }
 
 func (UploadFile) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

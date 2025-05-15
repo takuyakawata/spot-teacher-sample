@@ -11,52 +11,62 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.LessonConfirmation {
+func ID(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.LessonConfirmation {
+func IDEQ(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.LessonConfirmation {
+func IDNEQ(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.LessonConfirmation {
+func IDIn(ids ...int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.LessonConfirmation {
+func IDNotIn(ids ...int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.LessonConfirmation {
+func IDGT(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.LessonConfirmation {
+func IDGTE(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.LessonConfirmation {
+func IDLT(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.LessonConfirmation {
+func IDLTE(id int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldLTE(FieldID, id))
 }
 
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
 // LessonReservationID applies equality check predicate on the "lesson_reservation_id" field. It's identical to LessonReservationIDEQ.
-func LessonReservationID(v int) predicate.LessonConfirmation {
+func LessonReservationID(v int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldEQ(FieldLessonReservationID, v))
 }
 
@@ -80,23 +90,103 @@ func Remarks(v string) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldEQ(FieldRemarks, v))
 }
 
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.LessonConfirmation {
+	return predicate.LessonConfirmation(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
 // LessonReservationIDEQ applies the EQ predicate on the "lesson_reservation_id" field.
-func LessonReservationIDEQ(v int) predicate.LessonConfirmation {
+func LessonReservationIDEQ(v int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldEQ(FieldLessonReservationID, v))
 }
 
 // LessonReservationIDNEQ applies the NEQ predicate on the "lesson_reservation_id" field.
-func LessonReservationIDNEQ(v int) predicate.LessonConfirmation {
+func LessonReservationIDNEQ(v int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldNEQ(FieldLessonReservationID, v))
 }
 
 // LessonReservationIDIn applies the In predicate on the "lesson_reservation_id" field.
-func LessonReservationIDIn(vs ...int) predicate.LessonConfirmation {
+func LessonReservationIDIn(vs ...int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldIn(FieldLessonReservationID, vs...))
 }
 
 // LessonReservationIDNotIn applies the NotIn predicate on the "lesson_reservation_id" field.
-func LessonReservationIDNotIn(vs ...int) predicate.LessonConfirmation {
+func LessonReservationIDNotIn(vs ...int64) predicate.LessonConfirmation {
 	return predicate.LessonConfirmation(sql.FieldNotIn(FieldLessonReservationID, vs...))
 }
 

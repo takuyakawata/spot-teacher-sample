@@ -13,7 +13,7 @@ type LessonReservationPreferredDate struct {
 
 func (LessonReservationPreferredDate) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("lesson_reservation_id").Positive(),
+		field.Int64("lesson_reservation_id").Positive(),
 
 		field.Enum("priority").
 			Values("FIRST", "SECOND", "THIRD", "FOURTH", "FIFTH").
@@ -31,6 +31,13 @@ func (LessonReservationPreferredDate) Fields() []ent.Field {
 	}
 }
 
+func (LessonReservationPreferredDate) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		Mixin{},
+		TimeMixin{},
+	}
+}
+
 func (LessonReservationPreferredDate) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("lessonReservations", LessonReservation.Type).
@@ -38,12 +45,6 @@ func (LessonReservationPreferredDate) Edges() []ent.Edge {
 			Field("lesson_reservation_id").
 			Unique().
 			Required(),
-	}
-}
-
-func (LessonReservationPreferredDate) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		TimeMixin{},
 	}
 }
 

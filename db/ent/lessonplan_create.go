@@ -14,6 +14,10 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplangrade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplanuploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
@@ -55,7 +59,7 @@ func (lpc *LessonPlanCreate) SetNillableUpdatedAt(t *time.Time) *LessonPlanCreat
 }
 
 // SetCompanyID sets the "company_id" field.
-func (lpc *LessonPlanCreate) SetCompanyID(i int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) SetCompanyID(i int64) *LessonPlanCreate {
 	lpc.mutation.SetCompanyID(i)
 	return lpc
 }
@@ -101,31 +105,31 @@ func (lpc *LessonPlanCreate) SetLessonType(lt lessonplan.LessonType) *LessonPlan
 }
 
 // SetAnnualMaxExecutions sets the "annual_max_executions" field.
-func (lpc *LessonPlanCreate) SetAnnualMaxExecutions(i int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) SetAnnualMaxExecutions(i int64) *LessonPlanCreate {
 	lpc.mutation.SetAnnualMaxExecutions(i)
 	return lpc
 }
 
 // SetStartMonth sets the "start_month" field.
-func (lpc *LessonPlanCreate) SetStartMonth(i int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) SetStartMonth(i int64) *LessonPlanCreate {
 	lpc.mutation.SetStartMonth(i)
 	return lpc
 }
 
 // SetStartDay sets the "start_day" field.
-func (lpc *LessonPlanCreate) SetStartDay(i int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) SetStartDay(i int64) *LessonPlanCreate {
 	lpc.mutation.SetStartDay(i)
 	return lpc
 }
 
 // SetEndMonth sets the "end_month" field.
-func (lpc *LessonPlanCreate) SetEndMonth(i int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) SetEndMonth(i int64) *LessonPlanCreate {
 	lpc.mutation.SetEndMonth(i)
 	return lpc
 }
 
 // SetEndDay sets the "end_day" field.
-func (lpc *LessonPlanCreate) SetEndDay(i int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) SetEndDay(i int64) *LessonPlanCreate {
 	lpc.mutation.SetEndDay(i)
 	return lpc
 }
@@ -142,84 +146,150 @@ func (lpc *LessonPlanCreate) SetEndTime(t time.Time) *LessonPlanCreate {
 	return lpc
 }
 
+// SetID sets the "id" field.
+func (lpc *LessonPlanCreate) SetID(i int64) *LessonPlanCreate {
+	lpc.mutation.SetID(i)
+	return lpc
+}
+
 // SetCompany sets the "company" edge to the Company entity.
 func (lpc *LessonPlanCreate) SetCompany(c *Company) *LessonPlanCreate {
 	return lpc.SetCompanyID(c.ID)
 }
 
 // AddScheduleIDs adds the "schedules" edge to the LessonSchedule entity by IDs.
-func (lpc *LessonPlanCreate) AddScheduleIDs(ids ...int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) AddScheduleIDs(ids ...int64) *LessonPlanCreate {
 	lpc.mutation.AddScheduleIDs(ids...)
 	return lpc
 }
 
 // AddSchedules adds the "schedules" edges to the LessonSchedule entity.
 func (lpc *LessonPlanCreate) AddSchedules(l ...*LessonSchedule) *LessonPlanCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return lpc.AddScheduleIDs(ids...)
 }
 
-// AddGradeIDs adds the "grades" edge to the Grade entity by IDs.
-func (lpc *LessonPlanCreate) AddGradeIDs(ids ...int) *LessonPlanCreate {
-	lpc.mutation.AddGradeIDs(ids...)
-	return lpc
-}
-
-// AddGrades adds the "grades" edges to the Grade entity.
-func (lpc *LessonPlanCreate) AddGrades(g ...*Grade) *LessonPlanCreate {
-	ids := make([]int, len(g))
-	for i := range g {
-		ids[i] = g[i].ID
-	}
-	return lpc.AddGradeIDs(ids...)
-}
-
-// AddSubjectIDs adds the "subjects" edge to the Subject entity by IDs.
-func (lpc *LessonPlanCreate) AddSubjectIDs(ids ...int) *LessonPlanCreate {
-	lpc.mutation.AddSubjectIDs(ids...)
-	return lpc
-}
-
-// AddSubjects adds the "subjects" edges to the Subject entity.
-func (lpc *LessonPlanCreate) AddSubjects(s ...*Subject) *LessonPlanCreate {
-	ids := make([]int, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return lpc.AddSubjectIDs(ids...)
-}
-
-// AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by IDs.
-func (lpc *LessonPlanCreate) AddEducationCategoryIDs(ids ...int) *LessonPlanCreate {
-	lpc.mutation.AddEducationCategoryIDs(ids...)
-	return lpc
-}
-
-// AddEducationCategories adds the "education_categories" edges to the EducationCategory entity.
-func (lpc *LessonPlanCreate) AddEducationCategories(e ...*EducationCategory) *LessonPlanCreate {
-	ids := make([]int, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return lpc.AddEducationCategoryIDs(ids...)
-}
-
 // AddUploadFileIDs adds the "upload_files" edge to the UploadFile entity by IDs.
-func (lpc *LessonPlanCreate) AddUploadFileIDs(ids ...int) *LessonPlanCreate {
+func (lpc *LessonPlanCreate) AddUploadFileIDs(ids ...int64) *LessonPlanCreate {
 	lpc.mutation.AddUploadFileIDs(ids...)
 	return lpc
 }
 
 // AddUploadFiles adds the "upload_files" edges to the UploadFile entity.
 func (lpc *LessonPlanCreate) AddUploadFiles(u ...*UploadFile) *LessonPlanCreate {
-	ids := make([]int, len(u))
+	ids := make([]int64, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
 	return lpc.AddUploadFileIDs(ids...)
+}
+
+// AddSubjectIDs adds the "subjects" edge to the Subject entity by IDs.
+func (lpc *LessonPlanCreate) AddSubjectIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddSubjectIDs(ids...)
+	return lpc
+}
+
+// AddSubjects adds the "subjects" edges to the Subject entity.
+func (lpc *LessonPlanCreate) AddSubjects(s ...*Subject) *LessonPlanCreate {
+	ids := make([]int64, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return lpc.AddSubjectIDs(ids...)
+}
+
+// AddGradeIDs adds the "grades" edge to the Grade entity by IDs.
+func (lpc *LessonPlanCreate) AddGradeIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddGradeIDs(ids...)
+	return lpc
+}
+
+// AddGrades adds the "grades" edges to the Grade entity.
+func (lpc *LessonPlanCreate) AddGrades(g ...*Grade) *LessonPlanCreate {
+	ids := make([]int64, len(g))
+	for i := range g {
+		ids[i] = g[i].ID
+	}
+	return lpc.AddGradeIDs(ids...)
+}
+
+// AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by IDs.
+func (lpc *LessonPlanCreate) AddEducationCategoryIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddEducationCategoryIDs(ids...)
+	return lpc
+}
+
+// AddEducationCategories adds the "education_categories" edges to the EducationCategory entity.
+func (lpc *LessonPlanCreate) AddEducationCategories(e ...*EducationCategory) *LessonPlanCreate {
+	ids := make([]int64, len(e))
+	for i := range e {
+		ids[i] = e[i].ID
+	}
+	return lpc.AddEducationCategoryIDs(ids...)
+}
+
+// AddLessonPlanUploadFileIDs adds the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by IDs.
+func (lpc *LessonPlanCreate) AddLessonPlanUploadFileIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddLessonPlanUploadFileIDs(ids...)
+	return lpc
+}
+
+// AddLessonPlanUploadFiles adds the "lesson_plan_upload_files" edges to the LessonPlanUploadFile entity.
+func (lpc *LessonPlanCreate) AddLessonPlanUploadFiles(l ...*LessonPlanUploadFile) *LessonPlanCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lpc.AddLessonPlanUploadFileIDs(ids...)
+}
+
+// AddLessonPlanSubjectIDs adds the "lesson_plan_subjects" edge to the LessonPlanSubject entity by IDs.
+func (lpc *LessonPlanCreate) AddLessonPlanSubjectIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddLessonPlanSubjectIDs(ids...)
+	return lpc
+}
+
+// AddLessonPlanSubjects adds the "lesson_plan_subjects" edges to the LessonPlanSubject entity.
+func (lpc *LessonPlanCreate) AddLessonPlanSubjects(l ...*LessonPlanSubject) *LessonPlanCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lpc.AddLessonPlanSubjectIDs(ids...)
+}
+
+// AddLessonPlanGradeIDs adds the "lesson_plan_grades" edge to the LessonPlanGrade entity by IDs.
+func (lpc *LessonPlanCreate) AddLessonPlanGradeIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddLessonPlanGradeIDs(ids...)
+	return lpc
+}
+
+// AddLessonPlanGrades adds the "lesson_plan_grades" edges to the LessonPlanGrade entity.
+func (lpc *LessonPlanCreate) AddLessonPlanGrades(l ...*LessonPlanGrade) *LessonPlanCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lpc.AddLessonPlanGradeIDs(ids...)
+}
+
+// AddLessonPlanEducationCategoryIDs adds the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by IDs.
+func (lpc *LessonPlanCreate) AddLessonPlanEducationCategoryIDs(ids ...int64) *LessonPlanCreate {
+	lpc.mutation.AddLessonPlanEducationCategoryIDs(ids...)
+	return lpc
+}
+
+// AddLessonPlanEducationCategories adds the "lesson_plan_education_categories" edges to the LessonPlanEducationCategory entity.
+func (lpc *LessonPlanCreate) AddLessonPlanEducationCategories(l ...*LessonPlanEducationCategory) *LessonPlanCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return lpc.AddLessonPlanEducationCategoryIDs(ids...)
 }
 
 // Mutation returns the LessonPlanMutation object of the builder.
@@ -355,6 +425,11 @@ func (lpc *LessonPlanCreate) check() error {
 	if _, ok := lpc.mutation.EndTime(); !ok {
 		return &ValidationError{Name: "end_time", err: errors.New(`ent: missing required field "LessonPlan.end_time"`)}
 	}
+	if v, ok := lpc.mutation.ID(); ok {
+		if err := lessonplan.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "LessonPlan.id": %w`, err)}
+		}
+	}
 	if len(lpc.mutation.CompanyIDs()) == 0 {
 		return &ValidationError{Name: "company", err: errors.New(`ent: missing required edge "LessonPlan.company"`)}
 	}
@@ -372,8 +447,10 @@ func (lpc *LessonPlanCreate) sqlSave(ctx context.Context) (*LessonPlan, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	lpc.mutation.id = &_node.ID
 	lpc.mutation.done = true
 	return _node, nil
@@ -382,8 +459,12 @@ func (lpc *LessonPlanCreate) sqlSave(ctx context.Context) (*LessonPlan, error) {
 func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LessonPlan{config: lpc.config}
-		_spec = sqlgraph.NewCreateSpec(lessonplan.Table, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(lessonplan.Table, sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64))
 	)
+	if id, ok := lpc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := lpc.mutation.CreatedAt(); ok {
 		_spec.SetField(lessonplan.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -409,23 +490,23 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 		_node.LessonType = value
 	}
 	if value, ok := lpc.mutation.AnnualMaxExecutions(); ok {
-		_spec.SetField(lessonplan.FieldAnnualMaxExecutions, field.TypeInt, value)
+		_spec.SetField(lessonplan.FieldAnnualMaxExecutions, field.TypeInt64, value)
 		_node.AnnualMaxExecutions = value
 	}
 	if value, ok := lpc.mutation.StartMonth(); ok {
-		_spec.SetField(lessonplan.FieldStartMonth, field.TypeInt, value)
+		_spec.SetField(lessonplan.FieldStartMonth, field.TypeInt64, value)
 		_node.StartMonth = value
 	}
 	if value, ok := lpc.mutation.StartDay(); ok {
-		_spec.SetField(lessonplan.FieldStartDay, field.TypeInt, value)
+		_spec.SetField(lessonplan.FieldStartDay, field.TypeInt64, value)
 		_node.StartDay = value
 	}
 	if value, ok := lpc.mutation.EndMonth(); ok {
-		_spec.SetField(lessonplan.FieldEndMonth, field.TypeInt, value)
+		_spec.SetField(lessonplan.FieldEndMonth, field.TypeInt64, value)
 		_node.EndMonth = value
 	}
 	if value, ok := lpc.mutation.EndDay(); ok {
-		_spec.SetField(lessonplan.FieldEndDay, field.TypeInt, value)
+		_spec.SetField(lessonplan.FieldEndDay, field.TypeInt64, value)
 		_node.EndDay = value
 	}
 	if value, ok := lpc.mutation.StartTime(); ok {
@@ -444,7 +525,7 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 			Columns: []string{lessonplan.CompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -461,7 +542,7 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 			Columns: []string{lessonplan.SchedulesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -469,20 +550,24 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lpc.mutation.GradesIDs(); len(nodes) > 0 {
+	if nodes := lpc.mutation.UploadFilesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2M,
 			Inverse: false,
-			Table:   lessonplan.GradesTable,
-			Columns: lessonplan.GradesPrimaryKey,
+			Table:   lessonplan.UploadFilesTable,
+			Columns: lessonplan.UploadFilesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(grade.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &LessonPlanUploadFileCreate{config: lpc.config, mutation: newLessonPlanUploadFileMutation(lpc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lpc.mutation.SubjectsIDs(); len(nodes) > 0 {
@@ -493,12 +578,36 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 			Columns: lessonplan.SubjectsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &LessonPlanSubjectCreate{config: lpc.config, mutation: newLessonPlanSubjectMutation(lpc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lpc.mutation.GradesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   lessonplan.GradesTable,
+			Columns: lessonplan.GradesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(grade.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanGradeCreate{config: lpc.config, mutation: newLessonPlanGradeMutation(lpc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := lpc.mutation.EducationCategoriesIDs(); len(nodes) > 0 {
@@ -509,7 +618,27 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 			Columns: lessonplan.EducationCategoriesPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanEducationCategoryCreate{config: lpc.config, mutation: newLessonPlanEducationCategoryMutation(lpc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lpc.mutation.LessonPlanUploadFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   lessonplan.LessonPlanUploadFilesTable,
+			Columns: []string{lessonplan.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -517,15 +646,47 @@ func (lpc *LessonPlanCreate) createSpec() (*LessonPlan, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := lpc.mutation.UploadFilesIDs(); len(nodes) > 0 {
+	if nodes := lpc.mutation.LessonPlanSubjectsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   lessonplan.UploadFilesTable,
-			Columns: []string{lessonplan.UploadFilesColumn},
+			Inverse: true,
+			Table:   lessonplan.LessonPlanSubjectsTable,
+			Columns: []string{lessonplan.LessonPlanSubjectsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lpc.mutation.LessonPlanGradesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   lessonplan.LessonPlanGradesTable,
+			Columns: []string{lessonplan.LessonPlanGradesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplangrade.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := lpc.mutation.LessonPlanEducationCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   lessonplan.LessonPlanEducationCategoriesTable,
+			Columns: []string{lessonplan.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -581,9 +742,9 @@ func (lpcb *LessonPlanCreateBulk) Save(ctx context.Context) ([]*LessonPlan, erro
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

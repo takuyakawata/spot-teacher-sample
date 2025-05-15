@@ -67,13 +67,13 @@ func (uc *UserCreate) SetNillableUserType(ut *user.UserType) *UserCreate {
 }
 
 // SetSchoolID sets the "school_id" field.
-func (uc *UserCreate) SetSchoolID(i int) *UserCreate {
+func (uc *UserCreate) SetSchoolID(i int64) *UserCreate {
 	uc.mutation.SetSchoolID(i)
 	return uc
 }
 
 // SetNillableSchoolID sets the "school_id" field if the given value is not nil.
-func (uc *UserCreate) SetNillableSchoolID(i *int) *UserCreate {
+func (uc *UserCreate) SetNillableSchoolID(i *int64) *UserCreate {
 	if i != nil {
 		uc.SetSchoolID(*i)
 	}
@@ -81,13 +81,13 @@ func (uc *UserCreate) SetNillableSchoolID(i *int) *UserCreate {
 }
 
 // SetCompanyID sets the "company_id" field.
-func (uc *UserCreate) SetCompanyID(i int) *UserCreate {
+func (uc *UserCreate) SetCompanyID(i int64) *UserCreate {
 	uc.mutation.SetCompanyID(i)
 	return uc
 }
 
 // SetNillableCompanyID sets the "company_id" field if the given value is not nil.
-func (uc *UserCreate) SetNillableCompanyID(i *int) *UserCreate {
+func (uc *UserCreate) SetNillableCompanyID(i *int64) *UserCreate {
 	if i != nil {
 		uc.SetCompanyID(*i)
 	}
@@ -132,6 +132,12 @@ func (uc *UserCreate) SetNillablePassword(s *string) *UserCreate {
 	return uc
 }
 
+// SetID sets the "id" field.
+func (uc *UserCreate) SetID(i int64) *UserCreate {
+	uc.mutation.SetID(i)
+	return uc
+}
+
 // SetSchool sets the "school" edge to the School entity.
 func (uc *UserCreate) SetSchool(s *School) *UserCreate {
 	return uc.SetSchoolID(s.ID)
@@ -143,14 +149,14 @@ func (uc *UserCreate) SetCompany(c *Company) *UserCreate {
 }
 
 // AddInquiryIDs adds the "inquiries" edge to the Inquiry entity by IDs.
-func (uc *UserCreate) AddInquiryIDs(ids ...int) *UserCreate {
+func (uc *UserCreate) AddInquiryIDs(ids ...int64) *UserCreate {
 	uc.mutation.AddInquiryIDs(ids...)
 	return uc
 }
 
 // AddInquiries adds the "inquiries" edges to the Inquiry entity.
 func (uc *UserCreate) AddInquiries(i ...*Inquiry) *UserCreate {
-	ids := make([]int, len(i))
+	ids := make([]int64, len(i))
 	for j := range i {
 		ids[j] = i[j].ID
 	}
@@ -158,14 +164,14 @@ func (uc *UserCreate) AddInquiries(i ...*Inquiry) *UserCreate {
 }
 
 // AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by IDs.
-func (uc *UserCreate) AddLessonReservationIDs(ids ...int) *UserCreate {
+func (uc *UserCreate) AddLessonReservationIDs(ids ...int64) *UserCreate {
 	uc.mutation.AddLessonReservationIDs(ids...)
 	return uc
 }
 
 // AddLessonReservations adds the "lesson_reservations" edges to the LessonReservation entity.
 func (uc *UserCreate) AddLessonReservations(l ...*LessonReservation) *UserCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -279,6 +285,11 @@ func (uc *UserCreate) check() error {
 			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "User.phone_number": %w`, err)}
 		}
 	}
+	if v, ok := uc.mutation.ID(); ok {
+		if err := user.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "User.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -293,8 +304,10 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	uc.mutation.id = &_node.ID
 	uc.mutation.done = true
 	return _node, nil
@@ -303,8 +316,12 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: uc.config}
-		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64))
 	)
+	if id, ok := uc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := uc.mutation.CreatedAt(); ok {
 		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -345,7 +362,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -362,7 +379,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.CompanyColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -379,7 +396,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.InquiriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(inquiry.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -395,7 +412,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.LessonReservationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -451,9 +468,9 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

@@ -118,7 +118,7 @@ func (evu *EmailVerificationUpdate) defaults() {
 }
 
 func (evu *EmailVerificationUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(emailverification.Table, emailverification.Columns, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(emailverification.Table, emailverification.Columns, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt64))
 	if ps := evu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -261,7 +261,7 @@ func (evuo *EmailVerificationUpdateOne) defaults() {
 }
 
 func (evuo *EmailVerificationUpdateOne) sqlSave(ctx context.Context) (_node *EmailVerification, err error) {
-	_spec := sqlgraph.NewUpdateSpec(emailverification.Table, emailverification.Columns, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(emailverification.Table, emailverification.Columns, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt64))
 	id, ok := evuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "EmailVerification.id" for update`)}

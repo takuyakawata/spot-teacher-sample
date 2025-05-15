@@ -30,7 +30,6 @@ func (r *subjectRepository) Create(ctx context.Context, subject *domain.Subject)
 		return nil, fmt.Errorf("infra.ent: failed to query subject: %w", err)
 	}
 
-	// If subject already exists, return it
 	if existingSubject != nil {
 		domainSubjectEnum := domain.SubjectEnum(existingSubject.Name)
 		domainSubject, err := domain.NewSubject(domainSubjectEnum)
@@ -40,10 +39,9 @@ func (r *subjectRepository) Create(ctx context.Context, subject *domain.Subject)
 		return &domainSubject, nil
 	}
 
-	// Create new subject
 	createdSubject, err := r.client.Subject.Create().
 		SetName(subjectStr).
-		SetCode(subjectStr). // Set code to the same value as name
+		SetCode(subjectStr).
 		Save(ctx)
 
 	if err != nil {

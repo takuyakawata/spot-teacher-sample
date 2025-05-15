@@ -25,7 +25,7 @@ func (School) Fields() []ent.Field {
 		field.String("phone_number").
 			NotEmpty(),
 
-		field.Int("prefecture").
+		field.Int64("prefecture").
 			Min(0).
 			Max(46),
 
@@ -46,6 +46,7 @@ func (School) Fields() []ent.Field {
 
 func (School) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.School {
+func ID(id int64) predicate.School {
 	return predicate.School(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.School {
+func IDEQ(id int64) predicate.School {
 	return predicate.School(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.School {
+func IDNEQ(id int64) predicate.School {
 	return predicate.School(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.School {
+func IDIn(ids ...int64) predicate.School {
 	return predicate.School(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.School {
+func IDNotIn(ids ...int64) predicate.School {
 	return predicate.School(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.School {
+func IDGT(id int64) predicate.School {
 	return predicate.School(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.School {
+func IDGTE(id int64) predicate.School {
 	return predicate.School(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.School {
+func IDLT(id int64) predicate.School {
 	return predicate.School(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.School {
+func IDLTE(id int64) predicate.School {
 	return predicate.School(sql.FieldLTE(FieldID, id))
 }
 
@@ -81,7 +81,7 @@ func PhoneNumber(v string) predicate.School {
 }
 
 // Prefecture applies equality check predicate on the "prefecture" field. It's identical to PrefectureEQ.
-func Prefecture(v int) predicate.School {
+func Prefecture(v int64) predicate.School {
 	return predicate.School(sql.FieldEQ(FieldPrefecture, v))
 }
 
@@ -411,42 +411,42 @@ func PhoneNumberContainsFold(v string) predicate.School {
 }
 
 // PrefectureEQ applies the EQ predicate on the "prefecture" field.
-func PrefectureEQ(v int) predicate.School {
+func PrefectureEQ(v int64) predicate.School {
 	return predicate.School(sql.FieldEQ(FieldPrefecture, v))
 }
 
 // PrefectureNEQ applies the NEQ predicate on the "prefecture" field.
-func PrefectureNEQ(v int) predicate.School {
+func PrefectureNEQ(v int64) predicate.School {
 	return predicate.School(sql.FieldNEQ(FieldPrefecture, v))
 }
 
 // PrefectureIn applies the In predicate on the "prefecture" field.
-func PrefectureIn(vs ...int) predicate.School {
+func PrefectureIn(vs ...int64) predicate.School {
 	return predicate.School(sql.FieldIn(FieldPrefecture, vs...))
 }
 
 // PrefectureNotIn applies the NotIn predicate on the "prefecture" field.
-func PrefectureNotIn(vs ...int) predicate.School {
+func PrefectureNotIn(vs ...int64) predicate.School {
 	return predicate.School(sql.FieldNotIn(FieldPrefecture, vs...))
 }
 
 // PrefectureGT applies the GT predicate on the "prefecture" field.
-func PrefectureGT(v int) predicate.School {
+func PrefectureGT(v int64) predicate.School {
 	return predicate.School(sql.FieldGT(FieldPrefecture, v))
 }
 
 // PrefectureGTE applies the GTE predicate on the "prefecture" field.
-func PrefectureGTE(v int) predicate.School {
+func PrefectureGTE(v int64) predicate.School {
 	return predicate.School(sql.FieldGTE(FieldPrefecture, v))
 }
 
 // PrefectureLT applies the LT predicate on the "prefecture" field.
-func PrefectureLT(v int) predicate.School {
+func PrefectureLT(v int64) predicate.School {
 	return predicate.School(sql.FieldLT(FieldPrefecture, v))
 }
 
 // PrefectureLTE applies the LTE predicate on the "prefecture" field.
-func PrefectureLTE(v int) predicate.School {
+func PrefectureLTE(v int64) predicate.School {
 	return predicate.School(sql.FieldLTE(FieldPrefecture, v))
 }
 

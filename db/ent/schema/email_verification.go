@@ -28,6 +28,7 @@ func (EmailVerification) Indexes() []ent.Index {
 
 func (EmailVerification) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

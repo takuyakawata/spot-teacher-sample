@@ -21,8 +21,36 @@ type LessonConfirmationCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (lcc *LessonConfirmationCreate) SetCreatedAt(t time.Time) *LessonConfirmationCreate {
+	lcc.mutation.SetCreatedAt(t)
+	return lcc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (lcc *LessonConfirmationCreate) SetNillableCreatedAt(t *time.Time) *LessonConfirmationCreate {
+	if t != nil {
+		lcc.SetCreatedAt(*t)
+	}
+	return lcc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (lcc *LessonConfirmationCreate) SetUpdatedAt(t time.Time) *LessonConfirmationCreate {
+	lcc.mutation.SetUpdatedAt(t)
+	return lcc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (lcc *LessonConfirmationCreate) SetNillableUpdatedAt(t *time.Time) *LessonConfirmationCreate {
+	if t != nil {
+		lcc.SetUpdatedAt(*t)
+	}
+	return lcc
+}
+
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (lcc *LessonConfirmationCreate) SetLessonReservationID(i int) *LessonConfirmationCreate {
+func (lcc *LessonConfirmationCreate) SetLessonReservationID(i int64) *LessonConfirmationCreate {
 	lcc.mutation.SetLessonReservationID(i)
 	return lcc
 }
@@ -59,6 +87,12 @@ func (lcc *LessonConfirmationCreate) SetNillableRemarks(s *string) *LessonConfir
 	return lcc
 }
 
+// SetID sets the "id" field.
+func (lcc *LessonConfirmationCreate) SetID(i int64) *LessonConfirmationCreate {
+	lcc.mutation.SetID(i)
+	return lcc
+}
+
 // SetLessonReservation sets the "lesson_reservation" edge to the LessonReservation entity.
 func (lcc *LessonConfirmationCreate) SetLessonReservation(l *LessonReservation) *LessonConfirmationCreate {
 	return lcc.SetLessonReservationID(l.ID)
@@ -71,6 +105,7 @@ func (lcc *LessonConfirmationCreate) Mutation() *LessonConfirmationMutation {
 
 // Save creates the LessonConfirmation in the database.
 func (lcc *LessonConfirmationCreate) Save(ctx context.Context) (*LessonConfirmation, error) {
+	lcc.defaults()
 	return withHooks(ctx, lcc.sqlSave, lcc.mutation, lcc.hooks)
 }
 
@@ -96,8 +131,26 @@ func (lcc *LessonConfirmationCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (lcc *LessonConfirmationCreate) defaults() {
+	if _, ok := lcc.mutation.CreatedAt(); !ok {
+		v := lessonconfirmation.DefaultCreatedAt()
+		lcc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := lcc.mutation.UpdatedAt(); !ok {
+		v := lessonconfirmation.DefaultUpdatedAt()
+		lcc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (lcc *LessonConfirmationCreate) check() error {
+	if _, ok := lcc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "LessonConfirmation.created_at"`)}
+	}
+	if _, ok := lcc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "LessonConfirmation.updated_at"`)}
+	}
 	if _, ok := lcc.mutation.LessonReservationID(); !ok {
 		return &ValidationError{Name: "lesson_reservation_id", err: errors.New(`ent: missing required field "LessonConfirmation.lesson_reservation_id"`)}
 	}
@@ -114,6 +167,11 @@ func (lcc *LessonConfirmationCreate) check() error {
 	}
 	if _, ok := lcc.mutation.FinishTime(); !ok {
 		return &ValidationError{Name: "finish_time", err: errors.New(`ent: missing required field "LessonConfirmation.finish_time"`)}
+	}
+	if v, ok := lcc.mutation.ID(); ok {
+		if err := lessonconfirmation.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "LessonConfirmation.id": %w`, err)}
+		}
 	}
 	if len(lcc.mutation.LessonReservationIDs()) == 0 {
 		return &ValidationError{Name: "lesson_reservation", err: errors.New(`ent: missing required edge "LessonConfirmation.lesson_reservation"`)}
@@ -132,8 +190,10 @@ func (lcc *LessonConfirmationCreate) sqlSave(ctx context.Context) (*LessonConfir
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	lcc.mutation.id = &_node.ID
 	lcc.mutation.done = true
 	return _node, nil
@@ -142,8 +202,20 @@ func (lcc *LessonConfirmationCreate) sqlSave(ctx context.Context) (*LessonConfir
 func (lcc *LessonConfirmationCreate) createSpec() (*LessonConfirmation, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LessonConfirmation{config: lcc.config}
-		_spec = sqlgraph.NewCreateSpec(lessonconfirmation.Table, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(lessonconfirmation.Table, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt64))
 	)
+	if id, ok := lcc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
+	if value, ok := lcc.mutation.CreatedAt(); ok {
+		_spec.SetField(lessonconfirmation.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := lcc.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonconfirmation.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := lcc.mutation.MatchingDate(); ok {
 		_spec.SetField(lessonconfirmation.FieldMatchingDate, field.TypeTime, value)
 		_node.MatchingDate = value
@@ -168,7 +240,7 @@ func (lcc *LessonConfirmationCreate) createSpec() (*LessonConfirmation, *sqlgrap
 			Columns: []string{lessonconfirmation.LessonReservationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -198,6 +270,7 @@ func (lccb *LessonConfirmationCreateBulk) Save(ctx context.Context) ([]*LessonCo
 	for i := range lccb.builders {
 		func(i int, root context.Context) {
 			builder := lccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*LessonConfirmationMutation)
 				if !ok {
@@ -224,9 +297,9 @@ func (lccb *LessonConfirmationCreateBulk) Save(ctx context.Context) ([]*LessonCo
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

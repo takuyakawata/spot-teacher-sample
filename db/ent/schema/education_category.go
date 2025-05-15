@@ -26,6 +26,7 @@ func (EducationCategory) Fields() []ent.Field {
 
 func (EducationCategory) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }
@@ -34,7 +35,8 @@ func (EducationCategory) Mixin() []ent.Mixin {
 func (EducationCategory) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("lesson_plans", LessonPlan.Type).
-			Ref("education_categories"),
+			Ref("education_categories").
+			Through("lesson_plan_education_categories", LessonPlanEducationCategory.Type),
 	}
 }
 

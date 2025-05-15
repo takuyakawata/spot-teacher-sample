@@ -72,7 +72,9 @@ var (
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// LessonReservationIDValidator is a validator for the "lesson_reservation_id" field. It is called by the builders before save.
-	LessonReservationIDValidator func(int) error
+	LessonReservationIDValidator func(int64) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // Priority defines the type for the "priority" enum field.

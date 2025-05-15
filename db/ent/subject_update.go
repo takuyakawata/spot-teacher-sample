@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 )
@@ -64,18 +65,33 @@ func (su *SubjectUpdate) SetNillableCode(s *string) *SubjectUpdate {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (su *SubjectUpdate) AddLessonPlanIDs(ids ...int) *SubjectUpdate {
+func (su *SubjectUpdate) AddLessonPlanIDs(ids ...int64) *SubjectUpdate {
 	su.mutation.AddLessonPlanIDs(ids...)
 	return su
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (su *SubjectUpdate) AddLessonPlans(l ...*LessonPlan) *SubjectUpdate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return su.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanSubjectIDs adds the "lesson_plan_subjects" edge to the LessonPlanSubject entity by IDs.
+func (su *SubjectUpdate) AddLessonPlanSubjectIDs(ids ...int64) *SubjectUpdate {
+	su.mutation.AddLessonPlanSubjectIDs(ids...)
+	return su
+}
+
+// AddLessonPlanSubjects adds the "lesson_plan_subjects" edges to the LessonPlanSubject entity.
+func (su *SubjectUpdate) AddLessonPlanSubjects(l ...*LessonPlanSubject) *SubjectUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return su.AddLessonPlanSubjectIDs(ids...)
 }
 
 // Mutation returns the SubjectMutation object of the builder.
@@ -90,18 +106,39 @@ func (su *SubjectUpdate) ClearLessonPlans() *SubjectUpdate {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (su *SubjectUpdate) RemoveLessonPlanIDs(ids ...int) *SubjectUpdate {
+func (su *SubjectUpdate) RemoveLessonPlanIDs(ids ...int64) *SubjectUpdate {
 	su.mutation.RemoveLessonPlanIDs(ids...)
 	return su
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (su *SubjectUpdate) RemoveLessonPlans(l ...*LessonPlan) *SubjectUpdate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return su.RemoveLessonPlanIDs(ids...)
+}
+
+// ClearLessonPlanSubjects clears all "lesson_plan_subjects" edges to the LessonPlanSubject entity.
+func (su *SubjectUpdate) ClearLessonPlanSubjects() *SubjectUpdate {
+	su.mutation.ClearLessonPlanSubjects()
+	return su
+}
+
+// RemoveLessonPlanSubjectIDs removes the "lesson_plan_subjects" edge to LessonPlanSubject entities by IDs.
+func (su *SubjectUpdate) RemoveLessonPlanSubjectIDs(ids ...int64) *SubjectUpdate {
+	su.mutation.RemoveLessonPlanSubjectIDs(ids...)
+	return su
+}
+
+// RemoveLessonPlanSubjects removes "lesson_plan_subjects" edges to LessonPlanSubject entities.
+func (su *SubjectUpdate) RemoveLessonPlanSubjects(l ...*LessonPlanSubject) *SubjectUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return su.RemoveLessonPlanSubjectIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -159,7 +196,7 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := su.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt64))
 	if ps := su.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -184,9 +221,13 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
+		createE := &LessonPlanSubjectCreate{config: su.config, mutation: newLessonPlanSubjectMutation(su.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := su.mutation.RemovedLessonPlansIDs(); len(nodes) > 0 && !su.mutation.LessonPlansCleared() {
@@ -197,12 +238,16 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &LessonPlanSubjectCreate{config: su.config, mutation: newLessonPlanSubjectMutation(su.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := su.mutation.LessonPlansIDs(); len(nodes) > 0 {
@@ -213,7 +258,56 @@ func (su *SubjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanSubjectCreate{config: su.config, mutation: newLessonPlanSubjectMutation(su.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if su.mutation.LessonPlanSubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.RemovedLessonPlanSubjectsIDs(); len(nodes) > 0 && !su.mutation.LessonPlanSubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := su.mutation.LessonPlanSubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -276,18 +370,33 @@ func (suo *SubjectUpdateOne) SetNillableCode(s *string) *SubjectUpdateOne {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (suo *SubjectUpdateOne) AddLessonPlanIDs(ids ...int) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) AddLessonPlanIDs(ids ...int64) *SubjectUpdateOne {
 	suo.mutation.AddLessonPlanIDs(ids...)
 	return suo
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (suo *SubjectUpdateOne) AddLessonPlans(l ...*LessonPlan) *SubjectUpdateOne {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return suo.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanSubjectIDs adds the "lesson_plan_subjects" edge to the LessonPlanSubject entity by IDs.
+func (suo *SubjectUpdateOne) AddLessonPlanSubjectIDs(ids ...int64) *SubjectUpdateOne {
+	suo.mutation.AddLessonPlanSubjectIDs(ids...)
+	return suo
+}
+
+// AddLessonPlanSubjects adds the "lesson_plan_subjects" edges to the LessonPlanSubject entity.
+func (suo *SubjectUpdateOne) AddLessonPlanSubjects(l ...*LessonPlanSubject) *SubjectUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return suo.AddLessonPlanSubjectIDs(ids...)
 }
 
 // Mutation returns the SubjectMutation object of the builder.
@@ -302,18 +411,39 @@ func (suo *SubjectUpdateOne) ClearLessonPlans() *SubjectUpdateOne {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to LessonPlan entities by IDs.
-func (suo *SubjectUpdateOne) RemoveLessonPlanIDs(ids ...int) *SubjectUpdateOne {
+func (suo *SubjectUpdateOne) RemoveLessonPlanIDs(ids ...int64) *SubjectUpdateOne {
 	suo.mutation.RemoveLessonPlanIDs(ids...)
 	return suo
 }
 
 // RemoveLessonPlans removes "lesson_plans" edges to LessonPlan entities.
 func (suo *SubjectUpdateOne) RemoveLessonPlans(l ...*LessonPlan) *SubjectUpdateOne {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return suo.RemoveLessonPlanIDs(ids...)
+}
+
+// ClearLessonPlanSubjects clears all "lesson_plan_subjects" edges to the LessonPlanSubject entity.
+func (suo *SubjectUpdateOne) ClearLessonPlanSubjects() *SubjectUpdateOne {
+	suo.mutation.ClearLessonPlanSubjects()
+	return suo
+}
+
+// RemoveLessonPlanSubjectIDs removes the "lesson_plan_subjects" edge to LessonPlanSubject entities by IDs.
+func (suo *SubjectUpdateOne) RemoveLessonPlanSubjectIDs(ids ...int64) *SubjectUpdateOne {
+	suo.mutation.RemoveLessonPlanSubjectIDs(ids...)
+	return suo
+}
+
+// RemoveLessonPlanSubjects removes "lesson_plan_subjects" edges to LessonPlanSubject entities.
+func (suo *SubjectUpdateOne) RemoveLessonPlanSubjects(l ...*LessonPlanSubject) *SubjectUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return suo.RemoveLessonPlanSubjectIDs(ids...)
 }
 
 // Where appends a list predicates to the SubjectUpdate builder.
@@ -384,7 +514,7 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 	if err := suo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt64))
 	id, ok := suo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Subject.id" for update`)}
@@ -426,9 +556,13 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
+		createE := &LessonPlanSubjectCreate{config: suo.config, mutation: newLessonPlanSubjectMutation(suo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := suo.mutation.RemovedLessonPlansIDs(); len(nodes) > 0 && !suo.mutation.LessonPlansCleared() {
@@ -439,12 +573,16 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		createE := &LessonPlanSubjectCreate{config: suo.config, mutation: newLessonPlanSubjectMutation(suo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := suo.mutation.LessonPlansIDs(); len(nodes) > 0 {
@@ -455,7 +593,56 @@ func (suo *SubjectUpdateOne) sqlSave(ctx context.Context) (_node *Subject, err e
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanSubjectCreate{config: suo.config, mutation: newLessonPlanSubjectMutation(suo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if suo.mutation.LessonPlanSubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.RemovedLessonPlanSubjectsIDs(); len(nodes) > 0 && !suo.mutation.LessonPlanSubjectsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := suo.mutation.LessonPlanSubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

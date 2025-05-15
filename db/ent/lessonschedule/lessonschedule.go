@@ -123,7 +123,7 @@ var (
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// LessonPlanIDValidator is a validator for the "lesson_plan_id" field. It is called by the builders before save.
-	LessonPlanIDValidator func(int) error
+	LessonPlanIDValidator func(int64) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
@@ -132,6 +132,8 @@ var (
 	LocationValidator func(string) error
 	// AnnualMaxExecutionsValidator is a validator for the "annual_max_executions" field. It is called by the builders before save.
 	AnnualMaxExecutionsValidator func(int) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // LessonType defines the type for the "lesson_type" enum field.

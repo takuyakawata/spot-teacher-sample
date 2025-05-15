@@ -19,17 +19,17 @@ import (
 type Inquiry struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// LessonScheduleID holds the value of the "lesson_schedule_id" field.
-	LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
+	LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
 	// SchoolID holds the value of the "school_id" field.
-	SchoolID int `json:"school_id,omitempty"`
+	SchoolID int64 `json:"school_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
-	UserID int `json:"user_id,omitempty"`
+	UserID int64 `json:"user_id,omitempty"`
 	// Category holds the value of the "category" field.
 	Category inquiry.Category `json:"category,omitempty"`
 	// InquiryDetail holds the value of the "inquiry_detail" field.
@@ -117,7 +117,7 @@ func (i *Inquiry) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			i.ID = int(value.Int64)
+			i.ID = int64(value.Int64)
 		case inquiry.FieldCreatedAt:
 			if value, ok := values[j].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[j])
@@ -134,19 +134,19 @@ func (i *Inquiry) assignValues(columns []string, values []any) error {
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_schedule_id", values[j])
 			} else if value.Valid {
-				i.LessonScheduleID = int(value.Int64)
+				i.LessonScheduleID = value.Int64
 			}
 		case inquiry.FieldSchoolID:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field school_id", values[j])
 			} else if value.Valid {
-				i.SchoolID = int(value.Int64)
+				i.SchoolID = value.Int64
 			}
 		case inquiry.FieldUserID:
 			if value, ok := values[j].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[j])
 			} else if value.Valid {
-				i.UserID = int(value.Int64)
+				i.UserID = value.Int64
 			}
 		case inquiry.FieldCategory:
 			if value, ok := values[j].(*sql.NullString); !ok {

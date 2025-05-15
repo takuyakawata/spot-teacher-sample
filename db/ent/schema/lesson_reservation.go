@@ -13,13 +13,13 @@ type LessonReservation struct {
 
 func (LessonReservation) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("lesson_schedule_id").
+		field.Int64("lesson_schedule_id").
 			Positive(),
 
-		field.Int("school_id").
+		field.Int64("school_id").
 			Positive(),
 
-		field.Int("user_id").
+		field.Int64("user_id").
 			Positive(),
 
 		field.Enum("reservation_status").
@@ -66,8 +66,9 @@ func (LessonReservation) Edges() []ent.Edge {
 	}
 }
 
-func (LessonReservation) Mixins() []ent.Mixin {
+func (LessonReservation) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

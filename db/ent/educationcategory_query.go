@@ -14,18 +14,20 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 )
 
 // EducationCategoryQuery is the builder for querying EducationCategory entities.
 type EducationCategoryQuery struct {
 	config
-	ctx             *QueryContext
-	order           []educationcategory.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.EducationCategory
-	withLessonPlans *LessonPlanQuery
-	withFKs         bool
+	ctx                               *QueryContext
+	order                             []educationcategory.OrderOption
+	inters                            []Interceptor
+	predicates                        []predicate.EducationCategory
+	withLessonPlans                   *LessonPlanQuery
+	withLessonPlanEducationCategories *LessonPlanEducationCategoryQuery
+	withFKs                           bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -84,6 +86,28 @@ func (ecq *EducationCategoryQuery) QueryLessonPlans() *LessonPlanQuery {
 	return query
 }
 
+// QueryLessonPlanEducationCategories chains the current query on the "lesson_plan_education_categories" edge.
+func (ecq *EducationCategoryQuery) QueryLessonPlanEducationCategories() *LessonPlanEducationCategoryQuery {
+	query := (&LessonPlanEducationCategoryClient{config: ecq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ecq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := ecq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(educationcategory.Table, educationcategory.FieldID, selector),
+			sqlgraph.To(lessonplaneducationcategory.Table, lessonplaneducationcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, educationcategory.LessonPlanEducationCategoriesTable, educationcategory.LessonPlanEducationCategoriesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ecq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first EducationCategory entity from the query.
 // Returns a *NotFoundError when no EducationCategory was found.
 func (ecq *EducationCategoryQuery) First(ctx context.Context) (*EducationCategory, error) {
@@ -108,8 +132,8 @@ func (ecq *EducationCategoryQuery) FirstX(ctx context.Context) *EducationCategor
 
 // FirstID returns the first EducationCategory ID from the query.
 // Returns a *NotFoundError when no EducationCategory ID was found.
-func (ecq *EducationCategoryQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (ecq *EducationCategoryQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = ecq.Limit(1).IDs(setContextOp(ctx, ecq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -121,7 +145,7 @@ func (ecq *EducationCategoryQuery) FirstID(ctx context.Context) (id int, err err
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (ecq *EducationCategoryQuery) FirstIDX(ctx context.Context) int {
+func (ecq *EducationCategoryQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := ecq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -159,8 +183,8 @@ func (ecq *EducationCategoryQuery) OnlyX(ctx context.Context) *EducationCategory
 // OnlyID is like Only, but returns the only EducationCategory ID in the query.
 // Returns a *NotSingularError when more than one EducationCategory ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (ecq *EducationCategoryQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (ecq *EducationCategoryQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = ecq.Limit(2).IDs(setContextOp(ctx, ecq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -176,7 +200,7 @@ func (ecq *EducationCategoryQuery) OnlyID(ctx context.Context) (id int, err erro
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (ecq *EducationCategoryQuery) OnlyIDX(ctx context.Context) int {
+func (ecq *EducationCategoryQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := ecq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -204,7 +228,7 @@ func (ecq *EducationCategoryQuery) AllX(ctx context.Context) []*EducationCategor
 }
 
 // IDs executes the query and returns a list of EducationCategory IDs.
-func (ecq *EducationCategoryQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (ecq *EducationCategoryQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if ecq.ctx.Unique == nil && ecq.path != nil {
 		ecq.Unique(true)
 	}
@@ -216,7 +240,7 @@ func (ecq *EducationCategoryQuery) IDs(ctx context.Context) (ids []int, err erro
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (ecq *EducationCategoryQuery) IDsX(ctx context.Context) []int {
+func (ecq *EducationCategoryQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := ecq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -271,12 +295,13 @@ func (ecq *EducationCategoryQuery) Clone() *EducationCategoryQuery {
 		return nil
 	}
 	return &EducationCategoryQuery{
-		config:          ecq.config,
-		ctx:             ecq.ctx.Clone(),
-		order:           append([]educationcategory.OrderOption{}, ecq.order...),
-		inters:          append([]Interceptor{}, ecq.inters...),
-		predicates:      append([]predicate.EducationCategory{}, ecq.predicates...),
-		withLessonPlans: ecq.withLessonPlans.Clone(),
+		config:                            ecq.config,
+		ctx:                               ecq.ctx.Clone(),
+		order:                             append([]educationcategory.OrderOption{}, ecq.order...),
+		inters:                            append([]Interceptor{}, ecq.inters...),
+		predicates:                        append([]predicate.EducationCategory{}, ecq.predicates...),
+		withLessonPlans:                   ecq.withLessonPlans.Clone(),
+		withLessonPlanEducationCategories: ecq.withLessonPlanEducationCategories.Clone(),
 		// clone intermediate query.
 		sql:  ecq.sql.Clone(),
 		path: ecq.path,
@@ -291,6 +316,17 @@ func (ecq *EducationCategoryQuery) WithLessonPlans(opts ...func(*LessonPlanQuery
 		opt(query)
 	}
 	ecq.withLessonPlans = query
+	return ecq
+}
+
+// WithLessonPlanEducationCategories tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_plan_education_categories" edge. The optional arguments are used to configure the query builder of the edge.
+func (ecq *EducationCategoryQuery) WithLessonPlanEducationCategories(opts ...func(*LessonPlanEducationCategoryQuery)) *EducationCategoryQuery {
+	query := (&LessonPlanEducationCategoryClient{config: ecq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	ecq.withLessonPlanEducationCategories = query
 	return ecq
 }
 
@@ -373,8 +409,9 @@ func (ecq *EducationCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 		nodes       = []*EducationCategory{}
 		withFKs     = ecq.withFKs
 		_spec       = ecq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			ecq.withLessonPlans != nil,
+			ecq.withLessonPlanEducationCategories != nil,
 		}
 	)
 	if withFKs {
@@ -405,13 +442,22 @@ func (ecq *EducationCategoryQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 			return nil, err
 		}
 	}
+	if query := ecq.withLessonPlanEducationCategories; query != nil {
+		if err := ecq.loadLessonPlanEducationCategories(ctx, query, nodes,
+			func(n *EducationCategory) { n.Edges.LessonPlanEducationCategories = []*LessonPlanEducationCategory{} },
+			func(n *EducationCategory, e *LessonPlanEducationCategory) {
+				n.Edges.LessonPlanEducationCategories = append(n.Edges.LessonPlanEducationCategories, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (ecq *EducationCategoryQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*EducationCategory, init func(*EducationCategory), assign func(*EducationCategory, *LessonPlan)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*EducationCategory)
-	nids := make(map[int]map[*EducationCategory]struct{})
+	byID := make(map[int64]*EducationCategory)
+	nids := make(map[int64]map[*EducationCategory]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -443,8 +489,8 @@ func (ecq *EducationCategoryQuery) loadLessonPlans(ctx context.Context, query *L
 				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
+				outValue := values[0].(*sql.NullInt64).Int64
+				inValue := values[1].(*sql.NullInt64).Int64
 				if nids[inValue] == nil {
 					nids[inValue] = map[*EducationCategory]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])
@@ -469,6 +515,36 @@ func (ecq *EducationCategoryQuery) loadLessonPlans(ctx context.Context, query *L
 	}
 	return nil
 }
+func (ecq *EducationCategoryQuery) loadLessonPlanEducationCategories(ctx context.Context, query *LessonPlanEducationCategoryQuery, nodes []*EducationCategory, init func(*EducationCategory), assign func(*EducationCategory, *LessonPlanEducationCategory)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*EducationCategory)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonplaneducationcategory.FieldEducationCategoryID)
+	}
+	query.Where(predicate.LessonPlanEducationCategory(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(educationcategory.LessonPlanEducationCategoriesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.EducationCategoryID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "education_category_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (ecq *EducationCategoryQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ecq.querySpec()
@@ -480,7 +556,7 @@ func (ecq *EducationCategoryQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (ecq *EducationCategoryQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(educationcategory.Table, educationcategory.Columns, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(educationcategory.Table, educationcategory.Columns, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt64))
 	_spec.From = ecq.sql
 	if unique := ecq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

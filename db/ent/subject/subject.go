@@ -24,6 +24,8 @@ const (
 	FieldCode = "code"
 	// EdgeLessonPlans holds the string denoting the lesson_plans edge name in mutations.
 	EdgeLessonPlans = "lesson_plans"
+	// EdgeLessonPlanSubjects holds the string denoting the lesson_plan_subjects edge name in mutations.
+	EdgeLessonPlanSubjects = "lesson_plan_subjects"
 	// Table holds the table name of the subject in the database.
 	Table = "subjects"
 	// LessonPlansTable is the table that holds the lesson_plans relation/edge. The primary key declared below.
@@ -31,6 +33,13 @@ const (
 	// LessonPlansInverseTable is the table name for the LessonPlan entity.
 	// It exists in this package in order to avoid circular dependency with the "lessonplan" package.
 	LessonPlansInverseTable = "lesson_plans"
+	// LessonPlanSubjectsTable is the table that holds the lesson_plan_subjects relation/edge.
+	LessonPlanSubjectsTable = "lesson_plan_subjects"
+	// LessonPlanSubjectsInverseTable is the table name for the LessonPlanSubject entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplansubject" package.
+	LessonPlanSubjectsInverseTable = "lesson_plan_subjects"
+	// LessonPlanSubjectsColumn is the table column denoting the lesson_plan_subjects relation/edge.
+	LessonPlanSubjectsColumn = "subject_id"
 )
 
 // Columns holds all SQL columns for subject fields.
@@ -80,6 +89,8 @@ var (
 	NameValidator func(string) error
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func(string) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // OrderOption defines the ordering options for the Subject queries.
@@ -123,10 +134,31 @@ func ByLessonPlans(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLessonPlansStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLessonPlanSubjectsCount orders the results by lesson_plan_subjects count.
+func ByLessonPlanSubjectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanSubjectsStep(), opts...)
+	}
+}
+
+// ByLessonPlanSubjects orders the results by lesson_plan_subjects terms.
+func ByLessonPlanSubjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanSubjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLessonPlansStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LessonPlansInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, LessonPlansTable, LessonPlansPrimaryKey...),
+	)
+}
+func newLessonPlanSubjectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanSubjectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanSubjectsTable, LessonPlanSubjectsColumn),
 	)
 }

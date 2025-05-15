@@ -19,13 +19,17 @@ import (
 type LessonReservation struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// LessonScheduleID holds the value of the "lesson_schedule_id" field.
-	LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
+	LessonScheduleID int64 `json:"lesson_schedule_id,omitempty"`
 	// SchoolID holds the value of the "school_id" field.
-	SchoolID int `json:"school_id,omitempty"`
+	SchoolID int64 `json:"school_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
-	UserID int `json:"user_id,omitempty"`
+	UserID int64 `json:"user_id,omitempty"`
 	// ReservationStatus holds the value of the "reservation_status" field.
 	ReservationStatus lessonreservation.ReservationStatus `json:"reservation_status,omitempty"`
 	// CountStudent holds the value of the "count_student" field.
@@ -121,7 +125,7 @@ func (*LessonReservation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case lessonreservation.FieldReservationStatus, lessonreservation.FieldCountStudent, lessonreservation.FieldGraduate, lessonreservation.FieldSubject, lessonreservation.FieldRemarks:
 			values[i] = new(sql.NullString)
-		case lessonreservation.FieldReservationConfirmAt:
+		case lessonreservation.FieldCreatedAt, lessonreservation.FieldUpdatedAt, lessonreservation.FieldReservationConfirmAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -143,24 +147,36 @@ func (lr *LessonReservation) assignValues(columns []string, values []any) error 
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			lr.ID = int(value.Int64)
+			lr.ID = int64(value.Int64)
+		case lessonreservation.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				lr.CreatedAt = value.Time
+			}
+		case lessonreservation.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				lr.UpdatedAt = value.Time
+			}
 		case lessonreservation.FieldLessonScheduleID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_schedule_id", values[i])
 			} else if value.Valid {
-				lr.LessonScheduleID = int(value.Int64)
+				lr.LessonScheduleID = value.Int64
 			}
 		case lessonreservation.FieldSchoolID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field school_id", values[i])
 			} else if value.Valid {
-				lr.SchoolID = int(value.Int64)
+				lr.SchoolID = value.Int64
 			}
 		case lessonreservation.FieldUserID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				lr.UserID = int(value.Int64)
+				lr.UserID = value.Int64
 			}
 		case lessonreservation.FieldReservationStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -261,6 +277,12 @@ func (lr *LessonReservation) String() string {
 	var builder strings.Builder
 	builder.WriteString("LessonReservation(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", lr.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(lr.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(lr.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("lesson_schedule_id=")
 	builder.WriteString(fmt.Sprintf("%v", lr.LessonScheduleID))
 	builder.WriteString(", ")

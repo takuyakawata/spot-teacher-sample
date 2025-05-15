@@ -29,14 +29,20 @@ func (lcu *LessonConfirmationUpdate) Where(ps ...predicate.LessonConfirmation) *
 	return lcu
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (lcu *LessonConfirmationUpdate) SetUpdatedAt(t time.Time) *LessonConfirmationUpdate {
+	lcu.mutation.SetUpdatedAt(t)
+	return lcu
+}
+
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (lcu *LessonConfirmationUpdate) SetLessonReservationID(i int) *LessonConfirmationUpdate {
+func (lcu *LessonConfirmationUpdate) SetLessonReservationID(i int64) *LessonConfirmationUpdate {
 	lcu.mutation.SetLessonReservationID(i)
 	return lcu
 }
 
 // SetNillableLessonReservationID sets the "lesson_reservation_id" field if the given value is not nil.
-func (lcu *LessonConfirmationUpdate) SetNillableLessonReservationID(i *int) *LessonConfirmationUpdate {
+func (lcu *LessonConfirmationUpdate) SetNillableLessonReservationID(i *int64) *LessonConfirmationUpdate {
 	if i != nil {
 		lcu.SetLessonReservationID(*i)
 	}
@@ -123,6 +129,7 @@ func (lcu *LessonConfirmationUpdate) ClearLessonReservation() *LessonConfirmatio
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (lcu *LessonConfirmationUpdate) Save(ctx context.Context) (int, error) {
+	lcu.defaults()
 	return withHooks(ctx, lcu.sqlSave, lcu.mutation, lcu.hooks)
 }
 
@@ -148,6 +155,14 @@ func (lcu *LessonConfirmationUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (lcu *LessonConfirmationUpdate) defaults() {
+	if _, ok := lcu.mutation.UpdatedAt(); !ok {
+		v := lessonconfirmation.UpdateDefaultUpdatedAt()
+		lcu.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (lcu *LessonConfirmationUpdate) check() error {
 	if v, ok := lcu.mutation.LessonReservationID(); ok {
@@ -165,13 +180,16 @@ func (lcu *LessonConfirmationUpdate) sqlSave(ctx context.Context) (n int, err er
 	if err := lcu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonconfirmation.Table, lessonconfirmation.Columns, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(lessonconfirmation.Table, lessonconfirmation.Columns, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt64))
 	if ps := lcu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := lcu.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonconfirmation.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := lcu.mutation.MatchingDate(); ok {
 		_spec.SetField(lessonconfirmation.FieldMatchingDate, field.TypeTime, value)
@@ -196,7 +214,7 @@ func (lcu *LessonConfirmationUpdate) sqlSave(ctx context.Context) (n int, err er
 			Columns: []string{lessonconfirmation.LessonReservationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -209,7 +227,7 @@ func (lcu *LessonConfirmationUpdate) sqlSave(ctx context.Context) (n int, err er
 			Columns: []string{lessonconfirmation.LessonReservationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -237,14 +255,20 @@ type LessonConfirmationUpdateOne struct {
 	mutation *LessonConfirmationMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (lcuo *LessonConfirmationUpdateOne) SetUpdatedAt(t time.Time) *LessonConfirmationUpdateOne {
+	lcuo.mutation.SetUpdatedAt(t)
+	return lcuo
+}
+
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (lcuo *LessonConfirmationUpdateOne) SetLessonReservationID(i int) *LessonConfirmationUpdateOne {
+func (lcuo *LessonConfirmationUpdateOne) SetLessonReservationID(i int64) *LessonConfirmationUpdateOne {
 	lcuo.mutation.SetLessonReservationID(i)
 	return lcuo
 }
 
 // SetNillableLessonReservationID sets the "lesson_reservation_id" field if the given value is not nil.
-func (lcuo *LessonConfirmationUpdateOne) SetNillableLessonReservationID(i *int) *LessonConfirmationUpdateOne {
+func (lcuo *LessonConfirmationUpdateOne) SetNillableLessonReservationID(i *int64) *LessonConfirmationUpdateOne {
 	if i != nil {
 		lcuo.SetLessonReservationID(*i)
 	}
@@ -344,6 +368,7 @@ func (lcuo *LessonConfirmationUpdateOne) Select(field string, fields ...string) 
 
 // Save executes the query and returns the updated LessonConfirmation entity.
 func (lcuo *LessonConfirmationUpdateOne) Save(ctx context.Context) (*LessonConfirmation, error) {
+	lcuo.defaults()
 	return withHooks(ctx, lcuo.sqlSave, lcuo.mutation, lcuo.hooks)
 }
 
@@ -369,6 +394,14 @@ func (lcuo *LessonConfirmationUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (lcuo *LessonConfirmationUpdateOne) defaults() {
+	if _, ok := lcuo.mutation.UpdatedAt(); !ok {
+		v := lessonconfirmation.UpdateDefaultUpdatedAt()
+		lcuo.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (lcuo *LessonConfirmationUpdateOne) check() error {
 	if v, ok := lcuo.mutation.LessonReservationID(); ok {
@@ -386,7 +419,7 @@ func (lcuo *LessonConfirmationUpdateOne) sqlSave(ctx context.Context) (_node *Le
 	if err := lcuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(lessonconfirmation.Table, lessonconfirmation.Columns, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(lessonconfirmation.Table, lessonconfirmation.Columns, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt64))
 	id, ok := lcuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "LessonConfirmation.id" for update`)}
@@ -411,6 +444,9 @@ func (lcuo *LessonConfirmationUpdateOne) sqlSave(ctx context.Context) (_node *Le
 			}
 		}
 	}
+	if value, ok := lcuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonconfirmation.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := lcuo.mutation.MatchingDate(); ok {
 		_spec.SetField(lessonconfirmation.FieldMatchingDate, field.TypeTime, value)
 	}
@@ -434,7 +470,7 @@ func (lcuo *LessonConfirmationUpdateOne) sqlSave(ctx context.Context) (_node *Le
 			Columns: []string{lessonconfirmation.LessonReservationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -447,7 +483,7 @@ func (lcuo *LessonConfirmationUpdateOne) sqlSave(ctx context.Context) (_node *Le
 			Columns: []string{lessonconfirmation.LessonReservationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

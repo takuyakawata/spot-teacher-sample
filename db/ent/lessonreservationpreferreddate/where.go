@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.LessonReservationPreferredDate {
+func ID(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.LessonReservationPreferredDate {
+func IDEQ(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.LessonReservationPreferredDate {
+func IDNEQ(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.LessonReservationPreferredDate {
+func IDIn(ids ...int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.LessonReservationPreferredDate {
+func IDNotIn(ids ...int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.LessonReservationPreferredDate {
+func IDGT(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.LessonReservationPreferredDate {
+func IDGTE(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.LessonReservationPreferredDate {
+func IDLT(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.LessonReservationPreferredDate {
+func IDLTE(id int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldLTE(FieldID, id))
 }
 
@@ -66,7 +66,7 @@ func UpdatedAt(v time.Time) predicate.LessonReservationPreferredDate {
 }
 
 // LessonReservationID applies equality check predicate on the "lesson_reservation_id" field. It's identical to LessonReservationIDEQ.
-func LessonReservationID(v int) predicate.LessonReservationPreferredDate {
+func LessonReservationID(v int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldEQ(FieldLessonReservationID, v))
 }
 
@@ -166,22 +166,22 @@ func UpdatedAtLTE(v time.Time) predicate.LessonReservationPreferredDate {
 }
 
 // LessonReservationIDEQ applies the EQ predicate on the "lesson_reservation_id" field.
-func LessonReservationIDEQ(v int) predicate.LessonReservationPreferredDate {
+func LessonReservationIDEQ(v int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldEQ(FieldLessonReservationID, v))
 }
 
 // LessonReservationIDNEQ applies the NEQ predicate on the "lesson_reservation_id" field.
-func LessonReservationIDNEQ(v int) predicate.LessonReservationPreferredDate {
+func LessonReservationIDNEQ(v int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldNEQ(FieldLessonReservationID, v))
 }
 
 // LessonReservationIDIn applies the In predicate on the "lesson_reservation_id" field.
-func LessonReservationIDIn(vs ...int) predicate.LessonReservationPreferredDate {
+func LessonReservationIDIn(vs ...int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldIn(FieldLessonReservationID, vs...))
 }
 
 // LessonReservationIDNotIn applies the NotIn predicate on the "lesson_reservation_id" field.
-func LessonReservationIDNotIn(vs ...int) predicate.LessonReservationPreferredDate {
+func LessonReservationIDNotIn(vs ...int64) predicate.LessonReservationPreferredDate {
 	return predicate.LessonReservationPreferredDate(sql.FieldNotIn(FieldLessonReservationID, vs...))
 }
 

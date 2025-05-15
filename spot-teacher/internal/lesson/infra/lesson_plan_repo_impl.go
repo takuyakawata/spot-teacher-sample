@@ -48,27 +48,12 @@ func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.Le
 
 	// Add grades
 	for _, gradeValue := range lessonPlan.Grade {
-		gradeStr := gradeToString(lessonCategory.GradeEnum(gradeValue))
-		entGrade, err := r.client.Grade.Query().
-			Where(grade.Name(gradeStr)).
-			First(ctx)
+		entGrade, err := r.client.Grade.Query().Where(grade.CodeNumber(gradeValue.Value().Value())).First(ctx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				// Create the grade if it doesn't exist
-				entGrade, err = r.client.Grade.Create().
-					SetName(gradeStr).
-					SetCode(fmt.Sprintf("GRADE_%d", lessonCategory.GradeEnum(gradeValue))).
-					Save(ctx)
-				if err != nil {
-					return nil, fmt.Errorf("infra.ent: failed to create grade: %w", err)
-				}
-			} else {
-				return nil, fmt.Errorf("infra.ent: failed to query grade: %w", err)
-			}
+			return nil, fmt.Errorf("infra.ent: failed to create grade: %w", err)
 		}
-		_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).
-			AddGrades(entGrade).
-			Save(ctx)
+
+		_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).AddGrades(entGrade).Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("infra.ent: failed to add grade to lesson plan: %w", err)
 		}
@@ -76,56 +61,26 @@ func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.Le
 
 	// Add subjects
 	for _, subjectValue := range lessonPlan.Subject {
-		entSubject, err := r.client.Subject.Query().
-			Where(subject.Name(string(subjectValue))).
-			First(ctx)
+		entSubject, err := r.client.Subject.Query().Where(subject.Name(string(subjectValue))).First(ctx)
 		if err != nil {
-			if ent.IsNotFound(err) {
-				entSubject, err = r.client.Subject.Create().
-					SetName(string(subjectValue)).
-					Save(ctx)
-				if err != nil {
-					return nil, fmt.Errorf("infra.ent: failed to create subject: %w", err)
-				}
-			} else {
-				return nil, fmt.Errorf("infra.ent: failed to query subject: %w", err)
-			}
+			return nil, fmt.Errorf("infra.ent: failed to create subject: %w", err)
 		}
-		_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).
-			AddSubjects(entSubject).
-			Save(ctx)
+
+		_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).AddSubjects(entSubject).Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("infra.ent: failed to add subject to lesson plan: %w", err)
 		}
 	}
 
-	// Add education categories
-	for _, categoryValue := range lessonPlan.EducationCategory {
-		entCategory, err := r.client.EducationCategory.Query().
-			Where(educationcategory.Name(string(categoryValue))).
-			First(ctx)
-		if err != nil {
-			if ent.IsNotFound(err) {
-				// Create the category if it doesn't exist
-				entCategory, err = r.client.EducationCategory.Create().
-					SetName(string(categoryValue)).
-					Save(ctx)
-				if err != nil {
-					return nil, fmt.Errorf("infra.ent: failed to create education category: %w", err)
-				}
-			} else {
-				return nil, fmt.Errorf("infra.ent: failed to query education category: %w", err)
-			}
-		}
+	for _ = range lessonPlan.EducationCategory {
 		_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).
-			AddEducationCategories(entCategory).
+			AddEducationCategories().
 			Save(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("infra.ent: failed to add education category to lesson plan: %w", err)
 		}
 	}
 
-	// Fetch the updated lesson plan with all relationships
 	updatedEntLessonPlan, err := r.client.LessonPlan.Query().
 		Where(lessonplan.ID(createdEntLessonPlan.ID)).
 		WithGrades().
@@ -171,15 +126,15 @@ func (r *lessonPlanRepository) Update(ctx context.Context, lessonPlan *domain.Le
 
 	// Add grades
 	for _, gradeValue := range lessonPlan.Grade {
-		gradeStr := gradeToString(lessonCategory.GradeEnum(gradeValue))
+		gradeEnum := lessonCategory.GradeEnum(gradeValue)
 		entGrade, err := r.client.Grade.Query().
-			Where(grade.Name(gradeStr)).
+			Where(grade.CodeNumber(gradeEnum.Value())).
 			First(ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
 				// Create the grade if it doesn't exist
 				entGrade, err = r.client.Grade.Create().
-					SetName(gradeStr).
+					SetName(gradeEnum.Name()).
 					SetCode(fmt.Sprintf("GRADE_%d", lessonCategory.GradeEnum(gradeValue))).
 					Save(ctx)
 				if err != nil {
@@ -341,8 +296,8 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 	grades := make([]lessonCategory.Grade, 0)
 	if entLP.Edges.Grades != nil {
 		for _, entGrade := range entLP.Edges.Grades {
-			grade := stringToGrade(entGrade.Name)
-			grades = append(grades, grade)
+			gradeCode := entGrade.CodeNumber
+			grades = append(grades, lessonCategory.Grade(gradeCode))
 		}
 	}
 
@@ -379,68 +334,4 @@ func mapEntLessonPlanToDomain(ctx context.Context, client *ent.Client, entLP *en
 		StartTime:          entLP.StartTime,
 		EndTime:            entLP.EndTime,
 	}, nil
-}
-
-// Helper function to convert Grade enum to string
-func gradeToString(gradeEnum lessonCategory.GradeEnum) string {
-	switch gradeEnum {
-	case lessonCategory.ElementaryOne:
-		return "小学校1年生"
-	case lessonCategory.ElementaryTwo:
-		return "小学校2年生"
-	case lessonCategory.ElementaryThree:
-		return "小学校3年生"
-	case lessonCategory.ElementaryFour:
-		return "小学校4年生"
-	case lessonCategory.ElementaryFive:
-		return "小学校5年生"
-	case lessonCategory.ElementarySix:
-		return "小学校6年生"
-	case lessonCategory.JuniorHighOne:
-		return "中学校1年生"
-	case lessonCategory.JuniorHighTwo:
-		return "中学校2年生"
-	case lessonCategory.JuniorHighThree:
-		return "中学校3年生"
-	case lessonCategory.HighSchoolOne:
-		return "高校1年生"
-	case lessonCategory.HighSchoolTwo:
-		return "高校2年生"
-	case lessonCategory.HighSchoolThree:
-		return "高校3年生"
-	default:
-		return "不明"
-	}
-}
-
-// Helper function to convert string to Grade enum
-func stringToGrade(gradeStr string) lessonCategory.Grade {
-	switch gradeStr {
-	case "小学校1年生":
-		return lessonCategory.Grade(lessonCategory.ElementaryOne)
-	case "小学校2年生":
-		return lessonCategory.Grade(lessonCategory.ElementaryTwo)
-	case "小学校3年生":
-		return lessonCategory.Grade(lessonCategory.ElementaryThree)
-	case "小学校4年生":
-		return lessonCategory.Grade(lessonCategory.ElementaryFour)
-	case "小学校5年生":
-		return lessonCategory.Grade(lessonCategory.ElementaryFive)
-	case "小学校6年生":
-		return lessonCategory.Grade(lessonCategory.ElementarySix)
-	case "中学校1年生":
-		return lessonCategory.Grade(lessonCategory.JuniorHighOne)
-	case "中学校2年生":
-		return lessonCategory.Grade(lessonCategory.JuniorHighTwo)
-	case "中学校3年生":
-		return lessonCategory.Grade(lessonCategory.JuniorHighThree)
-	case "高校1年生":
-		return lessonCategory.Grade(lessonCategory.HighSchoolOne)
-	case "高校2年生":
-		return lessonCategory.Grade(lessonCategory.HighSchoolTwo)
-	case "高校3年生":
-		return lessonCategory.Grade(lessonCategory.HighSchoolThree)
-	default:
-		return lessonCategory.Grade(lessonCategory.ElementaryOne) // Default value
-	}
 }

@@ -24,15 +24,22 @@ const (
 	FieldUserID = "user_id"
 	// EdgeLessonPlan holds the string denoting the lessonplan edge name in mutations.
 	EdgeLessonPlan = "LessonPlan"
+	// EdgeLessonPlanUploadFiles holds the string denoting the lesson_plan_upload_files edge name in mutations.
+	EdgeLessonPlanUploadFiles = "lesson_plan_upload_files"
 	// Table holds the table name of the uploadfile in the database.
 	Table = "upload_files"
-	// LessonPlanTable is the table that holds the LessonPlan relation/edge.
-	LessonPlanTable = "upload_files"
+	// LessonPlanTable is the table that holds the LessonPlan relation/edge. The primary key declared below.
+	LessonPlanTable = "lesson_plan_upload_files"
 	// LessonPlanInverseTable is the table name for the LessonPlan entity.
 	// It exists in this package in order to avoid circular dependency with the "lessonplan" package.
 	LessonPlanInverseTable = "lesson_plans"
-	// LessonPlanColumn is the table column denoting the LessonPlan relation/edge.
-	LessonPlanColumn = "lesson_plan_upload_files"
+	// LessonPlanUploadFilesTable is the table that holds the lesson_plan_upload_files relation/edge.
+	LessonPlanUploadFilesTable = "lesson_plan_upload_files"
+	// LessonPlanUploadFilesInverseTable is the table name for the LessonPlanUploadFile entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplanuploadfile" package.
+	LessonPlanUploadFilesInverseTable = "lesson_plan_upload_files"
+	// LessonPlanUploadFilesColumn is the table column denoting the lesson_plan_upload_files relation/edge.
+	LessonPlanUploadFilesColumn = "upload_file_id"
 )
 
 // Columns holds all SQL columns for uploadfile fields.
@@ -44,21 +51,16 @@ var Columns = []string{
 	FieldUserID,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "upload_files"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"lesson_plan_upload_files",
-}
+var (
+	// LessonPlanPrimaryKey and LessonPlanColumn2 are the table columns denoting the
+	// primary key for the LessonPlan relation (M2M).
+	LessonPlanPrimaryKey = []string{"lesson_plan_id", "upload_file_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}
@@ -75,7 +77,9 @@ var (
 	// PhotoKeyValidator is a validator for the "photo_key" field. It is called by the builders before save.
 	PhotoKeyValidator func(string) error
 	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(int) error
+	UserIDValidator func(int64) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // OrderOption defines the ordering options for the UploadFile queries.
@@ -106,16 +110,44 @@ func ByUserID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserID, opts...).ToFunc()
 }
 
-// ByLessonPlanField orders the results by LessonPlan field.
-func ByLessonPlanField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByLessonPlanCount orders the results by LessonPlan count.
+func ByLessonPlanCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newLessonPlanStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanStep(), opts...)
+	}
+}
+
+// ByLessonPlan orders the results by LessonPlan terms.
+func ByLessonPlan(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLessonPlanUploadFilesCount orders the results by lesson_plan_upload_files count.
+func ByLessonPlanUploadFilesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanUploadFilesStep(), opts...)
+	}
+}
+
+// ByLessonPlanUploadFiles orders the results by lesson_plan_upload_files terms.
+func ByLessonPlanUploadFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanUploadFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newLessonPlanStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LessonPlanInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, LessonPlanTable, LessonPlanColumn),
+		sqlgraph.Edge(sqlgraph.M2M, true, LessonPlanTable, LessonPlanPrimaryKey...),
+	)
+}
+func newLessonPlanUploadFilesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanUploadFilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanUploadFilesTable, LessonPlanUploadFilesColumn),
 	)
 }

@@ -90,11 +90,13 @@ var (
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// LessonScheduleIDValidator is a validator for the "lesson_schedule_id" field. It is called by the builders before save.
-	LessonScheduleIDValidator func(int) error
+	LessonScheduleIDValidator func(int64) error
 	// SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
-	SchoolIDValidator func(int) error
+	SchoolIDValidator func(int64) error
 	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(int) error
+	UserIDValidator func(int64) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // Category defines the type for the "category" enum field.

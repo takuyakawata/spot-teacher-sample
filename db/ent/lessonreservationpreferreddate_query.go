@@ -106,8 +106,8 @@ func (lrpdq *LessonReservationPreferredDateQuery) FirstX(ctx context.Context) *L
 
 // FirstID returns the first LessonReservationPreferredDate ID from the query.
 // Returns a *NotFoundError when no LessonReservationPreferredDate ID was found.
-func (lrpdq *LessonReservationPreferredDateQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (lrpdq *LessonReservationPreferredDateQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = lrpdq.Limit(1).IDs(setContextOp(ctx, lrpdq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -119,7 +119,7 @@ func (lrpdq *LessonReservationPreferredDateQuery) FirstID(ctx context.Context) (
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (lrpdq *LessonReservationPreferredDateQuery) FirstIDX(ctx context.Context) int {
+func (lrpdq *LessonReservationPreferredDateQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := lrpdq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -157,8 +157,8 @@ func (lrpdq *LessonReservationPreferredDateQuery) OnlyX(ctx context.Context) *Le
 // OnlyID is like Only, but returns the only LessonReservationPreferredDate ID in the query.
 // Returns a *NotSingularError when more than one LessonReservationPreferredDate ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (lrpdq *LessonReservationPreferredDateQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (lrpdq *LessonReservationPreferredDateQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = lrpdq.Limit(2).IDs(setContextOp(ctx, lrpdq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -174,7 +174,7 @@ func (lrpdq *LessonReservationPreferredDateQuery) OnlyID(ctx context.Context) (i
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (lrpdq *LessonReservationPreferredDateQuery) OnlyIDX(ctx context.Context) int {
+func (lrpdq *LessonReservationPreferredDateQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := lrpdq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,7 +202,7 @@ func (lrpdq *LessonReservationPreferredDateQuery) AllX(ctx context.Context) []*L
 }
 
 // IDs executes the query and returns a list of LessonReservationPreferredDate IDs.
-func (lrpdq *LessonReservationPreferredDateQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (lrpdq *LessonReservationPreferredDateQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if lrpdq.ctx.Unique == nil && lrpdq.path != nil {
 		lrpdq.Unique(true)
 	}
@@ -214,7 +214,7 @@ func (lrpdq *LessonReservationPreferredDateQuery) IDs(ctx context.Context) (ids 
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lrpdq *LessonReservationPreferredDateQuery) IDsX(ctx context.Context) []int {
+func (lrpdq *LessonReservationPreferredDateQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := lrpdq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -402,8 +402,8 @@ func (lrpdq *LessonReservationPreferredDateQuery) sqlAll(ctx context.Context, ho
 }
 
 func (lrpdq *LessonReservationPreferredDateQuery) loadLessonReservations(ctx context.Context, query *LessonReservationQuery, nodes []*LessonReservationPreferredDate, init func(*LessonReservationPreferredDate), assign func(*LessonReservationPreferredDate, *LessonReservation)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LessonReservationPreferredDate)
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*LessonReservationPreferredDate)
 	for i := range nodes {
 		fk := nodes[i].LessonReservationID
 		if _, ok := nodeids[fk]; !ok {
@@ -441,7 +441,7 @@ func (lrpdq *LessonReservationPreferredDateQuery) sqlCount(ctx context.Context) 
 }
 
 func (lrpdq *LessonReservationPreferredDateQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.Columns, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(lessonreservationpreferreddate.Table, lessonreservationpreferreddate.Columns, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt64))
 	_spec.From = lrpdq.sql
 	if unique := lrpdq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

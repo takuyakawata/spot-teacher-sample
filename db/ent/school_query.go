@@ -131,8 +131,8 @@ func (sq *SchoolQuery) FirstX(ctx context.Context) *School {
 
 // FirstID returns the first School ID from the query.
 // Returns a *NotFoundError when no School ID was found.
-func (sq *SchoolQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (sq *SchoolQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -144,7 +144,7 @@ func (sq *SchoolQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *SchoolQuery) FirstIDX(ctx context.Context) int {
+func (sq *SchoolQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -182,8 +182,8 @@ func (sq *SchoolQuery) OnlyX(ctx context.Context) *School {
 // OnlyID is like Only, but returns the only School ID in the query.
 // Returns a *NotSingularError when more than one School ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *SchoolQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (sq *SchoolQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -199,7 +199,7 @@ func (sq *SchoolQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *SchoolQuery) OnlyIDX(ctx context.Context) int {
+func (sq *SchoolQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -227,7 +227,7 @@ func (sq *SchoolQuery) AllX(ctx context.Context) []*School {
 }
 
 // IDs executes the query and returns a list of School IDs.
-func (sq *SchoolQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (sq *SchoolQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -239,7 +239,7 @@ func (sq *SchoolQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SchoolQuery) IDsX(ctx context.Context) []int {
+func (sq *SchoolQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -451,7 +451,7 @@ func (sq *SchoolQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Schoo
 
 func (sq *SchoolQuery) loadTeachers(ctx context.Context, query *UserQuery, nodes []*School, init func(*School), assign func(*School, *User)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*School)
+	nodeids := make(map[int64]*School)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -484,7 +484,7 @@ func (sq *SchoolQuery) loadTeachers(ctx context.Context, query *UserQuery, nodes
 }
 func (sq *SchoolQuery) loadLessonReservations(ctx context.Context, query *LessonReservationQuery, nodes []*School, init func(*School), assign func(*School, *LessonReservation)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*School)
+	nodeids := make(map[int64]*School)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -523,7 +523,7 @@ func (sq *SchoolQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (sq *SchoolQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(school.Table, school.Columns, sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64))
 	_spec.From = sq.sql
 	if unique := sq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

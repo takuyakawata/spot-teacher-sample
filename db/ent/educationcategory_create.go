@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/educationcategory"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
 )
 
 // EducationCategoryCreate is the builder for creating a EducationCategory entity.
@@ -61,19 +62,40 @@ func (ecc *EducationCategoryCreate) SetCode(s string) *EducationCategoryCreate {
 	return ecc
 }
 
+// SetID sets the "id" field.
+func (ecc *EducationCategoryCreate) SetID(i int64) *EducationCategoryCreate {
+	ecc.mutation.SetID(i)
+	return ecc
+}
+
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (ecc *EducationCategoryCreate) AddLessonPlanIDs(ids ...int) *EducationCategoryCreate {
+func (ecc *EducationCategoryCreate) AddLessonPlanIDs(ids ...int64) *EducationCategoryCreate {
 	ecc.mutation.AddLessonPlanIDs(ids...)
 	return ecc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (ecc *EducationCategoryCreate) AddLessonPlans(l ...*LessonPlan) *EducationCategoryCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return ecc.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanEducationCategoryIDs adds the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by IDs.
+func (ecc *EducationCategoryCreate) AddLessonPlanEducationCategoryIDs(ids ...int64) *EducationCategoryCreate {
+	ecc.mutation.AddLessonPlanEducationCategoryIDs(ids...)
+	return ecc
+}
+
+// AddLessonPlanEducationCategories adds the "lesson_plan_education_categories" edges to the LessonPlanEducationCategory entity.
+func (ecc *EducationCategoryCreate) AddLessonPlanEducationCategories(l ...*LessonPlanEducationCategory) *EducationCategoryCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ecc.AddLessonPlanEducationCategoryIDs(ids...)
 }
 
 // Mutation returns the EducationCategoryMutation object of the builder.
@@ -145,6 +167,11 @@ func (ecc *EducationCategoryCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "EducationCategory.code": %w`, err)}
 		}
 	}
+	if v, ok := ecc.mutation.ID(); ok {
+		if err := educationcategory.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "EducationCategory.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -159,8 +186,10 @@ func (ecc *EducationCategoryCreate) sqlSave(ctx context.Context) (*EducationCate
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	ecc.mutation.id = &_node.ID
 	ecc.mutation.done = true
 	return _node, nil
@@ -169,8 +198,12 @@ func (ecc *EducationCategoryCreate) sqlSave(ctx context.Context) (*EducationCate
 func (ecc *EducationCategoryCreate) createSpec() (*EducationCategory, *sqlgraph.CreateSpec) {
 	var (
 		_node = &EducationCategory{config: ecc.config}
-		_spec = sqlgraph.NewCreateSpec(educationcategory.Table, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(educationcategory.Table, sqlgraph.NewFieldSpec(educationcategory.FieldID, field.TypeInt64))
 	)
+	if id, ok := ecc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := ecc.mutation.CreatedAt(); ok {
 		_spec.SetField(educationcategory.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -195,7 +228,27 @@ func (ecc *EducationCategoryCreate) createSpec() (*EducationCategory, *sqlgraph.
 			Columns: educationcategory.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanEducationCategoryCreate{config: ecc.config, mutation: newLessonPlanEducationCategoryMutation(ecc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ecc.mutation.LessonPlanEducationCategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   educationcategory.LessonPlanEducationCategoriesTable,
+			Columns: []string{educationcategory.LessonPlanEducationCategoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplaneducationcategory.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -251,9 +304,9 @@ func (eccb *EducationCategoryCreateBulk) Save(ctx context.Context) ([]*Education
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

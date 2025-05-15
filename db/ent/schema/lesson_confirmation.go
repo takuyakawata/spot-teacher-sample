@@ -10,7 +10,8 @@ type LessonConfirmation struct{ ent.Schema }
 
 func (LessonConfirmation) Fields() []ent.Field {
 	return []ent.Field{
-		field.Int("lesson_reservation_id").Positive(),
+		field.Int64("lesson_reservation_id").
+			Positive(),
 
 		field.Time("matching_date"),
 
@@ -26,6 +27,13 @@ func (LessonConfirmation) Fields() []ent.Field {
 	}
 }
 
+func (LessonConfirmation) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		Mixin{},
+		TimeMixin{},
+	}
+}
+
 func (LessonConfirmation) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("lesson_reservation", LessonReservation.Type).
@@ -33,11 +41,5 @@ func (LessonConfirmation) Edges() []ent.Edge {
 			Field("lesson_reservation_id").
 			Unique().
 			Required(),
-	}
-}
-
-func (LessonConfirmation) Mixins() []ent.Mixin {
-	return []ent.Mixin{
-		TimeMixin{},
 	}
 }

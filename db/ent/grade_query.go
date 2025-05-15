@@ -14,18 +14,20 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplangrade"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 )
 
 // GradeQuery is the builder for querying Grade entities.
 type GradeQuery struct {
 	config
-	ctx             *QueryContext
-	order           []grade.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Grade
-	withLessonPlans *LessonPlanQuery
-	withFKs         bool
+	ctx                  *QueryContext
+	order                []grade.OrderOption
+	inters               []Interceptor
+	predicates           []predicate.Grade
+	withLessonPlans      *LessonPlanQuery
+	withLessonPlanGrades *LessonPlanGradeQuery
+	withFKs              bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -84,6 +86,28 @@ func (gq *GradeQuery) QueryLessonPlans() *LessonPlanQuery {
 	return query
 }
 
+// QueryLessonPlanGrades chains the current query on the "lesson_plan_grades" edge.
+func (gq *GradeQuery) QueryLessonPlanGrades() *LessonPlanGradeQuery {
+	query := (&LessonPlanGradeClient{config: gq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := gq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := gq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(grade.Table, grade.FieldID, selector),
+			sqlgraph.To(lessonplangrade.Table, lessonplangrade.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, grade.LessonPlanGradesTable, grade.LessonPlanGradesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(gq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Grade entity from the query.
 // Returns a *NotFoundError when no Grade was found.
 func (gq *GradeQuery) First(ctx context.Context) (*Grade, error) {
@@ -108,8 +132,8 @@ func (gq *GradeQuery) FirstX(ctx context.Context) *Grade {
 
 // FirstID returns the first Grade ID from the query.
 // Returns a *NotFoundError when no Grade ID was found.
-func (gq *GradeQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (gq *GradeQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = gq.Limit(1).IDs(setContextOp(ctx, gq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -121,7 +145,7 @@ func (gq *GradeQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (gq *GradeQuery) FirstIDX(ctx context.Context) int {
+func (gq *GradeQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := gq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -159,8 +183,8 @@ func (gq *GradeQuery) OnlyX(ctx context.Context) *Grade {
 // OnlyID is like Only, but returns the only Grade ID in the query.
 // Returns a *NotSingularError when more than one Grade ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (gq *GradeQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (gq *GradeQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = gq.Limit(2).IDs(setContextOp(ctx, gq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -176,7 +200,7 @@ func (gq *GradeQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (gq *GradeQuery) OnlyIDX(ctx context.Context) int {
+func (gq *GradeQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := gq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -204,7 +228,7 @@ func (gq *GradeQuery) AllX(ctx context.Context) []*Grade {
 }
 
 // IDs executes the query and returns a list of Grade IDs.
-func (gq *GradeQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (gq *GradeQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if gq.ctx.Unique == nil && gq.path != nil {
 		gq.Unique(true)
 	}
@@ -216,7 +240,7 @@ func (gq *GradeQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (gq *GradeQuery) IDsX(ctx context.Context) []int {
+func (gq *GradeQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := gq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -271,12 +295,13 @@ func (gq *GradeQuery) Clone() *GradeQuery {
 		return nil
 	}
 	return &GradeQuery{
-		config:          gq.config,
-		ctx:             gq.ctx.Clone(),
-		order:           append([]grade.OrderOption{}, gq.order...),
-		inters:          append([]Interceptor{}, gq.inters...),
-		predicates:      append([]predicate.Grade{}, gq.predicates...),
-		withLessonPlans: gq.withLessonPlans.Clone(),
+		config:               gq.config,
+		ctx:                  gq.ctx.Clone(),
+		order:                append([]grade.OrderOption{}, gq.order...),
+		inters:               append([]Interceptor{}, gq.inters...),
+		predicates:           append([]predicate.Grade{}, gq.predicates...),
+		withLessonPlans:      gq.withLessonPlans.Clone(),
+		withLessonPlanGrades: gq.withLessonPlanGrades.Clone(),
 		// clone intermediate query.
 		sql:  gq.sql.Clone(),
 		path: gq.path,
@@ -291,6 +316,17 @@ func (gq *GradeQuery) WithLessonPlans(opts ...func(*LessonPlanQuery)) *GradeQuer
 		opt(query)
 	}
 	gq.withLessonPlans = query
+	return gq
+}
+
+// WithLessonPlanGrades tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_plan_grades" edge. The optional arguments are used to configure the query builder of the edge.
+func (gq *GradeQuery) WithLessonPlanGrades(opts ...func(*LessonPlanGradeQuery)) *GradeQuery {
+	query := (&LessonPlanGradeClient{config: gq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	gq.withLessonPlanGrades = query
 	return gq
 }
 
@@ -373,8 +409,9 @@ func (gq *GradeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Grade,
 		nodes       = []*Grade{}
 		withFKs     = gq.withFKs
 		_spec       = gq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			gq.withLessonPlans != nil,
+			gq.withLessonPlanGrades != nil,
 		}
 	)
 	if withFKs {
@@ -405,13 +442,20 @@ func (gq *GradeQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Grade,
 			return nil, err
 		}
 	}
+	if query := gq.withLessonPlanGrades; query != nil {
+		if err := gq.loadLessonPlanGrades(ctx, query, nodes,
+			func(n *Grade) { n.Edges.LessonPlanGrades = []*LessonPlanGrade{} },
+			func(n *Grade, e *LessonPlanGrade) { n.Edges.LessonPlanGrades = append(n.Edges.LessonPlanGrades, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (gq *GradeQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*Grade, init func(*Grade), assign func(*Grade, *LessonPlan)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Grade)
-	nids := make(map[int]map[*Grade]struct{})
+	byID := make(map[int64]*Grade)
+	nids := make(map[int64]map[*Grade]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -443,8 +487,8 @@ func (gq *GradeQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuer
 				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
+				outValue := values[0].(*sql.NullInt64).Int64
+				inValue := values[1].(*sql.NullInt64).Int64
 				if nids[inValue] == nil {
 					nids[inValue] = map[*Grade]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])
@@ -469,6 +513,36 @@ func (gq *GradeQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuer
 	}
 	return nil
 }
+func (gq *GradeQuery) loadLessonPlanGrades(ctx context.Context, query *LessonPlanGradeQuery, nodes []*Grade, init func(*Grade), assign func(*Grade, *LessonPlanGrade)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Grade)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonplangrade.FieldGradeID)
+	}
+	query.Where(predicate.LessonPlanGrade(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(grade.LessonPlanGradesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.GradeID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "grade_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (gq *GradeQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := gq.querySpec()
@@ -480,7 +554,7 @@ func (gq *GradeQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (gq *GradeQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(grade.Table, grade.Columns, sqlgraph.NewFieldSpec(grade.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(grade.Table, grade.Columns, sqlgraph.NewFieldSpec(grade.FieldID, field.TypeInt64))
 	_spec.From = gq.sql
 	if unique := gq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

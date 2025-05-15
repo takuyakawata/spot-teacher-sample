@@ -25,20 +25,48 @@ type LessonReservationCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (lrc *LessonReservationCreate) SetCreatedAt(t time.Time) *LessonReservationCreate {
+	lrc.mutation.SetCreatedAt(t)
+	return lrc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (lrc *LessonReservationCreate) SetNillableCreatedAt(t *time.Time) *LessonReservationCreate {
+	if t != nil {
+		lrc.SetCreatedAt(*t)
+	}
+	return lrc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (lrc *LessonReservationCreate) SetUpdatedAt(t time.Time) *LessonReservationCreate {
+	lrc.mutation.SetUpdatedAt(t)
+	return lrc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (lrc *LessonReservationCreate) SetNillableUpdatedAt(t *time.Time) *LessonReservationCreate {
+	if t != nil {
+		lrc.SetUpdatedAt(*t)
+	}
+	return lrc
+}
+
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (lrc *LessonReservationCreate) SetLessonScheduleID(i int) *LessonReservationCreate {
+func (lrc *LessonReservationCreate) SetLessonScheduleID(i int64) *LessonReservationCreate {
 	lrc.mutation.SetLessonScheduleID(i)
 	return lrc
 }
 
 // SetSchoolID sets the "school_id" field.
-func (lrc *LessonReservationCreate) SetSchoolID(i int) *LessonReservationCreate {
+func (lrc *LessonReservationCreate) SetSchoolID(i int64) *LessonReservationCreate {
 	lrc.mutation.SetSchoolID(i)
 	return lrc
 }
 
 // SetUserID sets the "user_id" field.
-func (lrc *LessonReservationCreate) SetUserID(i int) *LessonReservationCreate {
+func (lrc *LessonReservationCreate) SetUserID(i int64) *LessonReservationCreate {
 	lrc.mutation.SetUserID(i)
 	return lrc
 }
@@ -95,6 +123,12 @@ func (lrc *LessonReservationCreate) SetNillableReservationConfirmAt(t *time.Time
 	return lrc
 }
 
+// SetID sets the "id" field.
+func (lrc *LessonReservationCreate) SetID(i int64) *LessonReservationCreate {
+	lrc.mutation.SetID(i)
+	return lrc
+}
+
 // SetLessonSchedule sets the "lesson_schedule" edge to the LessonSchedule entity.
 func (lrc *LessonReservationCreate) SetLessonSchedule(l *LessonSchedule) *LessonReservationCreate {
 	return lrc.SetLessonScheduleID(l.ID)
@@ -111,14 +145,14 @@ func (lrc *LessonReservationCreate) SetUser(u *User) *LessonReservationCreate {
 }
 
 // AddLessonReservationPreferredDateIDs adds the "lesson_reservation_preferred_dates" edge to the LessonReservationPreferredDate entity by IDs.
-func (lrc *LessonReservationCreate) AddLessonReservationPreferredDateIDs(ids ...int) *LessonReservationCreate {
+func (lrc *LessonReservationCreate) AddLessonReservationPreferredDateIDs(ids ...int64) *LessonReservationCreate {
 	lrc.mutation.AddLessonReservationPreferredDateIDs(ids...)
 	return lrc
 }
 
 // AddLessonReservationPreferredDates adds the "lesson_reservation_preferred_dates" edges to the LessonReservationPreferredDate entity.
 func (lrc *LessonReservationCreate) AddLessonReservationPreferredDates(l ...*LessonReservationPreferredDate) *LessonReservationCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -126,14 +160,14 @@ func (lrc *LessonReservationCreate) AddLessonReservationPreferredDates(l ...*Les
 }
 
 // AddLessonConfirmationIDs adds the "lesson_confirmation" edge to the LessonConfirmation entity by IDs.
-func (lrc *LessonReservationCreate) AddLessonConfirmationIDs(ids ...int) *LessonReservationCreate {
+func (lrc *LessonReservationCreate) AddLessonConfirmationIDs(ids ...int64) *LessonReservationCreate {
 	lrc.mutation.AddLessonConfirmationIDs(ids...)
 	return lrc
 }
 
 // AddLessonConfirmation adds the "lesson_confirmation" edges to the LessonConfirmation entity.
 func (lrc *LessonReservationCreate) AddLessonConfirmation(l ...*LessonConfirmation) *LessonReservationCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -147,6 +181,7 @@ func (lrc *LessonReservationCreate) Mutation() *LessonReservationMutation {
 
 // Save creates the LessonReservation in the database.
 func (lrc *LessonReservationCreate) Save(ctx context.Context) (*LessonReservation, error) {
+	lrc.defaults()
 	return withHooks(ctx, lrc.sqlSave, lrc.mutation, lrc.hooks)
 }
 
@@ -172,8 +207,26 @@ func (lrc *LessonReservationCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (lrc *LessonReservationCreate) defaults() {
+	if _, ok := lrc.mutation.CreatedAt(); !ok {
+		v := lessonreservation.DefaultCreatedAt()
+		lrc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := lrc.mutation.UpdatedAt(); !ok {
+		v := lessonreservation.DefaultUpdatedAt()
+		lrc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (lrc *LessonReservationCreate) check() error {
+	if _, ok := lrc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "LessonReservation.created_at"`)}
+	}
+	if _, ok := lrc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "LessonReservation.updated_at"`)}
+	}
 	if _, ok := lrc.mutation.LessonScheduleID(); !ok {
 		return &ValidationError{Name: "lesson_schedule_id", err: errors.New(`ent: missing required field "LessonReservation.lesson_schedule_id"`)}
 	}
@@ -215,6 +268,11 @@ func (lrc *LessonReservationCreate) check() error {
 	if _, ok := lrc.mutation.Subject(); !ok {
 		return &ValidationError{Name: "subject", err: errors.New(`ent: missing required field "LessonReservation.subject"`)}
 	}
+	if v, ok := lrc.mutation.ID(); ok {
+		if err := lessonreservation.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "LessonReservation.id": %w`, err)}
+		}
+	}
 	if len(lrc.mutation.LessonScheduleIDs()) == 0 {
 		return &ValidationError{Name: "lesson_schedule", err: errors.New(`ent: missing required edge "LessonReservation.lesson_schedule"`)}
 	}
@@ -238,8 +296,10 @@ func (lrc *LessonReservationCreate) sqlSave(ctx context.Context) (*LessonReserva
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	lrc.mutation.id = &_node.ID
 	lrc.mutation.done = true
 	return _node, nil
@@ -248,8 +308,20 @@ func (lrc *LessonReservationCreate) sqlSave(ctx context.Context) (*LessonReserva
 func (lrc *LessonReservationCreate) createSpec() (*LessonReservation, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LessonReservation{config: lrc.config}
-		_spec = sqlgraph.NewCreateSpec(lessonreservation.Table, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(lessonreservation.Table, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64))
 	)
+	if id, ok := lrc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
+	if value, ok := lrc.mutation.CreatedAt(); ok {
+		_spec.SetField(lessonreservation.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := lrc.mutation.UpdatedAt(); ok {
+		_spec.SetField(lessonreservation.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := lrc.mutation.ReservationStatus(); ok {
 		_spec.SetField(lessonreservation.FieldReservationStatus, field.TypeEnum, value)
 		_node.ReservationStatus = value
@@ -282,7 +354,7 @@ func (lrc *LessonReservationCreate) createSpec() (*LessonReservation, *sqlgraph.
 			Columns: []string{lessonreservation.LessonScheduleColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonschedule.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -299,7 +371,7 @@ func (lrc *LessonReservationCreate) createSpec() (*LessonReservation, *sqlgraph.
 			Columns: []string{lessonreservation.SchoolColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(school.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -316,7 +388,7 @@ func (lrc *LessonReservationCreate) createSpec() (*LessonReservation, *sqlgraph.
 			Columns: []string{lessonreservation.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -333,7 +405,7 @@ func (lrc *LessonReservationCreate) createSpec() (*LessonReservation, *sqlgraph.
 			Columns: []string{lessonreservation.LessonReservationPreferredDatesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -349,7 +421,7 @@ func (lrc *LessonReservationCreate) createSpec() (*LessonReservation, *sqlgraph.
 			Columns: []string{lessonreservation.LessonConfirmationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -378,6 +450,7 @@ func (lrcb *LessonReservationCreateBulk) Save(ctx context.Context) ([]*LessonRes
 	for i := range lrcb.builders {
 		func(i int, root context.Context) {
 			builder := lrcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*LessonReservationMutation)
 				if !ok {
@@ -404,9 +477,9 @@ func (lrcb *LessonReservationCreateBulk) Save(ctx context.Context) ([]*LessonRes
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

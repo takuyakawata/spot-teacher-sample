@@ -66,6 +66,12 @@ func (evc *EmailVerificationCreate) SetExpiredAt(t time.Time) *EmailVerification
 	return evc
 }
 
+// SetID sets the "id" field.
+func (evc *EmailVerificationCreate) SetID(i int64) *EmailVerificationCreate {
+	evc.mutation.SetID(i)
+	return evc
+}
+
 // Mutation returns the EmailVerificationMutation object of the builder.
 func (evc *EmailVerificationCreate) Mutation() *EmailVerificationMutation {
 	return evc.mutation
@@ -128,6 +134,11 @@ func (evc *EmailVerificationCreate) check() error {
 	if _, ok := evc.mutation.ExpiredAt(); !ok {
 		return &ValidationError{Name: "expired_at", err: errors.New(`ent: missing required field "EmailVerification.expired_at"`)}
 	}
+	if v, ok := evc.mutation.ID(); ok {
+		if err := emailverification.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "EmailVerification.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -142,8 +153,10 @@ func (evc *EmailVerificationCreate) sqlSave(ctx context.Context) (*EmailVerifica
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	evc.mutation.id = &_node.ID
 	evc.mutation.done = true
 	return _node, nil
@@ -152,8 +165,12 @@ func (evc *EmailVerificationCreate) sqlSave(ctx context.Context) (*EmailVerifica
 func (evc *EmailVerificationCreate) createSpec() (*EmailVerification, *sqlgraph.CreateSpec) {
 	var (
 		_node = &EmailVerification{config: evc.config}
-		_spec = sqlgraph.NewCreateSpec(emailverification.Table, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(emailverification.Table, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt64))
 	)
+	if id, ok := evc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := evc.mutation.CreatedAt(); ok {
 		_spec.SetField(emailverification.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -222,9 +239,9 @@ func (evcb *EmailVerificationCreateBulk) Save(ctx context.Context) ([]*EmailVeri
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

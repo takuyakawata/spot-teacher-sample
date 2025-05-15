@@ -93,6 +93,54 @@ func (f LessonPlanFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanMutation", m)
 }
 
+// The LessonPlanEducationCategoryFunc type is an adapter to allow the use of ordinary
+// function as LessonPlanEducationCategory mutator.
+type LessonPlanEducationCategoryFunc func(context.Context, *ent.LessonPlanEducationCategoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonPlanEducationCategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonPlanEducationCategoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanEducationCategoryMutation", m)
+}
+
+// The LessonPlanGradeFunc type is an adapter to allow the use of ordinary
+// function as LessonPlanGrade mutator.
+type LessonPlanGradeFunc func(context.Context, *ent.LessonPlanGradeMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonPlanGradeFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonPlanGradeMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanGradeMutation", m)
+}
+
+// The LessonPlanSubjectFunc type is an adapter to allow the use of ordinary
+// function as LessonPlanSubject mutator.
+type LessonPlanSubjectFunc func(context.Context, *ent.LessonPlanSubjectMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonPlanSubjectFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonPlanSubjectMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanSubjectMutation", m)
+}
+
+// The LessonPlanUploadFileFunc type is an adapter to allow the use of ordinary
+// function as LessonPlanUploadFile mutator.
+type LessonPlanUploadFileFunc func(context.Context, *ent.LessonPlanUploadFileMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f LessonPlanUploadFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.LessonPlanUploadFileMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.LessonPlanUploadFileMutation", m)
+}
+
 // The LessonReservationFunc type is an adapter to allow the use of ordinary
 // function as LessonReservation mutator.
 type LessonReservationFunc func(context.Context, *ent.LessonReservationMutation) (ent.Value, error)

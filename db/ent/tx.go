@@ -26,6 +26,14 @@ type Tx struct {
 	LessonConfirmation *LessonConfirmationClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
+	// LessonPlanEducationCategory is the client for interacting with the LessonPlanEducationCategory builders.
+	LessonPlanEducationCategory *LessonPlanEducationCategoryClient
+	// LessonPlanGrade is the client for interacting with the LessonPlanGrade builders.
+	LessonPlanGrade *LessonPlanGradeClient
+	// LessonPlanSubject is the client for interacting with the LessonPlanSubject builders.
+	LessonPlanSubject *LessonPlanSubjectClient
+	// LessonPlanUploadFile is the client for interacting with the LessonPlanUploadFile builders.
+	LessonPlanUploadFile *LessonPlanUploadFileClient
 	// LessonReservation is the client for interacting with the LessonReservation builders.
 	LessonReservation *LessonReservationClient
 	// LessonReservationPreferredDate is the client for interacting with the LessonReservationPreferredDate builders.
@@ -180,6 +188,10 @@ func (tx *Tx) init() {
 	tx.Inquiry = NewInquiryClient(tx.config)
 	tx.LessonConfirmation = NewLessonConfirmationClient(tx.config)
 	tx.LessonPlan = NewLessonPlanClient(tx.config)
+	tx.LessonPlanEducationCategory = NewLessonPlanEducationCategoryClient(tx.config)
+	tx.LessonPlanGrade = NewLessonPlanGradeClient(tx.config)
+	tx.LessonPlanSubject = NewLessonPlanSubjectClient(tx.config)
+	tx.LessonPlanUploadFile = NewLessonPlanUploadFileClient(tx.config)
 	tx.LessonReservation = NewLessonReservationClient(tx.config)
 	tx.LessonReservationPreferredDate = NewLessonReservationPreferredDateClient(tx.config)
 	tx.LessonSchedule = NewLessonScheduleClient(tx.config)

@@ -16,7 +16,7 @@ import (
 type Subject struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -28,7 +28,7 @@ type Subject struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the SubjectQuery when eager-loading is set.
 	Edges                    SubjectEdges `json:"edges"`
-	lesson_schedule_subjects *int
+	lesson_schedule_subjects *int64
 	selectValues             sql.SelectValues
 }
 
@@ -36,9 +36,11 @@ type Subject struct {
 type SubjectEdges struct {
 	// LessonPlans holds the value of the lesson_plans edge.
 	LessonPlans []*LessonPlan `json:"lesson_plans,omitempty"`
+	// LessonPlanSubjects holds the value of the lesson_plan_subjects edge.
+	LessonPlanSubjects []*LessonPlanSubject `json:"lesson_plan_subjects,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // LessonPlansOrErr returns the LessonPlans value or an error if the edge
@@ -48,6 +50,15 @@ func (e SubjectEdges) LessonPlansOrErr() ([]*LessonPlan, error) {
 		return e.LessonPlans, nil
 	}
 	return nil, &NotLoadedError{edge: "lesson_plans"}
+}
+
+// LessonPlanSubjectsOrErr returns the LessonPlanSubjects value or an error if the edge
+// was not loaded in eager-loading.
+func (e SubjectEdges) LessonPlanSubjectsOrErr() ([]*LessonPlanSubject, error) {
+	if e.loadedTypes[1] {
+		return e.LessonPlanSubjects, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_plan_subjects"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -83,7 +94,7 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			s.ID = int(value.Int64)
+			s.ID = int64(value.Int64)
 		case subject.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -112,8 +123,8 @@ func (s *Subject) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_subjects", value)
 			} else if value.Valid {
-				s.lesson_schedule_subjects = new(int)
-				*s.lesson_schedule_subjects = int(value.Int64)
+				s.lesson_schedule_subjects = new(int64)
+				*s.lesson_schedule_subjects = int64(value.Int64)
 			}
 		default:
 			s.selectValues.Set(columns[i], values[i])
@@ -131,6 +142,11 @@ func (s *Subject) Value(name string) (ent.Value, error) {
 // QueryLessonPlans queries the "lesson_plans" edge of the Subject entity.
 func (s *Subject) QueryLessonPlans() *LessonPlanQuery {
 	return NewSubjectClient(s.config).QueryLessonPlans(s)
+}
+
+// QueryLessonPlanSubjects queries the "lesson_plan_subjects" edge of the Subject entity.
+func (s *Subject) QueryLessonPlanSubjects() *LessonPlanSubjectQuery {
+	return NewSubjectClient(s.config).QueryLessonPlanSubjects(s)
 }
 
 // Update returns a builder for updating this Subject.

@@ -16,19 +16,19 @@ import (
 type Grade struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	// CodeNumber holds the value of the "code_number" field.
+	CodeNumber int64 `json:"code_number,omitempty"`
 	// Code holds the value of the "code" field.
 	Code string `json:"code,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the GradeQuery when eager-loading is set.
 	Edges                  GradeEdges `json:"edges"`
-	lesson_schedule_grades *int
+	lesson_schedule_grades *int64
 	selectValues           sql.SelectValues
 }
 
@@ -36,9 +36,11 @@ type Grade struct {
 type GradeEdges struct {
 	// LessonPlans holds the value of the lesson_plans edge.
 	LessonPlans []*LessonPlan `json:"lesson_plans,omitempty"`
+	// LessonPlanGrades holds the value of the lesson_plan_grades edge.
+	LessonPlanGrades []*LessonPlanGrade `json:"lesson_plan_grades,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // LessonPlansOrErr returns the LessonPlans value or an error if the edge
@@ -50,14 +52,23 @@ func (e GradeEdges) LessonPlansOrErr() ([]*LessonPlan, error) {
 	return nil, &NotLoadedError{edge: "lesson_plans"}
 }
 
+// LessonPlanGradesOrErr returns the LessonPlanGrades value or an error if the edge
+// was not loaded in eager-loading.
+func (e GradeEdges) LessonPlanGradesOrErr() ([]*LessonPlanGrade, error) {
+	if e.loadedTypes[1] {
+		return e.LessonPlanGrades, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_plan_grades"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Grade) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case grade.FieldID:
+		case grade.FieldID, grade.FieldCodeNumber:
 			values[i] = new(sql.NullInt64)
-		case grade.FieldName, grade.FieldCode:
+		case grade.FieldCode:
 			values[i] = new(sql.NullString)
 		case grade.FieldCreatedAt, grade.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -83,7 +94,7 @@ func (gr *Grade) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			gr.ID = int(value.Int64)
+			gr.ID = int64(value.Int64)
 		case grade.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -96,11 +107,11 @@ func (gr *Grade) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				gr.UpdatedAt = value.Time
 			}
-		case grade.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
+		case grade.FieldCodeNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field code_number", values[i])
 			} else if value.Valid {
-				gr.Name = value.String
+				gr.CodeNumber = value.Int64
 			}
 		case grade.FieldCode:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -112,8 +123,8 @@ func (gr *Grade) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_grades", value)
 			} else if value.Valid {
-				gr.lesson_schedule_grades = new(int)
-				*gr.lesson_schedule_grades = int(value.Int64)
+				gr.lesson_schedule_grades = new(int64)
+				*gr.lesson_schedule_grades = int64(value.Int64)
 			}
 		default:
 			gr.selectValues.Set(columns[i], values[i])
@@ -131,6 +142,11 @@ func (gr *Grade) Value(name string) (ent.Value, error) {
 // QueryLessonPlans queries the "lesson_plans" edge of the Grade entity.
 func (gr *Grade) QueryLessonPlans() *LessonPlanQuery {
 	return NewGradeClient(gr.config).QueryLessonPlans(gr)
+}
+
+// QueryLessonPlanGrades queries the "lesson_plan_grades" edge of the Grade entity.
+func (gr *Grade) QueryLessonPlanGrades() *LessonPlanGradeQuery {
+	return NewGradeClient(gr.config).QueryLessonPlanGrades(gr)
 }
 
 // Update returns a builder for updating this Grade.
@@ -162,8 +178,8 @@ func (gr *Grade) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(gr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
-	builder.WriteString("name=")
-	builder.WriteString(gr.Name)
+	builder.WriteString("code_number=")
+	builder.WriteString(fmt.Sprintf("%v", gr.CodeNumber))
 	builder.WriteString(", ")
 	builder.WriteString("code=")
 	builder.WriteString(gr.Code)

@@ -18,6 +18,10 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonconfirmation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplangrade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplanuploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservationpreferreddate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
@@ -45,6 +49,10 @@ const (
 	TypeInquiry                        = "Inquiry"
 	TypeLessonConfirmation             = "LessonConfirmation"
 	TypeLessonPlan                     = "LessonPlan"
+	TypeLessonPlanEducationCategory    = "LessonPlanEducationCategory"
+	TypeLessonPlanGrade                = "LessonPlanGrade"
+	TypeLessonPlanSubject              = "LessonPlanSubject"
+	TypeLessonPlanUploadFile           = "LessonPlanUploadFile"
 	TypeLessonReservation              = "LessonReservation"
 	TypeLessonReservationPreferredDate = "LessonReservationPreferredDate"
 	TypeLessonSchedule                 = "LessonSchedule"
@@ -60,7 +68,7 @@ type CompanyMutation struct {
 	config
 	op                  Op
 	typ                 string
-	id                  *int
+	id                  *int64
 	created_at          *time.Time
 	updated_at          *time.Time
 	name                *string
@@ -72,11 +80,11 @@ type CompanyMutation struct {
 	phone_number        *string
 	url                 *string
 	clearedFields       map[string]struct{}
-	lesson_plans        map[int]struct{}
-	removedlesson_plans map[int]struct{}
+	lesson_plans        map[int64]struct{}
+	removedlesson_plans map[int64]struct{}
 	clearedlesson_plans bool
-	members             map[int]struct{}
-	removedmembers      map[int]struct{}
+	members             map[int64]struct{}
+	removedmembers      map[int64]struct{}
 	clearedmembers      bool
 	done                bool
 	oldValue            func(context.Context) (*Company, error)
@@ -103,7 +111,7 @@ func newCompanyMutation(c config, op Op, opts ...companyOption) *CompanyMutation
 }
 
 // withCompanyID sets the ID field of the mutation.
-func withCompanyID(id int) companyOption {
+func withCompanyID(id int64) companyOption {
 	return func(m *CompanyMutation) {
 		var (
 			err   error
@@ -153,9 +161,15 @@ func (m CompanyMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Company entities.
+func (m *CompanyMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *CompanyMutation) ID() (id int, exists bool) {
+func (m *CompanyMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -166,12 +180,12 @@ func (m *CompanyMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *CompanyMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *CompanyMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -552,9 +566,9 @@ func (m *CompanyMutation) ResetURL() {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by ids.
-func (m *CompanyMutation) AddLessonPlanIDs(ids ...int) {
+func (m *CompanyMutation) AddLessonPlanIDs(ids ...int64) {
 	if m.lesson_plans == nil {
-		m.lesson_plans = make(map[int]struct{})
+		m.lesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_plans[ids[i]] = struct{}{}
@@ -572,9 +586,9 @@ func (m *CompanyMutation) LessonPlansCleared() bool {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (m *CompanyMutation) RemoveLessonPlanIDs(ids ...int) {
+func (m *CompanyMutation) RemoveLessonPlanIDs(ids ...int64) {
 	if m.removedlesson_plans == nil {
-		m.removedlesson_plans = make(map[int]struct{})
+		m.removedlesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_plans, ids[i])
@@ -583,7 +597,7 @@ func (m *CompanyMutation) RemoveLessonPlanIDs(ids ...int) {
 }
 
 // RemovedLessonPlans returns the removed IDs of the "lesson_plans" edge to the LessonPlan entity.
-func (m *CompanyMutation) RemovedLessonPlansIDs() (ids []int) {
+func (m *CompanyMutation) RemovedLessonPlansIDs() (ids []int64) {
 	for id := range m.removedlesson_plans {
 		ids = append(ids, id)
 	}
@@ -591,7 +605,7 @@ func (m *CompanyMutation) RemovedLessonPlansIDs() (ids []int) {
 }
 
 // LessonPlansIDs returns the "lesson_plans" edge IDs in the mutation.
-func (m *CompanyMutation) LessonPlansIDs() (ids []int) {
+func (m *CompanyMutation) LessonPlansIDs() (ids []int64) {
 	for id := range m.lesson_plans {
 		ids = append(ids, id)
 	}
@@ -606,9 +620,9 @@ func (m *CompanyMutation) ResetLessonPlans() {
 }
 
 // AddMemberIDs adds the "members" edge to the User entity by ids.
-func (m *CompanyMutation) AddMemberIDs(ids ...int) {
+func (m *CompanyMutation) AddMemberIDs(ids ...int64) {
 	if m.members == nil {
-		m.members = make(map[int]struct{})
+		m.members = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.members[ids[i]] = struct{}{}
@@ -626,9 +640,9 @@ func (m *CompanyMutation) MembersCleared() bool {
 }
 
 // RemoveMemberIDs removes the "members" edge to the User entity by IDs.
-func (m *CompanyMutation) RemoveMemberIDs(ids ...int) {
+func (m *CompanyMutation) RemoveMemberIDs(ids ...int64) {
 	if m.removedmembers == nil {
-		m.removedmembers = make(map[int]struct{})
+		m.removedmembers = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.members, ids[i])
@@ -637,7 +651,7 @@ func (m *CompanyMutation) RemoveMemberIDs(ids ...int) {
 }
 
 // RemovedMembers returns the removed IDs of the "members" edge to the User entity.
-func (m *CompanyMutation) RemovedMembersIDs() (ids []int) {
+func (m *CompanyMutation) RemovedMembersIDs() (ids []int64) {
 	for id := range m.removedmembers {
 		ids = append(ids, id)
 	}
@@ -645,7 +659,7 @@ func (m *CompanyMutation) RemovedMembersIDs() (ids []int) {
 }
 
 // MembersIDs returns the "members" edge IDs in the mutation.
-func (m *CompanyMutation) MembersIDs() (ids []int) {
+func (m *CompanyMutation) MembersIDs() (ids []int64) {
 	for id := range m.members {
 		ids = append(ids, id)
 	}
@@ -1069,20 +1083,23 @@ func (m *CompanyMutation) ResetEdge(name string) error {
 // EducationCategoryMutation represents an operation that mutates the EducationCategory nodes in the graph.
 type EducationCategoryMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	created_at          *time.Time
-	updated_at          *time.Time
-	name                *string
-	code                *string
-	clearedFields       map[string]struct{}
-	lesson_plans        map[int]struct{}
-	removedlesson_plans map[int]struct{}
-	clearedlesson_plans bool
-	done                bool
-	oldValue            func(context.Context) (*EducationCategory, error)
-	predicates          []predicate.EducationCategory
+	op                                      Op
+	typ                                     string
+	id                                      *int64
+	created_at                              *time.Time
+	updated_at                              *time.Time
+	name                                    *string
+	code                                    *string
+	clearedFields                           map[string]struct{}
+	lesson_plans                            map[int64]struct{}
+	removedlesson_plans                     map[int64]struct{}
+	clearedlesson_plans                     bool
+	lesson_plan_education_categories        map[int64]struct{}
+	removedlesson_plan_education_categories map[int64]struct{}
+	clearedlesson_plan_education_categories bool
+	done                                    bool
+	oldValue                                func(context.Context) (*EducationCategory, error)
+	predicates                              []predicate.EducationCategory
 }
 
 var _ ent.Mutation = (*EducationCategoryMutation)(nil)
@@ -1105,7 +1122,7 @@ func newEducationCategoryMutation(c config, op Op, opts ...educationcategoryOpti
 }
 
 // withEducationCategoryID sets the ID field of the mutation.
-func withEducationCategoryID(id int) educationcategoryOption {
+func withEducationCategoryID(id int64) educationcategoryOption {
 	return func(m *EducationCategoryMutation) {
 		var (
 			err   error
@@ -1155,9 +1172,15 @@ func (m EducationCategoryMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EducationCategory entities.
+func (m *EducationCategoryMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *EducationCategoryMutation) ID() (id int, exists bool) {
+func (m *EducationCategoryMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1168,12 +1191,12 @@ func (m *EducationCategoryMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *EducationCategoryMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *EducationCategoryMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -1328,9 +1351,9 @@ func (m *EducationCategoryMutation) ResetCode() {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by ids.
-func (m *EducationCategoryMutation) AddLessonPlanIDs(ids ...int) {
+func (m *EducationCategoryMutation) AddLessonPlanIDs(ids ...int64) {
 	if m.lesson_plans == nil {
-		m.lesson_plans = make(map[int]struct{})
+		m.lesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_plans[ids[i]] = struct{}{}
@@ -1348,9 +1371,9 @@ func (m *EducationCategoryMutation) LessonPlansCleared() bool {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (m *EducationCategoryMutation) RemoveLessonPlanIDs(ids ...int) {
+func (m *EducationCategoryMutation) RemoveLessonPlanIDs(ids ...int64) {
 	if m.removedlesson_plans == nil {
-		m.removedlesson_plans = make(map[int]struct{})
+		m.removedlesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_plans, ids[i])
@@ -1359,7 +1382,7 @@ func (m *EducationCategoryMutation) RemoveLessonPlanIDs(ids ...int) {
 }
 
 // RemovedLessonPlans returns the removed IDs of the "lesson_plans" edge to the LessonPlan entity.
-func (m *EducationCategoryMutation) RemovedLessonPlansIDs() (ids []int) {
+func (m *EducationCategoryMutation) RemovedLessonPlansIDs() (ids []int64) {
 	for id := range m.removedlesson_plans {
 		ids = append(ids, id)
 	}
@@ -1367,7 +1390,7 @@ func (m *EducationCategoryMutation) RemovedLessonPlansIDs() (ids []int) {
 }
 
 // LessonPlansIDs returns the "lesson_plans" edge IDs in the mutation.
-func (m *EducationCategoryMutation) LessonPlansIDs() (ids []int) {
+func (m *EducationCategoryMutation) LessonPlansIDs() (ids []int64) {
 	for id := range m.lesson_plans {
 		ids = append(ids, id)
 	}
@@ -1379,6 +1402,60 @@ func (m *EducationCategoryMutation) ResetLessonPlans() {
 	m.lesson_plans = nil
 	m.clearedlesson_plans = false
 	m.removedlesson_plans = nil
+}
+
+// AddLessonPlanEducationCategoryIDs adds the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by ids.
+func (m *EducationCategoryMutation) AddLessonPlanEducationCategoryIDs(ids ...int64) {
+	if m.lesson_plan_education_categories == nil {
+		m.lesson_plan_education_categories = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_education_categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanEducationCategories clears the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity.
+func (m *EducationCategoryMutation) ClearLessonPlanEducationCategories() {
+	m.clearedlesson_plan_education_categories = true
+}
+
+// LessonPlanEducationCategoriesCleared reports if the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity was cleared.
+func (m *EducationCategoryMutation) LessonPlanEducationCategoriesCleared() bool {
+	return m.clearedlesson_plan_education_categories
+}
+
+// RemoveLessonPlanEducationCategoryIDs removes the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by IDs.
+func (m *EducationCategoryMutation) RemoveLessonPlanEducationCategoryIDs(ids ...int64) {
+	if m.removedlesson_plan_education_categories == nil {
+		m.removedlesson_plan_education_categories = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_education_categories, ids[i])
+		m.removedlesson_plan_education_categories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanEducationCategories returns the removed IDs of the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity.
+func (m *EducationCategoryMutation) RemovedLessonPlanEducationCategoriesIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_education_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanEducationCategoriesIDs returns the "lesson_plan_education_categories" edge IDs in the mutation.
+func (m *EducationCategoryMutation) LessonPlanEducationCategoriesIDs() (ids []int64) {
+	for id := range m.lesson_plan_education_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanEducationCategories resets all changes to the "lesson_plan_education_categories" edge.
+func (m *EducationCategoryMutation) ResetLessonPlanEducationCategories() {
+	m.lesson_plan_education_categories = nil
+	m.clearedlesson_plan_education_categories = false
+	m.removedlesson_plan_education_categories = nil
 }
 
 // Where appends a list predicates to the EducationCategoryMutation builder.
@@ -1565,9 +1642,12 @@ func (m *EducationCategoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *EducationCategoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.lesson_plans != nil {
 		edges = append(edges, educationcategory.EdgeLessonPlans)
+	}
+	if m.lesson_plan_education_categories != nil {
+		edges = append(edges, educationcategory.EdgeLessonPlanEducationCategories)
 	}
 	return edges
 }
@@ -1582,15 +1662,24 @@ func (m *EducationCategoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case educationcategory.EdgeLessonPlanEducationCategories:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_education_categories))
+		for id := range m.lesson_plan_education_categories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *EducationCategoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedlesson_plans != nil {
 		edges = append(edges, educationcategory.EdgeLessonPlans)
+	}
+	if m.removedlesson_plan_education_categories != nil {
+		edges = append(edges, educationcategory.EdgeLessonPlanEducationCategories)
 	}
 	return edges
 }
@@ -1605,15 +1694,24 @@ func (m *EducationCategoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case educationcategory.EdgeLessonPlanEducationCategories:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_education_categories))
+		for id := range m.removedlesson_plan_education_categories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *EducationCategoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedlesson_plans {
 		edges = append(edges, educationcategory.EdgeLessonPlans)
+	}
+	if m.clearedlesson_plan_education_categories {
+		edges = append(edges, educationcategory.EdgeLessonPlanEducationCategories)
 	}
 	return edges
 }
@@ -1624,6 +1722,8 @@ func (m *EducationCategoryMutation) EdgeCleared(name string) bool {
 	switch name {
 	case educationcategory.EdgeLessonPlans:
 		return m.clearedlesson_plans
+	case educationcategory.EdgeLessonPlanEducationCategories:
+		return m.clearedlesson_plan_education_categories
 	}
 	return false
 }
@@ -1643,6 +1743,9 @@ func (m *EducationCategoryMutation) ResetEdge(name string) error {
 	case educationcategory.EdgeLessonPlans:
 		m.ResetLessonPlans()
 		return nil
+	case educationcategory.EdgeLessonPlanEducationCategories:
+		m.ResetLessonPlanEducationCategories()
+		return nil
 	}
 	return fmt.Errorf("unknown EducationCategory edge %s", name)
 }
@@ -1652,7 +1755,7 @@ type EmailVerificationMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *int64
 	created_at    *time.Time
 	updated_at    *time.Time
 	email         *string
@@ -1684,7 +1787,7 @@ func newEmailVerificationMutation(c config, op Op, opts ...emailverificationOpti
 }
 
 // withEmailVerificationID sets the ID field of the mutation.
-func withEmailVerificationID(id int) emailverificationOption {
+func withEmailVerificationID(id int64) emailverificationOption {
 	return func(m *EmailVerificationMutation) {
 		var (
 			err   error
@@ -1734,9 +1837,15 @@ func (m EmailVerificationMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EmailVerification entities.
+func (m *EmailVerificationMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *EmailVerificationMutation) ID() (id int, exists bool) {
+func (m *EmailVerificationMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -1747,12 +1856,12 @@ func (m *EmailVerificationMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *EmailVerificationMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *EmailVerificationMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2192,20 +2301,24 @@ func (m *EmailVerificationMutation) ResetEdge(name string) error {
 // GradeMutation represents an operation that mutates the Grade nodes in the graph.
 type GradeMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	created_at          *time.Time
-	updated_at          *time.Time
-	name                *string
-	code                *string
-	clearedFields       map[string]struct{}
-	lesson_plans        map[int]struct{}
-	removedlesson_plans map[int]struct{}
-	clearedlesson_plans bool
-	done                bool
-	oldValue            func(context.Context) (*Grade, error)
-	predicates          []predicate.Grade
+	op                        Op
+	typ                       string
+	id                        *int64
+	created_at                *time.Time
+	updated_at                *time.Time
+	code_number               *int64
+	addcode_number            *int64
+	code                      *string
+	clearedFields             map[string]struct{}
+	lesson_plans              map[int64]struct{}
+	removedlesson_plans       map[int64]struct{}
+	clearedlesson_plans       bool
+	lesson_plan_grades        map[int64]struct{}
+	removedlesson_plan_grades map[int64]struct{}
+	clearedlesson_plan_grades bool
+	done                      bool
+	oldValue                  func(context.Context) (*Grade, error)
+	predicates                []predicate.Grade
 }
 
 var _ ent.Mutation = (*GradeMutation)(nil)
@@ -2228,7 +2341,7 @@ func newGradeMutation(c config, op Op, opts ...gradeOption) *GradeMutation {
 }
 
 // withGradeID sets the ID field of the mutation.
-func withGradeID(id int) gradeOption {
+func withGradeID(id int64) gradeOption {
 	return func(m *GradeMutation) {
 		var (
 			err   error
@@ -2278,9 +2391,15 @@ func (m GradeMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Grade entities.
+func (m *GradeMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *GradeMutation) ID() (id int, exists bool) {
+func (m *GradeMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2291,12 +2410,12 @@ func (m *GradeMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *GradeMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *GradeMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2378,40 +2497,60 @@ func (m *GradeMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetName sets the "name" field.
-func (m *GradeMutation) SetName(s string) {
-	m.name = &s
+// SetCodeNumber sets the "code_number" field.
+func (m *GradeMutation) SetCodeNumber(i int64) {
+	m.code_number = &i
+	m.addcode_number = nil
 }
 
-// Name returns the value of the "name" field in the mutation.
-func (m *GradeMutation) Name() (r string, exists bool) {
-	v := m.name
+// CodeNumber returns the value of the "code_number" field in the mutation.
+func (m *GradeMutation) CodeNumber() (r int64, exists bool) {
+	v := m.code_number
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the Grade entity.
+// OldCodeNumber returns the old "code_number" field's value of the Grade entity.
 // If the Grade object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *GradeMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *GradeMutation) OldCodeNumber(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
+		return v, errors.New("OldCodeNumber is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
+		return v, errors.New("OldCodeNumber requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
+		return v, fmt.Errorf("querying old value for OldCodeNumber: %w", err)
 	}
-	return oldValue.Name, nil
+	return oldValue.CodeNumber, nil
 }
 
-// ResetName resets all changes to the "name" field.
-func (m *GradeMutation) ResetName() {
-	m.name = nil
+// AddCodeNumber adds i to the "code_number" field.
+func (m *GradeMutation) AddCodeNumber(i int64) {
+	if m.addcode_number != nil {
+		*m.addcode_number += i
+	} else {
+		m.addcode_number = &i
+	}
+}
+
+// AddedCodeNumber returns the value that was added to the "code_number" field in this mutation.
+func (m *GradeMutation) AddedCodeNumber() (r int64, exists bool) {
+	v := m.addcode_number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCodeNumber resets all changes to the "code_number" field.
+func (m *GradeMutation) ResetCodeNumber() {
+	m.code_number = nil
+	m.addcode_number = nil
 }
 
 // SetCode sets the "code" field.
@@ -2451,9 +2590,9 @@ func (m *GradeMutation) ResetCode() {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by ids.
-func (m *GradeMutation) AddLessonPlanIDs(ids ...int) {
+func (m *GradeMutation) AddLessonPlanIDs(ids ...int64) {
 	if m.lesson_plans == nil {
-		m.lesson_plans = make(map[int]struct{})
+		m.lesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_plans[ids[i]] = struct{}{}
@@ -2471,9 +2610,9 @@ func (m *GradeMutation) LessonPlansCleared() bool {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (m *GradeMutation) RemoveLessonPlanIDs(ids ...int) {
+func (m *GradeMutation) RemoveLessonPlanIDs(ids ...int64) {
 	if m.removedlesson_plans == nil {
-		m.removedlesson_plans = make(map[int]struct{})
+		m.removedlesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_plans, ids[i])
@@ -2482,7 +2621,7 @@ func (m *GradeMutation) RemoveLessonPlanIDs(ids ...int) {
 }
 
 // RemovedLessonPlans returns the removed IDs of the "lesson_plans" edge to the LessonPlan entity.
-func (m *GradeMutation) RemovedLessonPlansIDs() (ids []int) {
+func (m *GradeMutation) RemovedLessonPlansIDs() (ids []int64) {
 	for id := range m.removedlesson_plans {
 		ids = append(ids, id)
 	}
@@ -2490,7 +2629,7 @@ func (m *GradeMutation) RemovedLessonPlansIDs() (ids []int) {
 }
 
 // LessonPlansIDs returns the "lesson_plans" edge IDs in the mutation.
-func (m *GradeMutation) LessonPlansIDs() (ids []int) {
+func (m *GradeMutation) LessonPlansIDs() (ids []int64) {
 	for id := range m.lesson_plans {
 		ids = append(ids, id)
 	}
@@ -2502,6 +2641,60 @@ func (m *GradeMutation) ResetLessonPlans() {
 	m.lesson_plans = nil
 	m.clearedlesson_plans = false
 	m.removedlesson_plans = nil
+}
+
+// AddLessonPlanGradeIDs adds the "lesson_plan_grades" edge to the LessonPlanGrade entity by ids.
+func (m *GradeMutation) AddLessonPlanGradeIDs(ids ...int64) {
+	if m.lesson_plan_grades == nil {
+		m.lesson_plan_grades = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_grades[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanGrades clears the "lesson_plan_grades" edge to the LessonPlanGrade entity.
+func (m *GradeMutation) ClearLessonPlanGrades() {
+	m.clearedlesson_plan_grades = true
+}
+
+// LessonPlanGradesCleared reports if the "lesson_plan_grades" edge to the LessonPlanGrade entity was cleared.
+func (m *GradeMutation) LessonPlanGradesCleared() bool {
+	return m.clearedlesson_plan_grades
+}
+
+// RemoveLessonPlanGradeIDs removes the "lesson_plan_grades" edge to the LessonPlanGrade entity by IDs.
+func (m *GradeMutation) RemoveLessonPlanGradeIDs(ids ...int64) {
+	if m.removedlesson_plan_grades == nil {
+		m.removedlesson_plan_grades = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_grades, ids[i])
+		m.removedlesson_plan_grades[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanGrades returns the removed IDs of the "lesson_plan_grades" edge to the LessonPlanGrade entity.
+func (m *GradeMutation) RemovedLessonPlanGradesIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_grades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanGradesIDs returns the "lesson_plan_grades" edge IDs in the mutation.
+func (m *GradeMutation) LessonPlanGradesIDs() (ids []int64) {
+	for id := range m.lesson_plan_grades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanGrades resets all changes to the "lesson_plan_grades" edge.
+func (m *GradeMutation) ResetLessonPlanGrades() {
+	m.lesson_plan_grades = nil
+	m.clearedlesson_plan_grades = false
+	m.removedlesson_plan_grades = nil
 }
 
 // Where appends a list predicates to the GradeMutation builder.
@@ -2545,8 +2738,8 @@ func (m *GradeMutation) Fields() []string {
 	if m.updated_at != nil {
 		fields = append(fields, grade.FieldUpdatedAt)
 	}
-	if m.name != nil {
-		fields = append(fields, grade.FieldName)
+	if m.code_number != nil {
+		fields = append(fields, grade.FieldCodeNumber)
 	}
 	if m.code != nil {
 		fields = append(fields, grade.FieldCode)
@@ -2563,8 +2756,8 @@ func (m *GradeMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case grade.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case grade.FieldName:
-		return m.Name()
+	case grade.FieldCodeNumber:
+		return m.CodeNumber()
 	case grade.FieldCode:
 		return m.Code()
 	}
@@ -2580,8 +2773,8 @@ func (m *GradeMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldCreatedAt(ctx)
 	case grade.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case grade.FieldName:
-		return m.OldName(ctx)
+	case grade.FieldCodeNumber:
+		return m.OldCodeNumber(ctx)
 	case grade.FieldCode:
 		return m.OldCode(ctx)
 	}
@@ -2607,12 +2800,12 @@ func (m *GradeMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case grade.FieldName:
-		v, ok := value.(string)
+	case grade.FieldCodeNumber:
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetName(v)
+		m.SetCodeNumber(v)
 		return nil
 	case grade.FieldCode:
 		v, ok := value.(string)
@@ -2628,13 +2821,21 @@ func (m *GradeMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *GradeMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addcode_number != nil {
+		fields = append(fields, grade.FieldCodeNumber)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *GradeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case grade.FieldCodeNumber:
+		return m.AddedCodeNumber()
+	}
 	return nil, false
 }
 
@@ -2643,6 +2844,13 @@ func (m *GradeMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *GradeMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case grade.FieldCodeNumber:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCodeNumber(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Grade numeric field %s", name)
 }
@@ -2676,8 +2884,8 @@ func (m *GradeMutation) ResetField(name string) error {
 	case grade.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case grade.FieldName:
-		m.ResetName()
+	case grade.FieldCodeNumber:
+		m.ResetCodeNumber()
 		return nil
 	case grade.FieldCode:
 		m.ResetCode()
@@ -2688,9 +2896,12 @@ func (m *GradeMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *GradeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.lesson_plans != nil {
 		edges = append(edges, grade.EdgeLessonPlans)
+	}
+	if m.lesson_plan_grades != nil {
+		edges = append(edges, grade.EdgeLessonPlanGrades)
 	}
 	return edges
 }
@@ -2705,15 +2916,24 @@ func (m *GradeMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case grade.EdgeLessonPlanGrades:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_grades))
+		for id := range m.lesson_plan_grades {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *GradeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedlesson_plans != nil {
 		edges = append(edges, grade.EdgeLessonPlans)
+	}
+	if m.removedlesson_plan_grades != nil {
+		edges = append(edges, grade.EdgeLessonPlanGrades)
 	}
 	return edges
 }
@@ -2728,15 +2948,24 @@ func (m *GradeMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case grade.EdgeLessonPlanGrades:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_grades))
+		for id := range m.removedlesson_plan_grades {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *GradeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedlesson_plans {
 		edges = append(edges, grade.EdgeLessonPlans)
+	}
+	if m.clearedlesson_plan_grades {
+		edges = append(edges, grade.EdgeLessonPlanGrades)
 	}
 	return edges
 }
@@ -2747,6 +2976,8 @@ func (m *GradeMutation) EdgeCleared(name string) bool {
 	switch name {
 	case grade.EdgeLessonPlans:
 		return m.clearedlesson_plans
+	case grade.EdgeLessonPlanGrades:
+		return m.clearedlesson_plan_grades
 	}
 	return false
 }
@@ -2766,6 +2997,9 @@ func (m *GradeMutation) ResetEdge(name string) error {
 	case grade.EdgeLessonPlans:
 		m.ResetLessonPlans()
 		return nil
+	case grade.EdgeLessonPlanGrades:
+		m.ResetLessonPlanGrades()
+		return nil
 	}
 	return fmt.Errorf("unknown Grade edge %s", name)
 }
@@ -2775,17 +3009,17 @@ type InquiryMutation struct {
 	config
 	op             Op
 	typ            string
-	id             *int
+	id             *int64
 	created_at     *time.Time
 	updated_at     *time.Time
 	category       *inquiry.Category
 	inquiry_detail *string
 	clearedFields  map[string]struct{}
-	lesson         *int
+	lesson         *int64
 	clearedlesson  bool
-	school         *int
+	school         *int64
 	clearedschool  bool
-	teacher        *int
+	teacher        *int64
 	clearedteacher bool
 	done           bool
 	oldValue       func(context.Context) (*Inquiry, error)
@@ -2812,7 +3046,7 @@ func newInquiryMutation(c config, op Op, opts ...inquiryOption) *InquiryMutation
 }
 
 // withInquiryID sets the ID field of the mutation.
-func withInquiryID(id int) inquiryOption {
+func withInquiryID(id int64) inquiryOption {
 	return func(m *InquiryMutation) {
 		var (
 			err   error
@@ -2862,9 +3096,15 @@ func (m InquiryMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Inquiry entities.
+func (m *InquiryMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *InquiryMutation) ID() (id int, exists bool) {
+func (m *InquiryMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2875,12 +3115,12 @@ func (m *InquiryMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *InquiryMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *InquiryMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2963,12 +3203,12 @@ func (m *InquiryMutation) ResetUpdatedAt() {
 }
 
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (m *InquiryMutation) SetLessonScheduleID(i int) {
+func (m *InquiryMutation) SetLessonScheduleID(i int64) {
 	m.lesson = &i
 }
 
 // LessonScheduleID returns the value of the "lesson_schedule_id" field in the mutation.
-func (m *InquiryMutation) LessonScheduleID() (r int, exists bool) {
+func (m *InquiryMutation) LessonScheduleID() (r int64, exists bool) {
 	v := m.lesson
 	if v == nil {
 		return
@@ -2979,7 +3219,7 @@ func (m *InquiryMutation) LessonScheduleID() (r int, exists bool) {
 // OldLessonScheduleID returns the old "lesson_schedule_id" field's value of the Inquiry entity.
 // If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InquiryMutation) OldLessonScheduleID(ctx context.Context) (v int, err error) {
+func (m *InquiryMutation) OldLessonScheduleID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLessonScheduleID is only allowed on UpdateOne operations")
 	}
@@ -2999,12 +3239,12 @@ func (m *InquiryMutation) ResetLessonScheduleID() {
 }
 
 // SetSchoolID sets the "school_id" field.
-func (m *InquiryMutation) SetSchoolID(i int) {
+func (m *InquiryMutation) SetSchoolID(i int64) {
 	m.school = &i
 }
 
 // SchoolID returns the value of the "school_id" field in the mutation.
-func (m *InquiryMutation) SchoolID() (r int, exists bool) {
+func (m *InquiryMutation) SchoolID() (r int64, exists bool) {
 	v := m.school
 	if v == nil {
 		return
@@ -3015,7 +3255,7 @@ func (m *InquiryMutation) SchoolID() (r int, exists bool) {
 // OldSchoolID returns the old "school_id" field's value of the Inquiry entity.
 // If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InquiryMutation) OldSchoolID(ctx context.Context) (v int, err error) {
+func (m *InquiryMutation) OldSchoolID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSchoolID is only allowed on UpdateOne operations")
 	}
@@ -3035,12 +3275,12 @@ func (m *InquiryMutation) ResetSchoolID() {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *InquiryMutation) SetUserID(i int) {
+func (m *InquiryMutation) SetUserID(i int64) {
 	m.teacher = &i
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *InquiryMutation) UserID() (r int, exists bool) {
+func (m *InquiryMutation) UserID() (r int64, exists bool) {
 	v := m.teacher
 	if v == nil {
 		return
@@ -3051,7 +3291,7 @@ func (m *InquiryMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "user_id" field's value of the Inquiry entity.
 // If the Inquiry object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InquiryMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *InquiryMutation) OldUserID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -3143,7 +3383,7 @@ func (m *InquiryMutation) ResetInquiryDetail() {
 }
 
 // SetLessonID sets the "lesson" edge to the LessonPlan entity by id.
-func (m *InquiryMutation) SetLessonID(id int) {
+func (m *InquiryMutation) SetLessonID(id int64) {
 	m.lesson = &id
 }
 
@@ -3159,7 +3399,7 @@ func (m *InquiryMutation) LessonCleared() bool {
 }
 
 // LessonID returns the "lesson" edge ID in the mutation.
-func (m *InquiryMutation) LessonID() (id int, exists bool) {
+func (m *InquiryMutation) LessonID() (id int64, exists bool) {
 	if m.lesson != nil {
 		return *m.lesson, true
 	}
@@ -3169,7 +3409,7 @@ func (m *InquiryMutation) LessonID() (id int, exists bool) {
 // LessonIDs returns the "lesson" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // LessonID instead. It exists only for internal usage by the builders.
-func (m *InquiryMutation) LessonIDs() (ids []int) {
+func (m *InquiryMutation) LessonIDs() (ids []int64) {
 	if id := m.lesson; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3196,7 +3436,7 @@ func (m *InquiryMutation) SchoolCleared() bool {
 // SchoolIDs returns the "school" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SchoolID instead. It exists only for internal usage by the builders.
-func (m *InquiryMutation) SchoolIDs() (ids []int) {
+func (m *InquiryMutation) SchoolIDs() (ids []int64) {
 	if id := m.school; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3210,7 +3450,7 @@ func (m *InquiryMutation) ResetSchool() {
 }
 
 // SetTeacherID sets the "teacher" edge to the User entity by id.
-func (m *InquiryMutation) SetTeacherID(id int) {
+func (m *InquiryMutation) SetTeacherID(id int64) {
 	m.teacher = &id
 }
 
@@ -3226,7 +3466,7 @@ func (m *InquiryMutation) TeacherCleared() bool {
 }
 
 // TeacherID returns the "teacher" edge ID in the mutation.
-func (m *InquiryMutation) TeacherID() (id int, exists bool) {
+func (m *InquiryMutation) TeacherID() (id int64, exists bool) {
 	if m.teacher != nil {
 		return *m.teacher, true
 	}
@@ -3236,7 +3476,7 @@ func (m *InquiryMutation) TeacherID() (id int, exists bool) {
 // TeacherIDs returns the "teacher" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // TeacherID instead. It exists only for internal usage by the builders.
-func (m *InquiryMutation) TeacherIDs() (ids []int) {
+func (m *InquiryMutation) TeacherIDs() (ids []int64) {
 	if id := m.teacher; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3374,21 +3614,21 @@ func (m *InquiryMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	case inquiry.FieldLessonScheduleID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLessonScheduleID(v)
 		return nil
 	case inquiry.FieldSchoolID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSchoolID(v)
 		return nil
 	case inquiry.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -3600,13 +3840,15 @@ type LessonConfirmationMutation struct {
 	config
 	op                        Op
 	typ                       string
-	id                        *int
+	id                        *int64
+	created_at                *time.Time
+	updated_at                *time.Time
 	matching_date             *time.Time
 	start_time                *time.Time
 	finish_time               *time.Time
 	remarks                   *string
 	clearedFields             map[string]struct{}
-	lesson_reservation        *int
+	lesson_reservation        *int64
 	clearedlesson_reservation bool
 	done                      bool
 	oldValue                  func(context.Context) (*LessonConfirmation, error)
@@ -3633,7 +3875,7 @@ func newLessonConfirmationMutation(c config, op Op, opts ...lessonconfirmationOp
 }
 
 // withLessonConfirmationID sets the ID field of the mutation.
-func withLessonConfirmationID(id int) lessonconfirmationOption {
+func withLessonConfirmationID(id int64) lessonconfirmationOption {
 	return func(m *LessonConfirmationMutation) {
 		var (
 			err   error
@@ -3683,9 +3925,15 @@ func (m LessonConfirmationMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonConfirmation entities.
+func (m *LessonConfirmationMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LessonConfirmationMutation) ID() (id int, exists bool) {
+func (m *LessonConfirmationMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -3696,12 +3944,12 @@ func (m *LessonConfirmationMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LessonConfirmationMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LessonConfirmationMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -3711,13 +3959,85 @@ func (m *LessonConfirmationMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (m *LessonConfirmationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LessonConfirmationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LessonConfirmation entity.
+// If the LessonConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonConfirmationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LessonConfirmationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LessonConfirmationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LessonConfirmationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LessonConfirmation entity.
+// If the LessonConfirmation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonConfirmationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LessonConfirmationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (m *LessonConfirmationMutation) SetLessonReservationID(i int) {
+func (m *LessonConfirmationMutation) SetLessonReservationID(i int64) {
 	m.lesson_reservation = &i
 }
 
 // LessonReservationID returns the value of the "lesson_reservation_id" field in the mutation.
-func (m *LessonConfirmationMutation) LessonReservationID() (r int, exists bool) {
+func (m *LessonConfirmationMutation) LessonReservationID() (r int64, exists bool) {
 	v := m.lesson_reservation
 	if v == nil {
 		return
@@ -3728,7 +4048,7 @@ func (m *LessonConfirmationMutation) LessonReservationID() (r int, exists bool) 
 // OldLessonReservationID returns the old "lesson_reservation_id" field's value of the LessonConfirmation entity.
 // If the LessonConfirmation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonConfirmationMutation) OldLessonReservationID(ctx context.Context) (v int, err error) {
+func (m *LessonConfirmationMutation) OldLessonReservationID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLessonReservationID is only allowed on UpdateOne operations")
 	}
@@ -3918,7 +4238,7 @@ func (m *LessonConfirmationMutation) LessonReservationCleared() bool {
 // LessonReservationIDs returns the "lesson_reservation" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // LessonReservationID instead. It exists only for internal usage by the builders.
-func (m *LessonConfirmationMutation) LessonReservationIDs() (ids []int) {
+func (m *LessonConfirmationMutation) LessonReservationIDs() (ids []int64) {
 	if id := m.lesson_reservation; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3965,7 +4285,13 @@ func (m *LessonConfirmationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LessonConfirmationMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 7)
+	if m.created_at != nil {
+		fields = append(fields, lessonconfirmation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lessonconfirmation.FieldUpdatedAt)
+	}
 	if m.lesson_reservation != nil {
 		fields = append(fields, lessonconfirmation.FieldLessonReservationID)
 	}
@@ -3989,6 +4315,10 @@ func (m *LessonConfirmationMutation) Fields() []string {
 // schema.
 func (m *LessonConfirmationMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case lessonconfirmation.FieldCreatedAt:
+		return m.CreatedAt()
+	case lessonconfirmation.FieldUpdatedAt:
+		return m.UpdatedAt()
 	case lessonconfirmation.FieldLessonReservationID:
 		return m.LessonReservationID()
 	case lessonconfirmation.FieldMatchingDate:
@@ -4008,6 +4338,10 @@ func (m *LessonConfirmationMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *LessonConfirmationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case lessonconfirmation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lessonconfirmation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	case lessonconfirmation.FieldLessonReservationID:
 		return m.OldLessonReservationID(ctx)
 	case lessonconfirmation.FieldMatchingDate:
@@ -4027,8 +4361,22 @@ func (m *LessonConfirmationMutation) OldField(ctx context.Context, name string) 
 // type.
 func (m *LessonConfirmationMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case lessonconfirmation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lessonconfirmation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
 	case lessonconfirmation.FieldLessonReservationID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -4123,6 +4471,12 @@ func (m *LessonConfirmationMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *LessonConfirmationMutation) ResetField(name string) error {
 	switch name {
+	case lessonconfirmation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lessonconfirmation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
 	case lessonconfirmation.FieldLessonReservationID:
 		m.ResetLessonReservationID()
 		return nil
@@ -4219,48 +4573,60 @@ func (m *LessonConfirmationMutation) ResetEdge(name string) error {
 // LessonPlanMutation represents an operation that mutates the LessonPlan nodes in the graph.
 type LessonPlanMutation struct {
 	config
-	op                          Op
-	typ                         string
-	id                          *int
-	created_at                  *time.Time
-	updated_at                  *time.Time
-	title                       *string
-	description                 *string
-	location                    *string
-	lesson_type                 *lessonplan.LessonType
-	annual_max_executions       *int
-	addannual_max_executions    *int
-	start_month                 *int
-	addstart_month              *int
-	start_day                   *int
-	addstart_day                *int
-	end_month                   *int
-	addend_month                *int
-	end_day                     *int
-	addend_day                  *int
-	start_time                  *time.Time
-	end_time                    *time.Time
-	clearedFields               map[string]struct{}
-	company                     *int
-	clearedcompany              bool
-	schedules                   map[int]struct{}
-	removedschedules            map[int]struct{}
-	clearedschedules            bool
-	grades                      map[int]struct{}
-	removedgrades               map[int]struct{}
-	clearedgrades               bool
-	subjects                    map[int]struct{}
-	removedsubjects             map[int]struct{}
-	clearedsubjects             bool
-	education_categories        map[int]struct{}
-	removededucation_categories map[int]struct{}
-	clearededucation_categories bool
-	upload_files                map[int]struct{}
-	removedupload_files         map[int]struct{}
-	clearedupload_files         bool
-	done                        bool
-	oldValue                    func(context.Context) (*LessonPlan, error)
-	predicates                  []predicate.LessonPlan
+	op                                      Op
+	typ                                     string
+	id                                      *int64
+	created_at                              *time.Time
+	updated_at                              *time.Time
+	title                                   *string
+	description                             *string
+	location                                *string
+	lesson_type                             *lessonplan.LessonType
+	annual_max_executions                   *int64
+	addannual_max_executions                *int64
+	start_month                             *int64
+	addstart_month                          *int64
+	start_day                               *int64
+	addstart_day                            *int64
+	end_month                               *int64
+	addend_month                            *int64
+	end_day                                 *int64
+	addend_day                              *int64
+	start_time                              *time.Time
+	end_time                                *time.Time
+	clearedFields                           map[string]struct{}
+	company                                 *int64
+	clearedcompany                          bool
+	schedules                               map[int64]struct{}
+	removedschedules                        map[int64]struct{}
+	clearedschedules                        bool
+	upload_files                            map[int64]struct{}
+	removedupload_files                     map[int64]struct{}
+	clearedupload_files                     bool
+	subjects                                map[int64]struct{}
+	removedsubjects                         map[int64]struct{}
+	clearedsubjects                         bool
+	grades                                  map[int64]struct{}
+	removedgrades                           map[int64]struct{}
+	clearedgrades                           bool
+	education_categories                    map[int64]struct{}
+	removededucation_categories             map[int64]struct{}
+	clearededucation_categories             bool
+	lesson_plan_upload_files                map[int64]struct{}
+	removedlesson_plan_upload_files         map[int64]struct{}
+	clearedlesson_plan_upload_files         bool
+	lesson_plan_subjects                    map[int64]struct{}
+	removedlesson_plan_subjects             map[int64]struct{}
+	clearedlesson_plan_subjects             bool
+	lesson_plan_grades                      map[int64]struct{}
+	removedlesson_plan_grades               map[int64]struct{}
+	clearedlesson_plan_grades               bool
+	lesson_plan_education_categories        map[int64]struct{}
+	removedlesson_plan_education_categories map[int64]struct{}
+	clearedlesson_plan_education_categories bool
+	done                                    bool
+	oldValue                                func(context.Context) (*LessonPlan, error)
+	predicates                              []predicate.LessonPlan
 }
 
 var _ ent.Mutation = (*LessonPlanMutation)(nil)
@@ -4283,7 +4649,7 @@ func newLessonPlanMutation(c config, op Op, opts ...lessonplanOption) *LessonPla
 }
 
 // withLessonPlanID sets the ID field of the mutation.
-func withLessonPlanID(id int) lessonplanOption {
+func withLessonPlanID(id int64) lessonplanOption {
 	return func(m *LessonPlanMutation) {
 		var (
 			err   error
@@ -4333,9 +4699,15 @@ func (m LessonPlanMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonPlan entities.
+func (m *LessonPlanMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LessonPlanMutation) ID() (id int, exists bool) {
+func (m *LessonPlanMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -4346,12 +4718,12 @@ func (m *LessonPlanMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LessonPlanMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LessonPlanMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4434,12 +4806,12 @@ func (m *LessonPlanMutation) ResetUpdatedAt() {
 }
 
 // SetCompanyID sets the "company_id" field.
-func (m *LessonPlanMutation) SetCompanyID(i int) {
+func (m *LessonPlanMutation) SetCompanyID(i int64) {
 	m.company = &i
 }
 
 // CompanyID returns the value of the "company_id" field in the mutation.
-func (m *LessonPlanMutation) CompanyID() (r int, exists bool) {
+func (m *LessonPlanMutation) CompanyID() (r int64, exists bool) {
 	v := m.company
 	if v == nil {
 		return
@@ -4450,7 +4822,7 @@ func (m *LessonPlanMutation) CompanyID() (r int, exists bool) {
 // OldCompanyID returns the old "company_id" field's value of the LessonPlan entity.
 // If the LessonPlan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonPlanMutation) OldCompanyID(ctx context.Context) (v int, err error) {
+func (m *LessonPlanMutation) OldCompanyID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCompanyID is only allowed on UpdateOne operations")
 	}
@@ -4640,13 +5012,13 @@ func (m *LessonPlanMutation) ResetLessonType() {
 }
 
 // SetAnnualMaxExecutions sets the "annual_max_executions" field.
-func (m *LessonPlanMutation) SetAnnualMaxExecutions(i int) {
+func (m *LessonPlanMutation) SetAnnualMaxExecutions(i int64) {
 	m.annual_max_executions = &i
 	m.addannual_max_executions = nil
 }
 
 // AnnualMaxExecutions returns the value of the "annual_max_executions" field in the mutation.
-func (m *LessonPlanMutation) AnnualMaxExecutions() (r int, exists bool) {
+func (m *LessonPlanMutation) AnnualMaxExecutions() (r int64, exists bool) {
 	v := m.annual_max_executions
 	if v == nil {
 		return
@@ -4657,7 +5029,7 @@ func (m *LessonPlanMutation) AnnualMaxExecutions() (r int, exists bool) {
 // OldAnnualMaxExecutions returns the old "annual_max_executions" field's value of the LessonPlan entity.
 // If the LessonPlan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonPlanMutation) OldAnnualMaxExecutions(ctx context.Context) (v int, err error) {
+func (m *LessonPlanMutation) OldAnnualMaxExecutions(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldAnnualMaxExecutions is only allowed on UpdateOne operations")
 	}
@@ -4672,7 +5044,7 @@ func (m *LessonPlanMutation) OldAnnualMaxExecutions(ctx context.Context) (v int,
 }
 
 // AddAnnualMaxExecutions adds i to the "annual_max_executions" field.
-func (m *LessonPlanMutation) AddAnnualMaxExecutions(i int) {
+func (m *LessonPlanMutation) AddAnnualMaxExecutions(i int64) {
 	if m.addannual_max_executions != nil {
 		*m.addannual_max_executions += i
 	} else {
@@ -4681,7 +5053,7 @@ func (m *LessonPlanMutation) AddAnnualMaxExecutions(i int) {
 }
 
 // AddedAnnualMaxExecutions returns the value that was added to the "annual_max_executions" field in this mutation.
-func (m *LessonPlanMutation) AddedAnnualMaxExecutions() (r int, exists bool) {
+func (m *LessonPlanMutation) AddedAnnualMaxExecutions() (r int64, exists bool) {
 	v := m.addannual_max_executions
 	if v == nil {
 		return
@@ -4696,13 +5068,13 @@ func (m *LessonPlanMutation) ResetAnnualMaxExecutions() {
 }
 
 // SetStartMonth sets the "start_month" field.
-func (m *LessonPlanMutation) SetStartMonth(i int) {
+func (m *LessonPlanMutation) SetStartMonth(i int64) {
 	m.start_month = &i
 	m.addstart_month = nil
 }
 
 // StartMonth returns the value of the "start_month" field in the mutation.
-func (m *LessonPlanMutation) StartMonth() (r int, exists bool) {
+func (m *LessonPlanMutation) StartMonth() (r int64, exists bool) {
 	v := m.start_month
 	if v == nil {
 		return
@@ -4713,7 +5085,7 @@ func (m *LessonPlanMutation) StartMonth() (r int, exists bool) {
 // OldStartMonth returns the old "start_month" field's value of the LessonPlan entity.
 // If the LessonPlan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonPlanMutation) OldStartMonth(ctx context.Context) (v int, err error) {
+func (m *LessonPlanMutation) OldStartMonth(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStartMonth is only allowed on UpdateOne operations")
 	}
@@ -4728,7 +5100,7 @@ func (m *LessonPlanMutation) OldStartMonth(ctx context.Context) (v int, err erro
 }
 
 // AddStartMonth adds i to the "start_month" field.
-func (m *LessonPlanMutation) AddStartMonth(i int) {
+func (m *LessonPlanMutation) AddStartMonth(i int64) {
 	if m.addstart_month != nil {
 		*m.addstart_month += i
 	} else {
@@ -4737,7 +5109,7 @@ func (m *LessonPlanMutation) AddStartMonth(i int) {
 }
 
 // AddedStartMonth returns the value that was added to the "start_month" field in this mutation.
-func (m *LessonPlanMutation) AddedStartMonth() (r int, exists bool) {
+func (m *LessonPlanMutation) AddedStartMonth() (r int64, exists bool) {
 	v := m.addstart_month
 	if v == nil {
 		return
@@ -4752,13 +5124,13 @@ func (m *LessonPlanMutation) ResetStartMonth() {
 }
 
 // SetStartDay sets the "start_day" field.
-func (m *LessonPlanMutation) SetStartDay(i int) {
+func (m *LessonPlanMutation) SetStartDay(i int64) {
 	m.start_day = &i
 	m.addstart_day = nil
 }
 
 // StartDay returns the value of the "start_day" field in the mutation.
-func (m *LessonPlanMutation) StartDay() (r int, exists bool) {
+func (m *LessonPlanMutation) StartDay() (r int64, exists bool) {
 	v := m.start_day
 	if v == nil {
 		return
@@ -4769,7 +5141,7 @@ func (m *LessonPlanMutation) StartDay() (r int, exists bool) {
 // OldStartDay returns the old "start_day" field's value of the LessonPlan entity.
 // If the LessonPlan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonPlanMutation) OldStartDay(ctx context.Context) (v int, err error) {
+func (m *LessonPlanMutation) OldStartDay(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldStartDay is only allowed on UpdateOne operations")
 	}
@@ -4784,7 +5156,7 @@ func (m *LessonPlanMutation) OldStartDay(ctx context.Context) (v int, err error)
 }
 
 // AddStartDay adds i to the "start_day" field.
-func (m *LessonPlanMutation) AddStartDay(i int) {
+func (m *LessonPlanMutation) AddStartDay(i int64) {
 	if m.addstart_day != nil {
 		*m.addstart_day += i
 	} else {
@@ -4793,7 +5165,7 @@ func (m *LessonPlanMutation) AddStartDay(i int) {
 }
 
 // AddedStartDay returns the value that was added to the "start_day" field in this mutation.
-func (m *LessonPlanMutation) AddedStartDay() (r int, exists bool) {
+func (m *LessonPlanMutation) AddedStartDay() (r int64, exists bool) {
 	v := m.addstart_day
 	if v == nil {
 		return
@@ -4808,13 +5180,13 @@ func (m *LessonPlanMutation) ResetStartDay() {
 }
 
 // SetEndMonth sets the "end_month" field.
-func (m *LessonPlanMutation) SetEndMonth(i int) {
+func (m *LessonPlanMutation) SetEndMonth(i int64) {
 	m.end_month = &i
 	m.addend_month = nil
 }
 
 // EndMonth returns the value of the "end_month" field in the mutation.
-func (m *LessonPlanMutation) EndMonth() (r int, exists bool) {
+func (m *LessonPlanMutation) EndMonth() (r int64, exists bool) {
 	v := m.end_month
 	if v == nil {
 		return
@@ -4825,7 +5197,7 @@ func (m *LessonPlanMutation) EndMonth() (r int, exists bool) {
 // OldEndMonth returns the old "end_month" field's value of the LessonPlan entity.
 // If the LessonPlan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonPlanMutation) OldEndMonth(ctx context.Context) (v int, err error) {
+func (m *LessonPlanMutation) OldEndMonth(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEndMonth is only allowed on UpdateOne operations")
 	}
@@ -4840,7 +5212,7 @@ func (m *LessonPlanMutation) OldEndMonth(ctx context.Context) (v int, err error)
 }
 
 // AddEndMonth adds i to the "end_month" field.
-func (m *LessonPlanMutation) AddEndMonth(i int) {
+func (m *LessonPlanMutation) AddEndMonth(i int64) {
 	if m.addend_month != nil {
 		*m.addend_month += i
 	} else {
@@ -4849,7 +5221,7 @@ func (m *LessonPlanMutation) AddEndMonth(i int) {
 }
 
 // AddedEndMonth returns the value that was added to the "end_month" field in this mutation.
-func (m *LessonPlanMutation) AddedEndMonth() (r int, exists bool) {
+func (m *LessonPlanMutation) AddedEndMonth() (r int64, exists bool) {
 	v := m.addend_month
 	if v == nil {
 		return
@@ -4864,13 +5236,13 @@ func (m *LessonPlanMutation) ResetEndMonth() {
 }
 
 // SetEndDay sets the "end_day" field.
-func (m *LessonPlanMutation) SetEndDay(i int) {
+func (m *LessonPlanMutation) SetEndDay(i int64) {
 	m.end_day = &i
 	m.addend_day = nil
 }
 
 // EndDay returns the value of the "end_day" field in the mutation.
-func (m *LessonPlanMutation) EndDay() (r int, exists bool) {
+func (m *LessonPlanMutation) EndDay() (r int64, exists bool) {
 	v := m.end_day
 	if v == nil {
 		return
@@ -4881,7 +5253,7 @@ func (m *LessonPlanMutation) EndDay() (r int, exists bool) {
 // OldEndDay returns the old "end_day" field's value of the LessonPlan entity.
 // If the LessonPlan object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonPlanMutation) OldEndDay(ctx context.Context) (v int, err error) {
+func (m *LessonPlanMutation) OldEndDay(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEndDay is only allowed on UpdateOne operations")
 	}
@@ -4896,7 +5268,7 @@ func (m *LessonPlanMutation) OldEndDay(ctx context.Context) (v int, err error) {
 }
 
 // AddEndDay adds i to the "end_day" field.
-func (m *LessonPlanMutation) AddEndDay(i int) {
+func (m *LessonPlanMutation) AddEndDay(i int64) {
 	if m.addend_day != nil {
 		*m.addend_day += i
 	} else {
@@ -4905,7 +5277,7 @@ func (m *LessonPlanMutation) AddEndDay(i int) {
 }
 
 // AddedEndDay returns the value that was added to the "end_day" field in this mutation.
-func (m *LessonPlanMutation) AddedEndDay() (r int, exists bool) {
+func (m *LessonPlanMutation) AddedEndDay() (r int64, exists bool) {
 	v := m.addend_day
 	if v == nil {
 		return
@@ -5005,7 +5377,7 @@ func (m *LessonPlanMutation) CompanyCleared() bool {
 // CompanyIDs returns the "company" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // CompanyID instead. It exists only for internal usage by the builders.
-func (m *LessonPlanMutation) CompanyIDs() (ids []int) {
+func (m *LessonPlanMutation) CompanyIDs() (ids []int64) {
 	if id := m.company; id != nil {
 		ids = append(ids, *id)
 	}
@@ -5019,9 +5391,9 @@ func (m *LessonPlanMutation) ResetCompany() {
 }
 
 // AddScheduleIDs adds the "schedules" edge to the LessonSchedule entity by ids.
-func (m *LessonPlanMutation) AddScheduleIDs(ids ...int) {
+func (m *LessonPlanMutation) AddScheduleIDs(ids ...int64) {
 	if m.schedules == nil {
-		m.schedules = make(map[int]struct{})
+		m.schedules = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.schedules[ids[i]] = struct{}{}
@@ -5039,9 +5411,9 @@ func (m *LessonPlanMutation) SchedulesCleared() bool {
 }
 
 // RemoveScheduleIDs removes the "schedules" edge to the LessonSchedule entity by IDs.
-func (m *LessonPlanMutation) RemoveScheduleIDs(ids ...int) {
+func (m *LessonPlanMutation) RemoveScheduleIDs(ids ...int64) {
 	if m.removedschedules == nil {
-		m.removedschedules = make(map[int]struct{})
+		m.removedschedules = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.schedules, ids[i])
@@ -5050,7 +5422,7 @@ func (m *LessonPlanMutation) RemoveScheduleIDs(ids ...int) {
 }
 
 // RemovedSchedules returns the removed IDs of the "schedules" edge to the LessonSchedule entity.
-func (m *LessonPlanMutation) RemovedSchedulesIDs() (ids []int) {
+func (m *LessonPlanMutation) RemovedSchedulesIDs() (ids []int64) {
 	for id := range m.removedschedules {
 		ids = append(ids, id)
 	}
@@ -5058,7 +5430,7 @@ func (m *LessonPlanMutation) RemovedSchedulesIDs() (ids []int) {
 }
 
 // SchedulesIDs returns the "schedules" edge IDs in the mutation.
-func (m *LessonPlanMutation) SchedulesIDs() (ids []int) {
+func (m *LessonPlanMutation) SchedulesIDs() (ids []int64) {
 	for id := range m.schedules {
 		ids = append(ids, id)
 	}
@@ -5072,172 +5444,10 @@ func (m *LessonPlanMutation) ResetSchedules() {
 	m.removedschedules = nil
 }
 
-// AddGradeIDs adds the "grades" edge to the Grade entity by ids.
-func (m *LessonPlanMutation) AddGradeIDs(ids ...int) {
-	if m.grades == nil {
-		m.grades = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.grades[ids[i]] = struct{}{}
-	}
-}
-
-// ClearGrades clears the "grades" edge to the Grade entity.
-func (m *LessonPlanMutation) ClearGrades() {
-	m.clearedgrades = true
-}
-
-// GradesCleared reports if the "grades" edge to the Grade entity was cleared.
-func (m *LessonPlanMutation) GradesCleared() bool {
-	return m.clearedgrades
-}
-
-// RemoveGradeIDs removes the "grades" edge to the Grade entity by IDs.
-func (m *LessonPlanMutation) RemoveGradeIDs(ids ...int) {
-	if m.removedgrades == nil {
-		m.removedgrades = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.grades, ids[i])
-		m.removedgrades[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedGrades returns the removed IDs of the "grades" edge to the Grade entity.
-func (m *LessonPlanMutation) RemovedGradesIDs() (ids []int) {
-	for id := range m.removedgrades {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// GradesIDs returns the "grades" edge IDs in the mutation.
-func (m *LessonPlanMutation) GradesIDs() (ids []int) {
-	for id := range m.grades {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetGrades resets all changes to the "grades" edge.
-func (m *LessonPlanMutation) ResetGrades() {
-	m.grades = nil
-	m.clearedgrades = false
-	m.removedgrades = nil
-}
-
-// AddSubjectIDs adds the "subjects" edge to the Subject entity by ids.
-func (m *LessonPlanMutation) AddSubjectIDs(ids ...int) {
-	if m.subjects == nil {
-		m.subjects = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.subjects[ids[i]] = struct{}{}
-	}
-}
-
-// ClearSubjects clears the "subjects" edge to the Subject entity.
-func (m *LessonPlanMutation) ClearSubjects() {
-	m.clearedsubjects = true
-}
-
-// SubjectsCleared reports if the "subjects" edge to the Subject entity was cleared.
-func (m *LessonPlanMutation) SubjectsCleared() bool {
-	return m.clearedsubjects
-}
-
-// RemoveSubjectIDs removes the "subjects" edge to the Subject entity by IDs.
-func (m *LessonPlanMutation) RemoveSubjectIDs(ids ...int) {
-	if m.removedsubjects == nil {
-		m.removedsubjects = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.subjects, ids[i])
-		m.removedsubjects[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedSubjects returns the removed IDs of the "subjects" edge to the Subject entity.
-func (m *LessonPlanMutation) RemovedSubjectsIDs() (ids []int) {
-	for id := range m.removedsubjects {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// SubjectsIDs returns the "subjects" edge IDs in the mutation.
-func (m *LessonPlanMutation) SubjectsIDs() (ids []int) {
-	for id := range m.subjects {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetSubjects resets all changes to the "subjects" edge.
-func (m *LessonPlanMutation) ResetSubjects() {
-	m.subjects = nil
-	m.clearedsubjects = false
-	m.removedsubjects = nil
-}
-
-// AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by ids.
-func (m *LessonPlanMutation) AddEducationCategoryIDs(ids ...int) {
-	if m.education_categories == nil {
-		m.education_categories = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.education_categories[ids[i]] = struct{}{}
-	}
-}
-
-// ClearEducationCategories clears the "education_categories" edge to the EducationCategory entity.
-func (m *LessonPlanMutation) ClearEducationCategories() {
-	m.clearededucation_categories = true
-}
-
-// EducationCategoriesCleared reports if the "education_categories" edge to the EducationCategory entity was cleared.
-func (m *LessonPlanMutation) EducationCategoriesCleared() bool {
-	return m.clearededucation_categories
-}
-
-// RemoveEducationCategoryIDs removes the "education_categories" edge to the EducationCategory entity by IDs.
-func (m *LessonPlanMutation) RemoveEducationCategoryIDs(ids ...int) {
-	if m.removededucation_categories == nil {
-		m.removededucation_categories = make(map[int]struct{})
-	}
-	for i := range ids {
-		delete(m.education_categories, ids[i])
-		m.removededucation_categories[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedEducationCategories returns the removed IDs of the "education_categories" edge to the EducationCategory entity.
-func (m *LessonPlanMutation) RemovedEducationCategoriesIDs() (ids []int) {
-	for id := range m.removededucation_categories {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// EducationCategoriesIDs returns the "education_categories" edge IDs in the mutation.
-func (m *LessonPlanMutation) EducationCategoriesIDs() (ids []int) {
-	for id := range m.education_categories {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetEducationCategories resets all changes to the "education_categories" edge.
-func (m *LessonPlanMutation) ResetEducationCategories() {
-	m.education_categories = nil
-	m.clearededucation_categories = false
-	m.removededucation_categories = nil
-}
-
 // AddUploadFileIDs adds the "upload_files" edge to the UploadFile entity by ids.
-func (m *LessonPlanMutation) AddUploadFileIDs(ids ...int) {
+func (m *LessonPlanMutation) AddUploadFileIDs(ids ...int64) {
 	if m.upload_files == nil {
-		m.upload_files = make(map[int]struct{})
+		m.upload_files = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.upload_files[ids[i]] = struct{}{}
@@ -5255,9 +5465,9 @@ func (m *LessonPlanMutation) UploadFilesCleared() bool {
 }
 
 // RemoveUploadFileIDs removes the "upload_files" edge to the UploadFile entity by IDs.
-func (m *LessonPlanMutation) RemoveUploadFileIDs(ids ...int) {
+func (m *LessonPlanMutation) RemoveUploadFileIDs(ids ...int64) {
 	if m.removedupload_files == nil {
-		m.removedupload_files = make(map[int]struct{})
+		m.removedupload_files = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.upload_files, ids[i])
@@ -5266,7 +5476,7 @@ func (m *LessonPlanMutation) RemoveUploadFileIDs(ids ...int) {
 }
 
 // RemovedUploadFiles returns the removed IDs of the "upload_files" edge to the UploadFile entity.
-func (m *LessonPlanMutation) RemovedUploadFilesIDs() (ids []int) {
+func (m *LessonPlanMutation) RemovedUploadFilesIDs() (ids []int64) {
 	for id := range m.removedupload_files {
 		ids = append(ids, id)
 	}
@@ -5274,7 +5484,7 @@ func (m *LessonPlanMutation) RemovedUploadFilesIDs() (ids []int) {
 }
 
 // UploadFilesIDs returns the "upload_files" edge IDs in the mutation.
-func (m *LessonPlanMutation) UploadFilesIDs() (ids []int) {
+func (m *LessonPlanMutation) UploadFilesIDs() (ids []int64) {
 	for id := range m.upload_files {
 		ids = append(ids, id)
 	}
@@ -5286,6 +5496,384 @@ func (m *LessonPlanMutation) ResetUploadFiles() {
 	m.upload_files = nil
 	m.clearedupload_files = false
 	m.removedupload_files = nil
+}
+
+// AddSubjectIDs adds the "subjects" edge to the Subject entity by ids.
+func (m *LessonPlanMutation) AddSubjectIDs(ids ...int64) {
+	if m.subjects == nil {
+		m.subjects = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.subjects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearSubjects clears the "subjects" edge to the Subject entity.
+func (m *LessonPlanMutation) ClearSubjects() {
+	m.clearedsubjects = true
+}
+
+// SubjectsCleared reports if the "subjects" edge to the Subject entity was cleared.
+func (m *LessonPlanMutation) SubjectsCleared() bool {
+	return m.clearedsubjects
+}
+
+// RemoveSubjectIDs removes the "subjects" edge to the Subject entity by IDs.
+func (m *LessonPlanMutation) RemoveSubjectIDs(ids ...int64) {
+	if m.removedsubjects == nil {
+		m.removedsubjects = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.subjects, ids[i])
+		m.removedsubjects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedSubjects returns the removed IDs of the "subjects" edge to the Subject entity.
+func (m *LessonPlanMutation) RemovedSubjectsIDs() (ids []int64) {
+	for id := range m.removedsubjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// SubjectsIDs returns the "subjects" edge IDs in the mutation.
+func (m *LessonPlanMutation) SubjectsIDs() (ids []int64) {
+	for id := range m.subjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetSubjects resets all changes to the "subjects" edge.
+func (m *LessonPlanMutation) ResetSubjects() {
+	m.subjects = nil
+	m.clearedsubjects = false
+	m.removedsubjects = nil
+}
+
+// AddGradeIDs adds the "grades" edge to the Grade entity by ids.
+func (m *LessonPlanMutation) AddGradeIDs(ids ...int64) {
+	if m.grades == nil {
+		m.grades = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.grades[ids[i]] = struct{}{}
+	}
+}
+
+// ClearGrades clears the "grades" edge to the Grade entity.
+func (m *LessonPlanMutation) ClearGrades() {
+	m.clearedgrades = true
+}
+
+// GradesCleared reports if the "grades" edge to the Grade entity was cleared.
+func (m *LessonPlanMutation) GradesCleared() bool {
+	return m.clearedgrades
+}
+
+// RemoveGradeIDs removes the "grades" edge to the Grade entity by IDs.
+func (m *LessonPlanMutation) RemoveGradeIDs(ids ...int64) {
+	if m.removedgrades == nil {
+		m.removedgrades = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.grades, ids[i])
+		m.removedgrades[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGrades returns the removed IDs of the "grades" edge to the Grade entity.
+func (m *LessonPlanMutation) RemovedGradesIDs() (ids []int64) {
+	for id := range m.removedgrades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GradesIDs returns the "grades" edge IDs in the mutation.
+func (m *LessonPlanMutation) GradesIDs() (ids []int64) {
+	for id := range m.grades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGrades resets all changes to the "grades" edge.
+func (m *LessonPlanMutation) ResetGrades() {
+	m.grades = nil
+	m.clearedgrades = false
+	m.removedgrades = nil
+}
+
+// AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by ids.
+func (m *LessonPlanMutation) AddEducationCategoryIDs(ids ...int64) {
+	if m.education_categories == nil {
+		m.education_categories = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.education_categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearEducationCategories clears the "education_categories" edge to the EducationCategory entity.
+func (m *LessonPlanMutation) ClearEducationCategories() {
+	m.clearededucation_categories = true
+}
+
+// EducationCategoriesCleared reports if the "education_categories" edge to the EducationCategory entity was cleared.
+func (m *LessonPlanMutation) EducationCategoriesCleared() bool {
+	return m.clearededucation_categories
+}
+
+// RemoveEducationCategoryIDs removes the "education_categories" edge to the EducationCategory entity by IDs.
+func (m *LessonPlanMutation) RemoveEducationCategoryIDs(ids ...int64) {
+	if m.removededucation_categories == nil {
+		m.removededucation_categories = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.education_categories, ids[i])
+		m.removededucation_categories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedEducationCategories returns the removed IDs of the "education_categories" edge to the EducationCategory entity.
+func (m *LessonPlanMutation) RemovedEducationCategoriesIDs() (ids []int64) {
+	for id := range m.removededucation_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// EducationCategoriesIDs returns the "education_categories" edge IDs in the mutation.
+func (m *LessonPlanMutation) EducationCategoriesIDs() (ids []int64) {
+	for id := range m.education_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetEducationCategories resets all changes to the "education_categories" edge.
+func (m *LessonPlanMutation) ResetEducationCategories() {
+	m.education_categories = nil
+	m.clearededucation_categories = false
+	m.removededucation_categories = nil
+}
+
+// AddLessonPlanUploadFileIDs adds the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by ids.
+func (m *LessonPlanMutation) AddLessonPlanUploadFileIDs(ids ...int64) {
+	if m.lesson_plan_upload_files == nil {
+		m.lesson_plan_upload_files = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_upload_files[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanUploadFiles clears the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity.
+func (m *LessonPlanMutation) ClearLessonPlanUploadFiles() {
+	m.clearedlesson_plan_upload_files = true
+}
+
+// LessonPlanUploadFilesCleared reports if the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity was cleared.
+func (m *LessonPlanMutation) LessonPlanUploadFilesCleared() bool {
+	return m.clearedlesson_plan_upload_files
+}
+
+// RemoveLessonPlanUploadFileIDs removes the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by IDs.
+func (m *LessonPlanMutation) RemoveLessonPlanUploadFileIDs(ids ...int64) {
+	if m.removedlesson_plan_upload_files == nil {
+		m.removedlesson_plan_upload_files = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_upload_files, ids[i])
+		m.removedlesson_plan_upload_files[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanUploadFiles returns the removed IDs of the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity.
+func (m *LessonPlanMutation) RemovedLessonPlanUploadFilesIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_upload_files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanUploadFilesIDs returns the "lesson_plan_upload_files" edge IDs in the mutation.
+func (m *LessonPlanMutation) LessonPlanUploadFilesIDs() (ids []int64) {
+	for id := range m.lesson_plan_upload_files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanUploadFiles resets all changes to the "lesson_plan_upload_files" edge.
+func (m *LessonPlanMutation) ResetLessonPlanUploadFiles() {
+	m.lesson_plan_upload_files = nil
+	m.clearedlesson_plan_upload_files = false
+	m.removedlesson_plan_upload_files = nil
+}
+
+// AddLessonPlanSubjectIDs adds the "lesson_plan_subjects" edge to the LessonPlanSubject entity by ids.
+func (m *LessonPlanMutation) AddLessonPlanSubjectIDs(ids ...int64) {
+	if m.lesson_plan_subjects == nil {
+		m.lesson_plan_subjects = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_subjects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanSubjects clears the "lesson_plan_subjects" edge to the LessonPlanSubject entity.
+func (m *LessonPlanMutation) ClearLessonPlanSubjects() {
+	m.clearedlesson_plan_subjects = true
+}
+
+// LessonPlanSubjectsCleared reports if the "lesson_plan_subjects" edge to the LessonPlanSubject entity was cleared.
+func (m *LessonPlanMutation) LessonPlanSubjectsCleared() bool {
+	return m.clearedlesson_plan_subjects
+}
+
+// RemoveLessonPlanSubjectIDs removes the "lesson_plan_subjects" edge to the LessonPlanSubject entity by IDs.
+func (m *LessonPlanMutation) RemoveLessonPlanSubjectIDs(ids ...int64) {
+	if m.removedlesson_plan_subjects == nil {
+		m.removedlesson_plan_subjects = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_subjects, ids[i])
+		m.removedlesson_plan_subjects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanSubjects returns the removed IDs of the "lesson_plan_subjects" edge to the LessonPlanSubject entity.
+func (m *LessonPlanMutation) RemovedLessonPlanSubjectsIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_subjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanSubjectsIDs returns the "lesson_plan_subjects" edge IDs in the mutation.
+func (m *LessonPlanMutation) LessonPlanSubjectsIDs() (ids []int64) {
+	for id := range m.lesson_plan_subjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanSubjects resets all changes to the "lesson_plan_subjects" edge.
+func (m *LessonPlanMutation) ResetLessonPlanSubjects() {
+	m.lesson_plan_subjects = nil
+	m.clearedlesson_plan_subjects = false
+	m.removedlesson_plan_subjects = nil
+}
+
+// AddLessonPlanGradeIDs adds the "lesson_plan_grades" edge to the LessonPlanGrade entity by ids.
+func (m *LessonPlanMutation) AddLessonPlanGradeIDs(ids ...int64) {
+	if m.lesson_plan_grades == nil {
+		m.lesson_plan_grades = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_grades[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanGrades clears the "lesson_plan_grades" edge to the LessonPlanGrade entity.
+func (m *LessonPlanMutation) ClearLessonPlanGrades() {
+	m.clearedlesson_plan_grades = true
+}
+
+// LessonPlanGradesCleared reports if the "lesson_plan_grades" edge to the LessonPlanGrade entity was cleared.
+func (m *LessonPlanMutation) LessonPlanGradesCleared() bool {
+	return m.clearedlesson_plan_grades
+}
+
+// RemoveLessonPlanGradeIDs removes the "lesson_plan_grades" edge to the LessonPlanGrade entity by IDs.
+func (m *LessonPlanMutation) RemoveLessonPlanGradeIDs(ids ...int64) {
+	if m.removedlesson_plan_grades == nil {
+		m.removedlesson_plan_grades = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_grades, ids[i])
+		m.removedlesson_plan_grades[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanGrades returns the removed IDs of the "lesson_plan_grades" edge to the LessonPlanGrade entity.
+func (m *LessonPlanMutation) RemovedLessonPlanGradesIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_grades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanGradesIDs returns the "lesson_plan_grades" edge IDs in the mutation.
+func (m *LessonPlanMutation) LessonPlanGradesIDs() (ids []int64) {
+	for id := range m.lesson_plan_grades {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanGrades resets all changes to the "lesson_plan_grades" edge.
+func (m *LessonPlanMutation) ResetLessonPlanGrades() {
+	m.lesson_plan_grades = nil
+	m.clearedlesson_plan_grades = false
+	m.removedlesson_plan_grades = nil
+}
+
+// AddLessonPlanEducationCategoryIDs adds the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by ids.
+func (m *LessonPlanMutation) AddLessonPlanEducationCategoryIDs(ids ...int64) {
+	if m.lesson_plan_education_categories == nil {
+		m.lesson_plan_education_categories = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_education_categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanEducationCategories clears the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity.
+func (m *LessonPlanMutation) ClearLessonPlanEducationCategories() {
+	m.clearedlesson_plan_education_categories = true
+}
+
+// LessonPlanEducationCategoriesCleared reports if the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity was cleared.
+func (m *LessonPlanMutation) LessonPlanEducationCategoriesCleared() bool {
+	return m.clearedlesson_plan_education_categories
+}
+
+// RemoveLessonPlanEducationCategoryIDs removes the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity by IDs.
+func (m *LessonPlanMutation) RemoveLessonPlanEducationCategoryIDs(ids ...int64) {
+	if m.removedlesson_plan_education_categories == nil {
+		m.removedlesson_plan_education_categories = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_education_categories, ids[i])
+		m.removedlesson_plan_education_categories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanEducationCategories returns the removed IDs of the "lesson_plan_education_categories" edge to the LessonPlanEducationCategory entity.
+func (m *LessonPlanMutation) RemovedLessonPlanEducationCategoriesIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_education_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanEducationCategoriesIDs returns the "lesson_plan_education_categories" edge IDs in the mutation.
+func (m *LessonPlanMutation) LessonPlanEducationCategoriesIDs() (ids []int64) {
+	for id := range m.lesson_plan_education_categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanEducationCategories resets all changes to the "lesson_plan_education_categories" edge.
+func (m *LessonPlanMutation) ResetLessonPlanEducationCategories() {
+	m.lesson_plan_education_categories = nil
+	m.clearedlesson_plan_education_categories = false
+	m.removedlesson_plan_education_categories = nil
 }
 
 // Where appends a list predicates to the LessonPlanMutation builder.
@@ -5462,7 +6050,7 @@ func (m *LessonPlanMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	case lessonplan.FieldCompanyID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5497,35 +6085,35 @@ func (m *LessonPlanMutation) SetField(name string, value ent.Value) error {
 		m.SetLessonType(v)
 		return nil
 	case lessonplan.FieldAnnualMaxExecutions:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetAnnualMaxExecutions(v)
 		return nil
 	case lessonplan.FieldStartMonth:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStartMonth(v)
 		return nil
 	case lessonplan.FieldStartDay:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStartDay(v)
 		return nil
 	case lessonplan.FieldEndMonth:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetEndMonth(v)
 		return nil
 	case lessonplan.FieldEndDay:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5596,35 +6184,35 @@ func (m *LessonPlanMutation) AddedField(name string) (ent.Value, bool) {
 func (m *LessonPlanMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case lessonplan.FieldAnnualMaxExecutions:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddAnnualMaxExecutions(v)
 		return nil
 	case lessonplan.FieldStartMonth:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddStartMonth(v)
 		return nil
 	case lessonplan.FieldStartDay:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddStartDay(v)
 		return nil
 	case lessonplan.FieldEndMonth:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddEndMonth(v)
 		return nil
 	case lessonplan.FieldEndDay:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -5720,24 +6308,36 @@ func (m *LessonPlanMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *LessonPlanMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 10)
 	if m.company != nil {
 		edges = append(edges, lessonplan.EdgeCompany)
 	}
 	if m.schedules != nil {
 		edges = append(edges, lessonplan.EdgeSchedules)
 	}
-	if m.grades != nil {
-		edges = append(edges, lessonplan.EdgeGrades)
+	if m.upload_files != nil {
+		edges = append(edges, lessonplan.EdgeUploadFiles)
 	}
 	if m.subjects != nil {
 		edges = append(edges, lessonplan.EdgeSubjects)
 	}
+	if m.grades != nil {
+		edges = append(edges, lessonplan.EdgeGrades)
+	}
 	if m.education_categories != nil {
 		edges = append(edges, lessonplan.EdgeEducationCategories)
 	}
-	if m.upload_files != nil {
-		edges = append(edges, lessonplan.EdgeUploadFiles)
+	if m.lesson_plan_upload_files != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanUploadFiles)
+	}
+	if m.lesson_plan_subjects != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanSubjects)
+	}
+	if m.lesson_plan_grades != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanGrades)
+	}
+	if m.lesson_plan_education_categories != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanEducationCategories)
 	}
 	return edges
 }
@@ -5756,9 +6356,9 @@ func (m *LessonPlanMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case lessonplan.EdgeGrades:
-		ids := make([]ent.Value, 0, len(m.grades))
-		for id := range m.grades {
+	case lessonplan.EdgeUploadFiles:
+		ids := make([]ent.Value, 0, len(m.upload_files))
+		for id := range m.upload_files {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5768,15 +6368,39 @@ func (m *LessonPlanMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case lessonplan.EdgeGrades:
+		ids := make([]ent.Value, 0, len(m.grades))
+		for id := range m.grades {
+			ids = append(ids, id)
+		}
+		return ids
 	case lessonplan.EdgeEducationCategories:
 		ids := make([]ent.Value, 0, len(m.education_categories))
 		for id := range m.education_categories {
 			ids = append(ids, id)
 		}
 		return ids
-	case lessonplan.EdgeUploadFiles:
-		ids := make([]ent.Value, 0, len(m.upload_files))
-		for id := range m.upload_files {
+	case lessonplan.EdgeLessonPlanUploadFiles:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_upload_files))
+		for id := range m.lesson_plan_upload_files {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonplan.EdgeLessonPlanSubjects:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_subjects))
+		for id := range m.lesson_plan_subjects {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonplan.EdgeLessonPlanGrades:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_grades))
+		for id := range m.lesson_plan_grades {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonplan.EdgeLessonPlanEducationCategories:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_education_categories))
+		for id := range m.lesson_plan_education_categories {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5786,21 +6410,33 @@ func (m *LessonPlanMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *LessonPlanMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 10)
 	if m.removedschedules != nil {
 		edges = append(edges, lessonplan.EdgeSchedules)
 	}
-	if m.removedgrades != nil {
-		edges = append(edges, lessonplan.EdgeGrades)
+	if m.removedupload_files != nil {
+		edges = append(edges, lessonplan.EdgeUploadFiles)
 	}
 	if m.removedsubjects != nil {
 		edges = append(edges, lessonplan.EdgeSubjects)
 	}
+	if m.removedgrades != nil {
+		edges = append(edges, lessonplan.EdgeGrades)
+	}
 	if m.removededucation_categories != nil {
 		edges = append(edges, lessonplan.EdgeEducationCategories)
 	}
-	if m.removedupload_files != nil {
-		edges = append(edges, lessonplan.EdgeUploadFiles)
+	if m.removedlesson_plan_upload_files != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanUploadFiles)
+	}
+	if m.removedlesson_plan_subjects != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanSubjects)
+	}
+	if m.removedlesson_plan_grades != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanGrades)
+	}
+	if m.removedlesson_plan_education_categories != nil {
+		edges = append(edges, lessonplan.EdgeLessonPlanEducationCategories)
 	}
 	return edges
 }
@@ -5815,9 +6451,9 @@ func (m *LessonPlanMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case lessonplan.EdgeGrades:
-		ids := make([]ent.Value, 0, len(m.removedgrades))
-		for id := range m.removedgrades {
+	case lessonplan.EdgeUploadFiles:
+		ids := make([]ent.Value, 0, len(m.removedupload_files))
+		for id := range m.removedupload_files {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5827,15 +6463,39 @@ func (m *LessonPlanMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case lessonplan.EdgeGrades:
+		ids := make([]ent.Value, 0, len(m.removedgrades))
+		for id := range m.removedgrades {
+			ids = append(ids, id)
+		}
+		return ids
 	case lessonplan.EdgeEducationCategories:
 		ids := make([]ent.Value, 0, len(m.removededucation_categories))
 		for id := range m.removededucation_categories {
 			ids = append(ids, id)
 		}
 		return ids
-	case lessonplan.EdgeUploadFiles:
-		ids := make([]ent.Value, 0, len(m.removedupload_files))
-		for id := range m.removedupload_files {
+	case lessonplan.EdgeLessonPlanUploadFiles:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_upload_files))
+		for id := range m.removedlesson_plan_upload_files {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonplan.EdgeLessonPlanSubjects:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_subjects))
+		for id := range m.removedlesson_plan_subjects {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonplan.EdgeLessonPlanGrades:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_grades))
+		for id := range m.removedlesson_plan_grades {
+			ids = append(ids, id)
+		}
+		return ids
+	case lessonplan.EdgeLessonPlanEducationCategories:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_education_categories))
+		for id := range m.removedlesson_plan_education_categories {
 			ids = append(ids, id)
 		}
 		return ids
@@ -5845,24 +6505,36 @@ func (m *LessonPlanMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *LessonPlanMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 10)
 	if m.clearedcompany {
 		edges = append(edges, lessonplan.EdgeCompany)
 	}
 	if m.clearedschedules {
 		edges = append(edges, lessonplan.EdgeSchedules)
 	}
-	if m.clearedgrades {
-		edges = append(edges, lessonplan.EdgeGrades)
+	if m.clearedupload_files {
+		edges = append(edges, lessonplan.EdgeUploadFiles)
 	}
 	if m.clearedsubjects {
 		edges = append(edges, lessonplan.EdgeSubjects)
 	}
+	if m.clearedgrades {
+		edges = append(edges, lessonplan.EdgeGrades)
+	}
 	if m.clearededucation_categories {
 		edges = append(edges, lessonplan.EdgeEducationCategories)
 	}
-	if m.clearedupload_files {
-		edges = append(edges, lessonplan.EdgeUploadFiles)
+	if m.clearedlesson_plan_upload_files {
+		edges = append(edges, lessonplan.EdgeLessonPlanUploadFiles)
+	}
+	if m.clearedlesson_plan_subjects {
+		edges = append(edges, lessonplan.EdgeLessonPlanSubjects)
+	}
+	if m.clearedlesson_plan_grades {
+		edges = append(edges, lessonplan.EdgeLessonPlanGrades)
+	}
+	if m.clearedlesson_plan_education_categories {
+		edges = append(edges, lessonplan.EdgeLessonPlanEducationCategories)
 	}
 	return edges
 }
@@ -5875,14 +6547,22 @@ func (m *LessonPlanMutation) EdgeCleared(name string) bool {
 		return m.clearedcompany
 	case lessonplan.EdgeSchedules:
 		return m.clearedschedules
-	case lessonplan.EdgeGrades:
-		return m.clearedgrades
-	case lessonplan.EdgeSubjects:
-		return m.clearedsubjects
-	case lessonplan.EdgeEducationCategories:
-		return m.clearededucation_categories
 	case lessonplan.EdgeUploadFiles:
 		return m.clearedupload_files
+	case lessonplan.EdgeSubjects:
+		return m.clearedsubjects
+	case lessonplan.EdgeGrades:
+		return m.clearedgrades
+	case lessonplan.EdgeEducationCategories:
+		return m.clearededucation_categories
+	case lessonplan.EdgeLessonPlanUploadFiles:
+		return m.clearedlesson_plan_upload_files
+	case lessonplan.EdgeLessonPlanSubjects:
+		return m.clearedlesson_plan_subjects
+	case lessonplan.EdgeLessonPlanGrades:
+		return m.clearedlesson_plan_grades
+	case lessonplan.EdgeLessonPlanEducationCategories:
+		return m.clearedlesson_plan_education_categories
 	}
 	return false
 }
@@ -5908,20 +6588,2420 @@ func (m *LessonPlanMutation) ResetEdge(name string) error {
 	case lessonplan.EdgeSchedules:
 		m.ResetSchedules()
 		return nil
-	case lessonplan.EdgeGrades:
-		m.ResetGrades()
+	case lessonplan.EdgeUploadFiles:
+		m.ResetUploadFiles()
 		return nil
 	case lessonplan.EdgeSubjects:
 		m.ResetSubjects()
 		return nil
+	case lessonplan.EdgeGrades:
+		m.ResetGrades()
+		return nil
 	case lessonplan.EdgeEducationCategories:
 		m.ResetEducationCategories()
 		return nil
-	case lessonplan.EdgeUploadFiles:
-		m.ResetUploadFiles()
+	case lessonplan.EdgeLessonPlanUploadFiles:
+		m.ResetLessonPlanUploadFiles()
+		return nil
+	case lessonplan.EdgeLessonPlanSubjects:
+		m.ResetLessonPlanSubjects()
+		return nil
+	case lessonplan.EdgeLessonPlanGrades:
+		m.ResetLessonPlanGrades()
+		return nil
+	case lessonplan.EdgeLessonPlanEducationCategories:
+		m.ResetLessonPlanEducationCategories()
 		return nil
 	}
 	return fmt.Errorf("unknown LessonPlan edge %s", name)
+}
+
+// LessonPlanEducationCategoryMutation represents an operation that mutates the LessonPlanEducationCategory nodes in the graph.
+type LessonPlanEducationCategoryMutation struct {
+	config
+	op                        Op
+	typ                       string
+	id                        *int64
+	created_at                *time.Time
+	updated_at                *time.Time
+	clearedFields             map[string]struct{}
+	lesson_plan               *int64
+	clearedlesson_plan        bool
+	education_category        *int64
+	clearededucation_category bool
+	done                      bool
+	oldValue                  func(context.Context) (*LessonPlanEducationCategory, error)
+	predicates                []predicate.LessonPlanEducationCategory
+}
+
+var _ ent.Mutation = (*LessonPlanEducationCategoryMutation)(nil)
+
+// lessonplaneducationcategoryOption allows management of the mutation configuration using functional options.
+type lessonplaneducationcategoryOption func(*LessonPlanEducationCategoryMutation)
+
+// newLessonPlanEducationCategoryMutation creates new mutation for the LessonPlanEducationCategory entity.
+func newLessonPlanEducationCategoryMutation(c config, op Op, opts ...lessonplaneducationcategoryOption) *LessonPlanEducationCategoryMutation {
+	m := &LessonPlanEducationCategoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLessonPlanEducationCategory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLessonPlanEducationCategoryID sets the ID field of the mutation.
+func withLessonPlanEducationCategoryID(id int64) lessonplaneducationcategoryOption {
+	return func(m *LessonPlanEducationCategoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LessonPlanEducationCategory
+		)
+		m.oldValue = func(ctx context.Context) (*LessonPlanEducationCategory, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LessonPlanEducationCategory.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLessonPlanEducationCategory sets the old LessonPlanEducationCategory of the mutation.
+func withLessonPlanEducationCategory(node *LessonPlanEducationCategory) lessonplaneducationcategoryOption {
+	return func(m *LessonPlanEducationCategoryMutation) {
+		m.oldValue = func(context.Context) (*LessonPlanEducationCategory, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LessonPlanEducationCategoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LessonPlanEducationCategoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonPlanEducationCategory entities.
+func (m *LessonPlanEducationCategoryMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LessonPlanEducationCategoryMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LessonPlanEducationCategoryMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LessonPlanEducationCategory.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LessonPlanEducationCategoryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LessonPlanEducationCategoryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LessonPlanEducationCategory entity.
+// If the LessonPlanEducationCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanEducationCategoryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LessonPlanEducationCategoryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LessonPlanEducationCategoryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LessonPlanEducationCategoryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LessonPlanEducationCategory entity.
+// If the LessonPlanEducationCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanEducationCategoryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LessonPlanEducationCategoryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetLessonPlanID sets the "lesson_plan_id" field.
+func (m *LessonPlanEducationCategoryMutation) SetLessonPlanID(i int64) {
+	m.lesson_plan = &i
+}
+
+// LessonPlanID returns the value of the "lesson_plan_id" field in the mutation.
+func (m *LessonPlanEducationCategoryMutation) LessonPlanID() (r int64, exists bool) {
+	v := m.lesson_plan
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLessonPlanID returns the old "lesson_plan_id" field's value of the LessonPlanEducationCategory entity.
+// If the LessonPlanEducationCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanEducationCategoryMutation) OldLessonPlanID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLessonPlanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLessonPlanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLessonPlanID: %w", err)
+	}
+	return oldValue.LessonPlanID, nil
+}
+
+// ResetLessonPlanID resets all changes to the "lesson_plan_id" field.
+func (m *LessonPlanEducationCategoryMutation) ResetLessonPlanID() {
+	m.lesson_plan = nil
+}
+
+// SetEducationCategoryID sets the "education_category_id" field.
+func (m *LessonPlanEducationCategoryMutation) SetEducationCategoryID(i int64) {
+	m.education_category = &i
+}
+
+// EducationCategoryID returns the value of the "education_category_id" field in the mutation.
+func (m *LessonPlanEducationCategoryMutation) EducationCategoryID() (r int64, exists bool) {
+	v := m.education_category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEducationCategoryID returns the old "education_category_id" field's value of the LessonPlanEducationCategory entity.
+// If the LessonPlanEducationCategory object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanEducationCategoryMutation) OldEducationCategoryID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEducationCategoryID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEducationCategoryID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEducationCategoryID: %w", err)
+	}
+	return oldValue.EducationCategoryID, nil
+}
+
+// ResetEducationCategoryID resets all changes to the "education_category_id" field.
+func (m *LessonPlanEducationCategoryMutation) ResetEducationCategoryID() {
+	m.education_category = nil
+}
+
+// ClearLessonPlan clears the "lesson_plan" edge to the LessonPlan entity.
+func (m *LessonPlanEducationCategoryMutation) ClearLessonPlan() {
+	m.clearedlesson_plan = true
+	m.clearedFields[lessonplaneducationcategory.FieldLessonPlanID] = struct{}{}
+}
+
+// LessonPlanCleared reports if the "lesson_plan" edge to the LessonPlan entity was cleared.
+func (m *LessonPlanEducationCategoryMutation) LessonPlanCleared() bool {
+	return m.clearedlesson_plan
+}
+
+// LessonPlanIDs returns the "lesson_plan" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LessonPlanID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanEducationCategoryMutation) LessonPlanIDs() (ids []int64) {
+	if id := m.lesson_plan; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLessonPlan resets all changes to the "lesson_plan" edge.
+func (m *LessonPlanEducationCategoryMutation) ResetLessonPlan() {
+	m.lesson_plan = nil
+	m.clearedlesson_plan = false
+}
+
+// ClearEducationCategory clears the "education_category" edge to the EducationCategory entity.
+func (m *LessonPlanEducationCategoryMutation) ClearEducationCategory() {
+	m.clearededucation_category = true
+	m.clearedFields[lessonplaneducationcategory.FieldEducationCategoryID] = struct{}{}
+}
+
+// EducationCategoryCleared reports if the "education_category" edge to the EducationCategory entity was cleared.
+func (m *LessonPlanEducationCategoryMutation) EducationCategoryCleared() bool {
+	return m.clearededucation_category
+}
+
+// EducationCategoryIDs returns the "education_category" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// EducationCategoryID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanEducationCategoryMutation) EducationCategoryIDs() (ids []int64) {
+	if id := m.education_category; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetEducationCategory resets all changes to the "education_category" edge.
+func (m *LessonPlanEducationCategoryMutation) ResetEducationCategory() {
+	m.education_category = nil
+	m.clearededucation_category = false
+}
+
+// Where appends a list predicates to the LessonPlanEducationCategoryMutation builder.
+func (m *LessonPlanEducationCategoryMutation) Where(ps ...predicate.LessonPlanEducationCategory) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LessonPlanEducationCategoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LessonPlanEducationCategoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LessonPlanEducationCategory, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LessonPlanEducationCategoryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LessonPlanEducationCategoryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LessonPlanEducationCategory).
+func (m *LessonPlanEducationCategoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LessonPlanEducationCategoryMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, lessonplaneducationcategory.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lessonplaneducationcategory.FieldUpdatedAt)
+	}
+	if m.lesson_plan != nil {
+		fields = append(fields, lessonplaneducationcategory.FieldLessonPlanID)
+	}
+	if m.education_category != nil {
+		fields = append(fields, lessonplaneducationcategory.FieldEducationCategoryID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LessonPlanEducationCategoryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lessonplaneducationcategory.FieldCreatedAt:
+		return m.CreatedAt()
+	case lessonplaneducationcategory.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case lessonplaneducationcategory.FieldLessonPlanID:
+		return m.LessonPlanID()
+	case lessonplaneducationcategory.FieldEducationCategoryID:
+		return m.EducationCategoryID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LessonPlanEducationCategoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lessonplaneducationcategory.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lessonplaneducationcategory.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case lessonplaneducationcategory.FieldLessonPlanID:
+		return m.OldLessonPlanID(ctx)
+	case lessonplaneducationcategory.FieldEducationCategoryID:
+		return m.OldEducationCategoryID(ctx)
+	}
+	return nil, fmt.Errorf("unknown LessonPlanEducationCategory field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanEducationCategoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lessonplaneducationcategory.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lessonplaneducationcategory.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case lessonplaneducationcategory.FieldLessonPlanID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLessonPlanID(v)
+		return nil
+	case lessonplaneducationcategory.FieldEducationCategoryID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEducationCategoryID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanEducationCategory field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LessonPlanEducationCategoryMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LessonPlanEducationCategoryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanEducationCategoryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LessonPlanEducationCategory numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LessonPlanEducationCategoryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LessonPlanEducationCategoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LessonPlanEducationCategoryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LessonPlanEducationCategory nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LessonPlanEducationCategoryMutation) ResetField(name string) error {
+	switch name {
+	case lessonplaneducationcategory.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lessonplaneducationcategory.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case lessonplaneducationcategory.FieldLessonPlanID:
+		m.ResetLessonPlanID()
+		return nil
+	case lessonplaneducationcategory.FieldEducationCategoryID:
+		m.ResetEducationCategoryID()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanEducationCategory field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LessonPlanEducationCategoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.lesson_plan != nil {
+		edges = append(edges, lessonplaneducationcategory.EdgeLessonPlan)
+	}
+	if m.education_category != nil {
+		edges = append(edges, lessonplaneducationcategory.EdgeEducationCategory)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LessonPlanEducationCategoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case lessonplaneducationcategory.EdgeLessonPlan:
+		if id := m.lesson_plan; id != nil {
+			return []ent.Value{*id}
+		}
+	case lessonplaneducationcategory.EdgeEducationCategory:
+		if id := m.education_category; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LessonPlanEducationCategoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LessonPlanEducationCategoryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LessonPlanEducationCategoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedlesson_plan {
+		edges = append(edges, lessonplaneducationcategory.EdgeLessonPlan)
+	}
+	if m.clearededucation_category {
+		edges = append(edges, lessonplaneducationcategory.EdgeEducationCategory)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LessonPlanEducationCategoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case lessonplaneducationcategory.EdgeLessonPlan:
+		return m.clearedlesson_plan
+	case lessonplaneducationcategory.EdgeEducationCategory:
+		return m.clearededucation_category
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LessonPlanEducationCategoryMutation) ClearEdge(name string) error {
+	switch name {
+	case lessonplaneducationcategory.EdgeLessonPlan:
+		m.ClearLessonPlan()
+		return nil
+	case lessonplaneducationcategory.EdgeEducationCategory:
+		m.ClearEducationCategory()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanEducationCategory unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LessonPlanEducationCategoryMutation) ResetEdge(name string) error {
+	switch name {
+	case lessonplaneducationcategory.EdgeLessonPlan:
+		m.ResetLessonPlan()
+		return nil
+	case lessonplaneducationcategory.EdgeEducationCategory:
+		m.ResetEducationCategory()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanEducationCategory edge %s", name)
+}
+
+// LessonPlanGradeMutation represents an operation that mutates the LessonPlanGrade nodes in the graph.
+type LessonPlanGradeMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	lesson_plan        *int64
+	clearedlesson_plan bool
+	grade              *int64
+	clearedgrade       bool
+	done               bool
+	oldValue           func(context.Context) (*LessonPlanGrade, error)
+	predicates         []predicate.LessonPlanGrade
+}
+
+var _ ent.Mutation = (*LessonPlanGradeMutation)(nil)
+
+// lessonplangradeOption allows management of the mutation configuration using functional options.
+type lessonplangradeOption func(*LessonPlanGradeMutation)
+
+// newLessonPlanGradeMutation creates new mutation for the LessonPlanGrade entity.
+func newLessonPlanGradeMutation(c config, op Op, opts ...lessonplangradeOption) *LessonPlanGradeMutation {
+	m := &LessonPlanGradeMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLessonPlanGrade,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLessonPlanGradeID sets the ID field of the mutation.
+func withLessonPlanGradeID(id int64) lessonplangradeOption {
+	return func(m *LessonPlanGradeMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LessonPlanGrade
+		)
+		m.oldValue = func(ctx context.Context) (*LessonPlanGrade, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LessonPlanGrade.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLessonPlanGrade sets the old LessonPlanGrade of the mutation.
+func withLessonPlanGrade(node *LessonPlanGrade) lessonplangradeOption {
+	return func(m *LessonPlanGradeMutation) {
+		m.oldValue = func(context.Context) (*LessonPlanGrade, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LessonPlanGradeMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LessonPlanGradeMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonPlanGrade entities.
+func (m *LessonPlanGradeMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LessonPlanGradeMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LessonPlanGradeMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LessonPlanGrade.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LessonPlanGradeMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LessonPlanGradeMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LessonPlanGrade entity.
+// If the LessonPlanGrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanGradeMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LessonPlanGradeMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LessonPlanGradeMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LessonPlanGradeMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LessonPlanGrade entity.
+// If the LessonPlanGrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanGradeMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LessonPlanGradeMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetLessonPlanID sets the "lesson_plan_id" field.
+func (m *LessonPlanGradeMutation) SetLessonPlanID(i int64) {
+	m.lesson_plan = &i
+}
+
+// LessonPlanID returns the value of the "lesson_plan_id" field in the mutation.
+func (m *LessonPlanGradeMutation) LessonPlanID() (r int64, exists bool) {
+	v := m.lesson_plan
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLessonPlanID returns the old "lesson_plan_id" field's value of the LessonPlanGrade entity.
+// If the LessonPlanGrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanGradeMutation) OldLessonPlanID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLessonPlanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLessonPlanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLessonPlanID: %w", err)
+	}
+	return oldValue.LessonPlanID, nil
+}
+
+// ResetLessonPlanID resets all changes to the "lesson_plan_id" field.
+func (m *LessonPlanGradeMutation) ResetLessonPlanID() {
+	m.lesson_plan = nil
+}
+
+// SetGradeID sets the "grade_id" field.
+func (m *LessonPlanGradeMutation) SetGradeID(i int64) {
+	m.grade = &i
+}
+
+// GradeID returns the value of the "grade_id" field in the mutation.
+func (m *LessonPlanGradeMutation) GradeID() (r int64, exists bool) {
+	v := m.grade
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGradeID returns the old "grade_id" field's value of the LessonPlanGrade entity.
+// If the LessonPlanGrade object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanGradeMutation) OldGradeID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGradeID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGradeID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGradeID: %w", err)
+	}
+	return oldValue.GradeID, nil
+}
+
+// ResetGradeID resets all changes to the "grade_id" field.
+func (m *LessonPlanGradeMutation) ResetGradeID() {
+	m.grade = nil
+}
+
+// ClearLessonPlan clears the "lesson_plan" edge to the LessonPlan entity.
+func (m *LessonPlanGradeMutation) ClearLessonPlan() {
+	m.clearedlesson_plan = true
+	m.clearedFields[lessonplangrade.FieldLessonPlanID] = struct{}{}
+}
+
+// LessonPlanCleared reports if the "lesson_plan" edge to the LessonPlan entity was cleared.
+func (m *LessonPlanGradeMutation) LessonPlanCleared() bool {
+	return m.clearedlesson_plan
+}
+
+// LessonPlanIDs returns the "lesson_plan" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LessonPlanID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanGradeMutation) LessonPlanIDs() (ids []int64) {
+	if id := m.lesson_plan; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLessonPlan resets all changes to the "lesson_plan" edge.
+func (m *LessonPlanGradeMutation) ResetLessonPlan() {
+	m.lesson_plan = nil
+	m.clearedlesson_plan = false
+}
+
+// ClearGrade clears the "grade" edge to the Grade entity.
+func (m *LessonPlanGradeMutation) ClearGrade() {
+	m.clearedgrade = true
+	m.clearedFields[lessonplangrade.FieldGradeID] = struct{}{}
+}
+
+// GradeCleared reports if the "grade" edge to the Grade entity was cleared.
+func (m *LessonPlanGradeMutation) GradeCleared() bool {
+	return m.clearedgrade
+}
+
+// GradeIDs returns the "grade" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GradeID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanGradeMutation) GradeIDs() (ids []int64) {
+	if id := m.grade; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGrade resets all changes to the "grade" edge.
+func (m *LessonPlanGradeMutation) ResetGrade() {
+	m.grade = nil
+	m.clearedgrade = false
+}
+
+// Where appends a list predicates to the LessonPlanGradeMutation builder.
+func (m *LessonPlanGradeMutation) Where(ps ...predicate.LessonPlanGrade) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LessonPlanGradeMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LessonPlanGradeMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LessonPlanGrade, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LessonPlanGradeMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LessonPlanGradeMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LessonPlanGrade).
+func (m *LessonPlanGradeMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LessonPlanGradeMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, lessonplangrade.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lessonplangrade.FieldUpdatedAt)
+	}
+	if m.lesson_plan != nil {
+		fields = append(fields, lessonplangrade.FieldLessonPlanID)
+	}
+	if m.grade != nil {
+		fields = append(fields, lessonplangrade.FieldGradeID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LessonPlanGradeMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lessonplangrade.FieldCreatedAt:
+		return m.CreatedAt()
+	case lessonplangrade.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case lessonplangrade.FieldLessonPlanID:
+		return m.LessonPlanID()
+	case lessonplangrade.FieldGradeID:
+		return m.GradeID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LessonPlanGradeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lessonplangrade.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lessonplangrade.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case lessonplangrade.FieldLessonPlanID:
+		return m.OldLessonPlanID(ctx)
+	case lessonplangrade.FieldGradeID:
+		return m.OldGradeID(ctx)
+	}
+	return nil, fmt.Errorf("unknown LessonPlanGrade field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanGradeMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lessonplangrade.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lessonplangrade.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case lessonplangrade.FieldLessonPlanID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLessonPlanID(v)
+		return nil
+	case lessonplangrade.FieldGradeID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGradeID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanGrade field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LessonPlanGradeMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LessonPlanGradeMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanGradeMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LessonPlanGrade numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LessonPlanGradeMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LessonPlanGradeMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LessonPlanGradeMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LessonPlanGrade nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LessonPlanGradeMutation) ResetField(name string) error {
+	switch name {
+	case lessonplangrade.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lessonplangrade.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case lessonplangrade.FieldLessonPlanID:
+		m.ResetLessonPlanID()
+		return nil
+	case lessonplangrade.FieldGradeID:
+		m.ResetGradeID()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanGrade field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LessonPlanGradeMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.lesson_plan != nil {
+		edges = append(edges, lessonplangrade.EdgeLessonPlan)
+	}
+	if m.grade != nil {
+		edges = append(edges, lessonplangrade.EdgeGrade)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LessonPlanGradeMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case lessonplangrade.EdgeLessonPlan:
+		if id := m.lesson_plan; id != nil {
+			return []ent.Value{*id}
+		}
+	case lessonplangrade.EdgeGrade:
+		if id := m.grade; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LessonPlanGradeMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LessonPlanGradeMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LessonPlanGradeMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedlesson_plan {
+		edges = append(edges, lessonplangrade.EdgeLessonPlan)
+	}
+	if m.clearedgrade {
+		edges = append(edges, lessonplangrade.EdgeGrade)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LessonPlanGradeMutation) EdgeCleared(name string) bool {
+	switch name {
+	case lessonplangrade.EdgeLessonPlan:
+		return m.clearedlesson_plan
+	case lessonplangrade.EdgeGrade:
+		return m.clearedgrade
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LessonPlanGradeMutation) ClearEdge(name string) error {
+	switch name {
+	case lessonplangrade.EdgeLessonPlan:
+		m.ClearLessonPlan()
+		return nil
+	case lessonplangrade.EdgeGrade:
+		m.ClearGrade()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanGrade unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LessonPlanGradeMutation) ResetEdge(name string) error {
+	switch name {
+	case lessonplangrade.EdgeLessonPlan:
+		m.ResetLessonPlan()
+		return nil
+	case lessonplangrade.EdgeGrade:
+		m.ResetGrade()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanGrade edge %s", name)
+}
+
+// LessonPlanSubjectMutation represents an operation that mutates the LessonPlanSubject nodes in the graph.
+type LessonPlanSubjectMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	lesson_plan        *int64
+	clearedlesson_plan bool
+	subject            *int64
+	clearedsubject     bool
+	done               bool
+	oldValue           func(context.Context) (*LessonPlanSubject, error)
+	predicates         []predicate.LessonPlanSubject
+}
+
+var _ ent.Mutation = (*LessonPlanSubjectMutation)(nil)
+
+// lessonplansubjectOption allows management of the mutation configuration using functional options.
+type lessonplansubjectOption func(*LessonPlanSubjectMutation)
+
+// newLessonPlanSubjectMutation creates new mutation for the LessonPlanSubject entity.
+func newLessonPlanSubjectMutation(c config, op Op, opts ...lessonplansubjectOption) *LessonPlanSubjectMutation {
+	m := &LessonPlanSubjectMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLessonPlanSubject,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLessonPlanSubjectID sets the ID field of the mutation.
+func withLessonPlanSubjectID(id int64) lessonplansubjectOption {
+	return func(m *LessonPlanSubjectMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LessonPlanSubject
+		)
+		m.oldValue = func(ctx context.Context) (*LessonPlanSubject, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LessonPlanSubject.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLessonPlanSubject sets the old LessonPlanSubject of the mutation.
+func withLessonPlanSubject(node *LessonPlanSubject) lessonplansubjectOption {
+	return func(m *LessonPlanSubjectMutation) {
+		m.oldValue = func(context.Context) (*LessonPlanSubject, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LessonPlanSubjectMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LessonPlanSubjectMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonPlanSubject entities.
+func (m *LessonPlanSubjectMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LessonPlanSubjectMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LessonPlanSubjectMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LessonPlanSubject.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LessonPlanSubjectMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LessonPlanSubjectMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LessonPlanSubject entity.
+// If the LessonPlanSubject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanSubjectMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LessonPlanSubjectMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LessonPlanSubjectMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LessonPlanSubjectMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LessonPlanSubject entity.
+// If the LessonPlanSubject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanSubjectMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LessonPlanSubjectMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetLessonPlanID sets the "lesson_plan_id" field.
+func (m *LessonPlanSubjectMutation) SetLessonPlanID(i int64) {
+	m.lesson_plan = &i
+}
+
+// LessonPlanID returns the value of the "lesson_plan_id" field in the mutation.
+func (m *LessonPlanSubjectMutation) LessonPlanID() (r int64, exists bool) {
+	v := m.lesson_plan
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLessonPlanID returns the old "lesson_plan_id" field's value of the LessonPlanSubject entity.
+// If the LessonPlanSubject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanSubjectMutation) OldLessonPlanID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLessonPlanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLessonPlanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLessonPlanID: %w", err)
+	}
+	return oldValue.LessonPlanID, nil
+}
+
+// ResetLessonPlanID resets all changes to the "lesson_plan_id" field.
+func (m *LessonPlanSubjectMutation) ResetLessonPlanID() {
+	m.lesson_plan = nil
+}
+
+// SetSubjectID sets the "subject_id" field.
+func (m *LessonPlanSubjectMutation) SetSubjectID(i int64) {
+	m.subject = &i
+}
+
+// SubjectID returns the value of the "subject_id" field in the mutation.
+func (m *LessonPlanSubjectMutation) SubjectID() (r int64, exists bool) {
+	v := m.subject
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSubjectID returns the old "subject_id" field's value of the LessonPlanSubject entity.
+// If the LessonPlanSubject object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanSubjectMutation) OldSubjectID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSubjectID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSubjectID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSubjectID: %w", err)
+	}
+	return oldValue.SubjectID, nil
+}
+
+// ResetSubjectID resets all changes to the "subject_id" field.
+func (m *LessonPlanSubjectMutation) ResetSubjectID() {
+	m.subject = nil
+}
+
+// ClearLessonPlan clears the "lesson_plan" edge to the LessonPlan entity.
+func (m *LessonPlanSubjectMutation) ClearLessonPlan() {
+	m.clearedlesson_plan = true
+	m.clearedFields[lessonplansubject.FieldLessonPlanID] = struct{}{}
+}
+
+// LessonPlanCleared reports if the "lesson_plan" edge to the LessonPlan entity was cleared.
+func (m *LessonPlanSubjectMutation) LessonPlanCleared() bool {
+	return m.clearedlesson_plan
+}
+
+// LessonPlanIDs returns the "lesson_plan" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LessonPlanID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanSubjectMutation) LessonPlanIDs() (ids []int64) {
+	if id := m.lesson_plan; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLessonPlan resets all changes to the "lesson_plan" edge.
+func (m *LessonPlanSubjectMutation) ResetLessonPlan() {
+	m.lesson_plan = nil
+	m.clearedlesson_plan = false
+}
+
+// ClearSubject clears the "subject" edge to the Subject entity.
+func (m *LessonPlanSubjectMutation) ClearSubject() {
+	m.clearedsubject = true
+	m.clearedFields[lessonplansubject.FieldSubjectID] = struct{}{}
+}
+
+// SubjectCleared reports if the "subject" edge to the Subject entity was cleared.
+func (m *LessonPlanSubjectMutation) SubjectCleared() bool {
+	return m.clearedsubject
+}
+
+// SubjectIDs returns the "subject" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// SubjectID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanSubjectMutation) SubjectIDs() (ids []int64) {
+	if id := m.subject; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetSubject resets all changes to the "subject" edge.
+func (m *LessonPlanSubjectMutation) ResetSubject() {
+	m.subject = nil
+	m.clearedsubject = false
+}
+
+// Where appends a list predicates to the LessonPlanSubjectMutation builder.
+func (m *LessonPlanSubjectMutation) Where(ps ...predicate.LessonPlanSubject) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LessonPlanSubjectMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LessonPlanSubjectMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LessonPlanSubject, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LessonPlanSubjectMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LessonPlanSubjectMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LessonPlanSubject).
+func (m *LessonPlanSubjectMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LessonPlanSubjectMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, lessonplansubject.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lessonplansubject.FieldUpdatedAt)
+	}
+	if m.lesson_plan != nil {
+		fields = append(fields, lessonplansubject.FieldLessonPlanID)
+	}
+	if m.subject != nil {
+		fields = append(fields, lessonplansubject.FieldSubjectID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LessonPlanSubjectMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lessonplansubject.FieldCreatedAt:
+		return m.CreatedAt()
+	case lessonplansubject.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case lessonplansubject.FieldLessonPlanID:
+		return m.LessonPlanID()
+	case lessonplansubject.FieldSubjectID:
+		return m.SubjectID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LessonPlanSubjectMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lessonplansubject.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lessonplansubject.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case lessonplansubject.FieldLessonPlanID:
+		return m.OldLessonPlanID(ctx)
+	case lessonplansubject.FieldSubjectID:
+		return m.OldSubjectID(ctx)
+	}
+	return nil, fmt.Errorf("unknown LessonPlanSubject field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanSubjectMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lessonplansubject.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lessonplansubject.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case lessonplansubject.FieldLessonPlanID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLessonPlanID(v)
+		return nil
+	case lessonplansubject.FieldSubjectID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSubjectID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanSubject field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LessonPlanSubjectMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LessonPlanSubjectMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanSubjectMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LessonPlanSubject numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LessonPlanSubjectMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LessonPlanSubjectMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LessonPlanSubjectMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LessonPlanSubject nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LessonPlanSubjectMutation) ResetField(name string) error {
+	switch name {
+	case lessonplansubject.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lessonplansubject.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case lessonplansubject.FieldLessonPlanID:
+		m.ResetLessonPlanID()
+		return nil
+	case lessonplansubject.FieldSubjectID:
+		m.ResetSubjectID()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanSubject field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LessonPlanSubjectMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.lesson_plan != nil {
+		edges = append(edges, lessonplansubject.EdgeLessonPlan)
+	}
+	if m.subject != nil {
+		edges = append(edges, lessonplansubject.EdgeSubject)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LessonPlanSubjectMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case lessonplansubject.EdgeLessonPlan:
+		if id := m.lesson_plan; id != nil {
+			return []ent.Value{*id}
+		}
+	case lessonplansubject.EdgeSubject:
+		if id := m.subject; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LessonPlanSubjectMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LessonPlanSubjectMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LessonPlanSubjectMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedlesson_plan {
+		edges = append(edges, lessonplansubject.EdgeLessonPlan)
+	}
+	if m.clearedsubject {
+		edges = append(edges, lessonplansubject.EdgeSubject)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LessonPlanSubjectMutation) EdgeCleared(name string) bool {
+	switch name {
+	case lessonplansubject.EdgeLessonPlan:
+		return m.clearedlesson_plan
+	case lessonplansubject.EdgeSubject:
+		return m.clearedsubject
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LessonPlanSubjectMutation) ClearEdge(name string) error {
+	switch name {
+	case lessonplansubject.EdgeLessonPlan:
+		m.ClearLessonPlan()
+		return nil
+	case lessonplansubject.EdgeSubject:
+		m.ClearSubject()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanSubject unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LessonPlanSubjectMutation) ResetEdge(name string) error {
+	switch name {
+	case lessonplansubject.EdgeLessonPlan:
+		m.ResetLessonPlan()
+		return nil
+	case lessonplansubject.EdgeSubject:
+		m.ResetSubject()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanSubject edge %s", name)
+}
+
+// LessonPlanUploadFileMutation represents an operation that mutates the LessonPlanUploadFile nodes in the graph.
+type LessonPlanUploadFileMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int64
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	lesson_plan        *int64
+	clearedlesson_plan bool
+	upload_file        *int64
+	clearedupload_file bool
+	done               bool
+	oldValue           func(context.Context) (*LessonPlanUploadFile, error)
+	predicates         []predicate.LessonPlanUploadFile
+}
+
+var _ ent.Mutation = (*LessonPlanUploadFileMutation)(nil)
+
+// lessonplanuploadfileOption allows management of the mutation configuration using functional options.
+type lessonplanuploadfileOption func(*LessonPlanUploadFileMutation)
+
+// newLessonPlanUploadFileMutation creates new mutation for the LessonPlanUploadFile entity.
+func newLessonPlanUploadFileMutation(c config, op Op, opts ...lessonplanuploadfileOption) *LessonPlanUploadFileMutation {
+	m := &LessonPlanUploadFileMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeLessonPlanUploadFile,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withLessonPlanUploadFileID sets the ID field of the mutation.
+func withLessonPlanUploadFileID(id int64) lessonplanuploadfileOption {
+	return func(m *LessonPlanUploadFileMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *LessonPlanUploadFile
+		)
+		m.oldValue = func(ctx context.Context) (*LessonPlanUploadFile, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().LessonPlanUploadFile.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withLessonPlanUploadFile sets the old LessonPlanUploadFile of the mutation.
+func withLessonPlanUploadFile(node *LessonPlanUploadFile) lessonplanuploadfileOption {
+	return func(m *LessonPlanUploadFileMutation) {
+		m.oldValue = func(context.Context) (*LessonPlanUploadFile, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m LessonPlanUploadFileMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m LessonPlanUploadFileMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonPlanUploadFile entities.
+func (m *LessonPlanUploadFileMutation) SetID(id int64) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *LessonPlanUploadFileMutation) ID() (id int64, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *LessonPlanUploadFileMutation) IDs(ctx context.Context) ([]int64, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int64{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().LessonPlanUploadFile.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *LessonPlanUploadFileMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LessonPlanUploadFileMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LessonPlanUploadFile entity.
+// If the LessonPlanUploadFile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanUploadFileMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LessonPlanUploadFileMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LessonPlanUploadFileMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LessonPlanUploadFileMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LessonPlanUploadFile entity.
+// If the LessonPlanUploadFile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanUploadFileMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LessonPlanUploadFileMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetLessonPlanID sets the "lesson_plan_id" field.
+func (m *LessonPlanUploadFileMutation) SetLessonPlanID(i int64) {
+	m.lesson_plan = &i
+}
+
+// LessonPlanID returns the value of the "lesson_plan_id" field in the mutation.
+func (m *LessonPlanUploadFileMutation) LessonPlanID() (r int64, exists bool) {
+	v := m.lesson_plan
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLessonPlanID returns the old "lesson_plan_id" field's value of the LessonPlanUploadFile entity.
+// If the LessonPlanUploadFile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanUploadFileMutation) OldLessonPlanID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLessonPlanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLessonPlanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLessonPlanID: %w", err)
+	}
+	return oldValue.LessonPlanID, nil
+}
+
+// ResetLessonPlanID resets all changes to the "lesson_plan_id" field.
+func (m *LessonPlanUploadFileMutation) ResetLessonPlanID() {
+	m.lesson_plan = nil
+}
+
+// SetUploadFileID sets the "upload_file_id" field.
+func (m *LessonPlanUploadFileMutation) SetUploadFileID(i int64) {
+	m.upload_file = &i
+}
+
+// UploadFileID returns the value of the "upload_file_id" field in the mutation.
+func (m *LessonPlanUploadFileMutation) UploadFileID() (r int64, exists bool) {
+	v := m.upload_file
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUploadFileID returns the old "upload_file_id" field's value of the LessonPlanUploadFile entity.
+// If the LessonPlanUploadFile object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonPlanUploadFileMutation) OldUploadFileID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUploadFileID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUploadFileID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUploadFileID: %w", err)
+	}
+	return oldValue.UploadFileID, nil
+}
+
+// ResetUploadFileID resets all changes to the "upload_file_id" field.
+func (m *LessonPlanUploadFileMutation) ResetUploadFileID() {
+	m.upload_file = nil
+}
+
+// ClearLessonPlan clears the "lesson_plan" edge to the LessonPlan entity.
+func (m *LessonPlanUploadFileMutation) ClearLessonPlan() {
+	m.clearedlesson_plan = true
+	m.clearedFields[lessonplanuploadfile.FieldLessonPlanID] = struct{}{}
+}
+
+// LessonPlanCleared reports if the "lesson_plan" edge to the LessonPlan entity was cleared.
+func (m *LessonPlanUploadFileMutation) LessonPlanCleared() bool {
+	return m.clearedlesson_plan
+}
+
+// LessonPlanIDs returns the "lesson_plan" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// LessonPlanID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanUploadFileMutation) LessonPlanIDs() (ids []int64) {
+	if id := m.lesson_plan; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetLessonPlan resets all changes to the "lesson_plan" edge.
+func (m *LessonPlanUploadFileMutation) ResetLessonPlan() {
+	m.lesson_plan = nil
+	m.clearedlesson_plan = false
+}
+
+// ClearUploadFile clears the "upload_file" edge to the UploadFile entity.
+func (m *LessonPlanUploadFileMutation) ClearUploadFile() {
+	m.clearedupload_file = true
+	m.clearedFields[lessonplanuploadfile.FieldUploadFileID] = struct{}{}
+}
+
+// UploadFileCleared reports if the "upload_file" edge to the UploadFile entity was cleared.
+func (m *LessonPlanUploadFileMutation) UploadFileCleared() bool {
+	return m.clearedupload_file
+}
+
+// UploadFileIDs returns the "upload_file" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// UploadFileID instead. It exists only for internal usage by the builders.
+func (m *LessonPlanUploadFileMutation) UploadFileIDs() (ids []int64) {
+	if id := m.upload_file; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetUploadFile resets all changes to the "upload_file" edge.
+func (m *LessonPlanUploadFileMutation) ResetUploadFile() {
+	m.upload_file = nil
+	m.clearedupload_file = false
+}
+
+// Where appends a list predicates to the LessonPlanUploadFileMutation builder.
+func (m *LessonPlanUploadFileMutation) Where(ps ...predicate.LessonPlanUploadFile) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the LessonPlanUploadFileMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *LessonPlanUploadFileMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.LessonPlanUploadFile, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *LessonPlanUploadFileMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *LessonPlanUploadFileMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (LessonPlanUploadFile).
+func (m *LessonPlanUploadFileMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *LessonPlanUploadFileMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, lessonplanuploadfile.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lessonplanuploadfile.FieldUpdatedAt)
+	}
+	if m.lesson_plan != nil {
+		fields = append(fields, lessonplanuploadfile.FieldLessonPlanID)
+	}
+	if m.upload_file != nil {
+		fields = append(fields, lessonplanuploadfile.FieldUploadFileID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *LessonPlanUploadFileMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case lessonplanuploadfile.FieldCreatedAt:
+		return m.CreatedAt()
+	case lessonplanuploadfile.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case lessonplanuploadfile.FieldLessonPlanID:
+		return m.LessonPlanID()
+	case lessonplanuploadfile.FieldUploadFileID:
+		return m.UploadFileID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *LessonPlanUploadFileMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case lessonplanuploadfile.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lessonplanuploadfile.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case lessonplanuploadfile.FieldLessonPlanID:
+		return m.OldLessonPlanID(ctx)
+	case lessonplanuploadfile.FieldUploadFileID:
+		return m.OldUploadFileID(ctx)
+	}
+	return nil, fmt.Errorf("unknown LessonPlanUploadFile field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanUploadFileMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case lessonplanuploadfile.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lessonplanuploadfile.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case lessonplanuploadfile.FieldLessonPlanID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLessonPlanID(v)
+		return nil
+	case lessonplanuploadfile.FieldUploadFileID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUploadFileID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanUploadFile field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *LessonPlanUploadFileMutation) AddedFields() []string {
+	var fields []string
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *LessonPlanUploadFileMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *LessonPlanUploadFileMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown LessonPlanUploadFile numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *LessonPlanUploadFileMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *LessonPlanUploadFileMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *LessonPlanUploadFileMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown LessonPlanUploadFile nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *LessonPlanUploadFileMutation) ResetField(name string) error {
+	switch name {
+	case lessonplanuploadfile.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lessonplanuploadfile.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case lessonplanuploadfile.FieldLessonPlanID:
+		m.ResetLessonPlanID()
+		return nil
+	case lessonplanuploadfile.FieldUploadFileID:
+		m.ResetUploadFileID()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanUploadFile field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *LessonPlanUploadFileMutation) AddedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.lesson_plan != nil {
+		edges = append(edges, lessonplanuploadfile.EdgeLessonPlan)
+	}
+	if m.upload_file != nil {
+		edges = append(edges, lessonplanuploadfile.EdgeUploadFile)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *LessonPlanUploadFileMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case lessonplanuploadfile.EdgeLessonPlan:
+		if id := m.lesson_plan; id != nil {
+			return []ent.Value{*id}
+		}
+	case lessonplanuploadfile.EdgeUploadFile:
+		if id := m.upload_file; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *LessonPlanUploadFileMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 2)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *LessonPlanUploadFileMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *LessonPlanUploadFileMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 2)
+	if m.clearedlesson_plan {
+		edges = append(edges, lessonplanuploadfile.EdgeLessonPlan)
+	}
+	if m.clearedupload_file {
+		edges = append(edges, lessonplanuploadfile.EdgeUploadFile)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *LessonPlanUploadFileMutation) EdgeCleared(name string) bool {
+	switch name {
+	case lessonplanuploadfile.EdgeLessonPlan:
+		return m.clearedlesson_plan
+	case lessonplanuploadfile.EdgeUploadFile:
+		return m.clearedupload_file
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *LessonPlanUploadFileMutation) ClearEdge(name string) error {
+	switch name {
+	case lessonplanuploadfile.EdgeLessonPlan:
+		m.ClearLessonPlan()
+		return nil
+	case lessonplanuploadfile.EdgeUploadFile:
+		m.ClearUploadFile()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanUploadFile unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *LessonPlanUploadFileMutation) ResetEdge(name string) error {
+	switch name {
+	case lessonplanuploadfile.EdgeLessonPlan:
+		m.ResetLessonPlan()
+		return nil
+	case lessonplanuploadfile.EdgeUploadFile:
+		m.ResetUploadFile()
+		return nil
+	}
+	return fmt.Errorf("unknown LessonPlanUploadFile edge %s", name)
 }
 
 // LessonReservationMutation represents an operation that mutates the LessonReservation nodes in the graph.
@@ -5929,7 +9009,9 @@ type LessonReservationMutation struct {
 	config
 	op                                        Op
 	typ                                       string
-	id                                        *int
+	id                                        *int64
+	created_at                                *time.Time
+	updated_at                                *time.Time
 	reservation_status                        *lessonreservation.ReservationStatus
 	count_student                             *string
 	graduate                                  *string
@@ -5937,17 +9019,17 @@ type LessonReservationMutation struct {
 	remarks                                   *string
 	reservation_confirm_at                    *time.Time
 	clearedFields                             map[string]struct{}
-	lesson_schedule                           *int
+	lesson_schedule                           *int64
 	clearedlesson_schedule                    bool
-	school                                    *int
+	school                                    *int64
 	clearedschool                             bool
-	user                                      *int
+	user                                      *int64
 	cleareduser                               bool
-	lesson_reservation_preferred_dates        map[int]struct{}
-	removedlesson_reservation_preferred_dates map[int]struct{}
+	lesson_reservation_preferred_dates        map[int64]struct{}
+	removedlesson_reservation_preferred_dates map[int64]struct{}
 	clearedlesson_reservation_preferred_dates bool
-	lesson_confirmation                       map[int]struct{}
-	removedlesson_confirmation                map[int]struct{}
+	lesson_confirmation                       map[int64]struct{}
+	removedlesson_confirmation                map[int64]struct{}
 	clearedlesson_confirmation                bool
 	done                                      bool
 	oldValue                                  func(context.Context) (*LessonReservation, error)
@@ -5974,7 +9056,7 @@ func newLessonReservationMutation(c config, op Op, opts ...lessonreservationOpti
 }
 
 // withLessonReservationID sets the ID field of the mutation.
-func withLessonReservationID(id int) lessonreservationOption {
+func withLessonReservationID(id int64) lessonreservationOption {
 	return func(m *LessonReservationMutation) {
 		var (
 			err   error
@@ -6024,9 +9106,15 @@ func (m LessonReservationMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonReservation entities.
+func (m *LessonReservationMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LessonReservationMutation) ID() (id int, exists bool) {
+func (m *LessonReservationMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -6037,12 +9125,12 @@ func (m *LessonReservationMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LessonReservationMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LessonReservationMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -6052,13 +9140,85 @@ func (m *LessonReservationMutation) IDs(ctx context.Context) ([]int, error) {
 	}
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (m *LessonReservationMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *LessonReservationMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the LessonReservation entity.
+// If the LessonReservation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonReservationMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *LessonReservationMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *LessonReservationMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *LessonReservationMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the LessonReservation entity.
+// If the LessonReservation object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *LessonReservationMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *LessonReservationMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
 // SetLessonScheduleID sets the "lesson_schedule_id" field.
-func (m *LessonReservationMutation) SetLessonScheduleID(i int) {
+func (m *LessonReservationMutation) SetLessonScheduleID(i int64) {
 	m.lesson_schedule = &i
 }
 
 // LessonScheduleID returns the value of the "lesson_schedule_id" field in the mutation.
-func (m *LessonReservationMutation) LessonScheduleID() (r int, exists bool) {
+func (m *LessonReservationMutation) LessonScheduleID() (r int64, exists bool) {
 	v := m.lesson_schedule
 	if v == nil {
 		return
@@ -6069,7 +9229,7 @@ func (m *LessonReservationMutation) LessonScheduleID() (r int, exists bool) {
 // OldLessonScheduleID returns the old "lesson_schedule_id" field's value of the LessonReservation entity.
 // If the LessonReservation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonReservationMutation) OldLessonScheduleID(ctx context.Context) (v int, err error) {
+func (m *LessonReservationMutation) OldLessonScheduleID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLessonScheduleID is only allowed on UpdateOne operations")
 	}
@@ -6089,12 +9249,12 @@ func (m *LessonReservationMutation) ResetLessonScheduleID() {
 }
 
 // SetSchoolID sets the "school_id" field.
-func (m *LessonReservationMutation) SetSchoolID(i int) {
+func (m *LessonReservationMutation) SetSchoolID(i int64) {
 	m.school = &i
 }
 
 // SchoolID returns the value of the "school_id" field in the mutation.
-func (m *LessonReservationMutation) SchoolID() (r int, exists bool) {
+func (m *LessonReservationMutation) SchoolID() (r int64, exists bool) {
 	v := m.school
 	if v == nil {
 		return
@@ -6105,7 +9265,7 @@ func (m *LessonReservationMutation) SchoolID() (r int, exists bool) {
 // OldSchoolID returns the old "school_id" field's value of the LessonReservation entity.
 // If the LessonReservation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonReservationMutation) OldSchoolID(ctx context.Context) (v int, err error) {
+func (m *LessonReservationMutation) OldSchoolID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSchoolID is only allowed on UpdateOne operations")
 	}
@@ -6125,12 +9285,12 @@ func (m *LessonReservationMutation) ResetSchoolID() {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *LessonReservationMutation) SetUserID(i int) {
+func (m *LessonReservationMutation) SetUserID(i int64) {
 	m.user = &i
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *LessonReservationMutation) UserID() (r int, exists bool) {
+func (m *LessonReservationMutation) UserID() (r int64, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -6141,7 +9301,7 @@ func (m *LessonReservationMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "user_id" field's value of the LessonReservation entity.
 // If the LessonReservation object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonReservationMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *LessonReservationMutation) OldUserID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -6416,7 +9576,7 @@ func (m *LessonReservationMutation) LessonScheduleCleared() bool {
 // LessonScheduleIDs returns the "lesson_schedule" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // LessonScheduleID instead. It exists only for internal usage by the builders.
-func (m *LessonReservationMutation) LessonScheduleIDs() (ids []int) {
+func (m *LessonReservationMutation) LessonScheduleIDs() (ids []int64) {
 	if id := m.lesson_schedule; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6443,7 +9603,7 @@ func (m *LessonReservationMutation) SchoolCleared() bool {
 // SchoolIDs returns the "school" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SchoolID instead. It exists only for internal usage by the builders.
-func (m *LessonReservationMutation) SchoolIDs() (ids []int) {
+func (m *LessonReservationMutation) SchoolIDs() (ids []int64) {
 	if id := m.school; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6470,7 +9630,7 @@ func (m *LessonReservationMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *LessonReservationMutation) UserIDs() (ids []int) {
+func (m *LessonReservationMutation) UserIDs() (ids []int64) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -6484,9 +9644,9 @@ func (m *LessonReservationMutation) ResetUser() {
 }
 
 // AddLessonReservationPreferredDateIDs adds the "lesson_reservation_preferred_dates" edge to the LessonReservationPreferredDate entity by ids.
-func (m *LessonReservationMutation) AddLessonReservationPreferredDateIDs(ids ...int) {
+func (m *LessonReservationMutation) AddLessonReservationPreferredDateIDs(ids ...int64) {
 	if m.lesson_reservation_preferred_dates == nil {
-		m.lesson_reservation_preferred_dates = make(map[int]struct{})
+		m.lesson_reservation_preferred_dates = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_reservation_preferred_dates[ids[i]] = struct{}{}
@@ -6504,9 +9664,9 @@ func (m *LessonReservationMutation) LessonReservationPreferredDatesCleared() boo
 }
 
 // RemoveLessonReservationPreferredDateIDs removes the "lesson_reservation_preferred_dates" edge to the LessonReservationPreferredDate entity by IDs.
-func (m *LessonReservationMutation) RemoveLessonReservationPreferredDateIDs(ids ...int) {
+func (m *LessonReservationMutation) RemoveLessonReservationPreferredDateIDs(ids ...int64) {
 	if m.removedlesson_reservation_preferred_dates == nil {
-		m.removedlesson_reservation_preferred_dates = make(map[int]struct{})
+		m.removedlesson_reservation_preferred_dates = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_reservation_preferred_dates, ids[i])
@@ -6515,7 +9675,7 @@ func (m *LessonReservationMutation) RemoveLessonReservationPreferredDateIDs(ids 
 }
 
 // RemovedLessonReservationPreferredDates returns the removed IDs of the "lesson_reservation_preferred_dates" edge to the LessonReservationPreferredDate entity.
-func (m *LessonReservationMutation) RemovedLessonReservationPreferredDatesIDs() (ids []int) {
+func (m *LessonReservationMutation) RemovedLessonReservationPreferredDatesIDs() (ids []int64) {
 	for id := range m.removedlesson_reservation_preferred_dates {
 		ids = append(ids, id)
 	}
@@ -6523,7 +9683,7 @@ func (m *LessonReservationMutation) RemovedLessonReservationPreferredDatesIDs() 
 }
 
 // LessonReservationPreferredDatesIDs returns the "lesson_reservation_preferred_dates" edge IDs in the mutation.
-func (m *LessonReservationMutation) LessonReservationPreferredDatesIDs() (ids []int) {
+func (m *LessonReservationMutation) LessonReservationPreferredDatesIDs() (ids []int64) {
 	for id := range m.lesson_reservation_preferred_dates {
 		ids = append(ids, id)
 	}
@@ -6538,9 +9698,9 @@ func (m *LessonReservationMutation) ResetLessonReservationPreferredDates() {
 }
 
 // AddLessonConfirmationIDs adds the "lesson_confirmation" edge to the LessonConfirmation entity by ids.
-func (m *LessonReservationMutation) AddLessonConfirmationIDs(ids ...int) {
+func (m *LessonReservationMutation) AddLessonConfirmationIDs(ids ...int64) {
 	if m.lesson_confirmation == nil {
-		m.lesson_confirmation = make(map[int]struct{})
+		m.lesson_confirmation = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_confirmation[ids[i]] = struct{}{}
@@ -6558,9 +9718,9 @@ func (m *LessonReservationMutation) LessonConfirmationCleared() bool {
 }
 
 // RemoveLessonConfirmationIDs removes the "lesson_confirmation" edge to the LessonConfirmation entity by IDs.
-func (m *LessonReservationMutation) RemoveLessonConfirmationIDs(ids ...int) {
+func (m *LessonReservationMutation) RemoveLessonConfirmationIDs(ids ...int64) {
 	if m.removedlesson_confirmation == nil {
-		m.removedlesson_confirmation = make(map[int]struct{})
+		m.removedlesson_confirmation = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_confirmation, ids[i])
@@ -6569,7 +9729,7 @@ func (m *LessonReservationMutation) RemoveLessonConfirmationIDs(ids ...int) {
 }
 
 // RemovedLessonConfirmation returns the removed IDs of the "lesson_confirmation" edge to the LessonConfirmation entity.
-func (m *LessonReservationMutation) RemovedLessonConfirmationIDs() (ids []int) {
+func (m *LessonReservationMutation) RemovedLessonConfirmationIDs() (ids []int64) {
 	for id := range m.removedlesson_confirmation {
 		ids = append(ids, id)
 	}
@@ -6577,7 +9737,7 @@ func (m *LessonReservationMutation) RemovedLessonConfirmationIDs() (ids []int) {
 }
 
 // LessonConfirmationIDs returns the "lesson_confirmation" edge IDs in the mutation.
-func (m *LessonReservationMutation) LessonConfirmationIDs() (ids []int) {
+func (m *LessonReservationMutation) LessonConfirmationIDs() (ids []int64) {
 	for id := range m.lesson_confirmation {
 		ids = append(ids, id)
 	}
@@ -6625,7 +9785,13 @@ func (m *LessonReservationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *LessonReservationMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, lessonreservation.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, lessonreservation.FieldUpdatedAt)
+	}
 	if m.lesson_schedule != nil {
 		fields = append(fields, lessonreservation.FieldLessonScheduleID)
 	}
@@ -6661,6 +9827,10 @@ func (m *LessonReservationMutation) Fields() []string {
 // schema.
 func (m *LessonReservationMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case lessonreservation.FieldCreatedAt:
+		return m.CreatedAt()
+	case lessonreservation.FieldUpdatedAt:
+		return m.UpdatedAt()
 	case lessonreservation.FieldLessonScheduleID:
 		return m.LessonScheduleID()
 	case lessonreservation.FieldSchoolID:
@@ -6688,6 +9858,10 @@ func (m *LessonReservationMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *LessonReservationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case lessonreservation.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case lessonreservation.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
 	case lessonreservation.FieldLessonScheduleID:
 		return m.OldLessonScheduleID(ctx)
 	case lessonreservation.FieldSchoolID:
@@ -6715,22 +9889,36 @@ func (m *LessonReservationMutation) OldField(ctx context.Context, name string) (
 // type.
 func (m *LessonReservationMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case lessonreservation.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case lessonreservation.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
 	case lessonreservation.FieldLessonScheduleID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLessonScheduleID(v)
 		return nil
 	case lessonreservation.FieldSchoolID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSchoolID(v)
 		return nil
 	case lessonreservation.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -6845,6 +10033,12 @@ func (m *LessonReservationMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *LessonReservationMutation) ResetField(name string) error {
 	switch name {
+	case lessonreservation.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case lessonreservation.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
 	case lessonreservation.FieldLessonScheduleID:
 		m.ResetLessonScheduleID()
 		return nil
@@ -7045,7 +10239,7 @@ type LessonReservationPreferredDateMutation struct {
 	config
 	op                        Op
 	typ                       string
-	id                        *int
+	id                        *int64
 	created_at                *time.Time
 	updated_at                *time.Time
 	priority                  *lessonreservationpreferreddate.Priority
@@ -7053,7 +10247,7 @@ type LessonReservationPreferredDateMutation struct {
 	start_time                *time.Time
 	end_time                  *time.Time
 	clearedFields             map[string]struct{}
-	lessonReservations        *int
+	lessonReservations        *int64
 	clearedlessonReservations bool
 	done                      bool
 	oldValue                  func(context.Context) (*LessonReservationPreferredDate, error)
@@ -7080,7 +10274,7 @@ func newLessonReservationPreferredDateMutation(c config, op Op, opts ...lessonre
 }
 
 // withLessonReservationPreferredDateID sets the ID field of the mutation.
-func withLessonReservationPreferredDateID(id int) lessonreservationpreferreddateOption {
+func withLessonReservationPreferredDateID(id int64) lessonreservationpreferreddateOption {
 	return func(m *LessonReservationPreferredDateMutation) {
 		var (
 			err   error
@@ -7130,9 +10324,15 @@ func (m LessonReservationPreferredDateMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonReservationPreferredDate entities.
+func (m *LessonReservationPreferredDateMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LessonReservationPreferredDateMutation) ID() (id int, exists bool) {
+func (m *LessonReservationPreferredDateMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -7143,12 +10343,12 @@ func (m *LessonReservationPreferredDateMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LessonReservationPreferredDateMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LessonReservationPreferredDateMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -7231,12 +10431,12 @@ func (m *LessonReservationPreferredDateMutation) ResetUpdatedAt() {
 }
 
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (m *LessonReservationPreferredDateMutation) SetLessonReservationID(i int) {
+func (m *LessonReservationPreferredDateMutation) SetLessonReservationID(i int64) {
 	m.lessonReservations = &i
 }
 
 // LessonReservationID returns the value of the "lesson_reservation_id" field in the mutation.
-func (m *LessonReservationPreferredDateMutation) LessonReservationID() (r int, exists bool) {
+func (m *LessonReservationPreferredDateMutation) LessonReservationID() (r int64, exists bool) {
 	v := m.lessonReservations
 	if v == nil {
 		return
@@ -7247,7 +10447,7 @@ func (m *LessonReservationPreferredDateMutation) LessonReservationID() (r int, e
 // OldLessonReservationID returns the old "lesson_reservation_id" field's value of the LessonReservationPreferredDate entity.
 // If the LessonReservationPreferredDate object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonReservationPreferredDateMutation) OldLessonReservationID(ctx context.Context) (v int, err error) {
+func (m *LessonReservationPreferredDateMutation) OldLessonReservationID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLessonReservationID is only allowed on UpdateOne operations")
 	}
@@ -7411,7 +10611,7 @@ func (m *LessonReservationPreferredDateMutation) ResetEndTime() {
 }
 
 // SetLessonReservationsID sets the "lessonReservations" edge to the LessonReservation entity by id.
-func (m *LessonReservationPreferredDateMutation) SetLessonReservationsID(id int) {
+func (m *LessonReservationPreferredDateMutation) SetLessonReservationsID(id int64) {
 	m.lessonReservations = &id
 }
 
@@ -7427,7 +10627,7 @@ func (m *LessonReservationPreferredDateMutation) LessonReservationsCleared() boo
 }
 
 // LessonReservationsID returns the "lessonReservations" edge ID in the mutation.
-func (m *LessonReservationPreferredDateMutation) LessonReservationsID() (id int, exists bool) {
+func (m *LessonReservationPreferredDateMutation) LessonReservationsID() (id int64, exists bool) {
 	if m.lessonReservations != nil {
 		return *m.lessonReservations, true
 	}
@@ -7437,7 +10637,7 @@ func (m *LessonReservationPreferredDateMutation) LessonReservationsID() (id int,
 // LessonReservationsIDs returns the "lessonReservations" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // LessonReservationsID instead. It exists only for internal usage by the builders.
-func (m *LessonReservationPreferredDateMutation) LessonReservationsIDs() (ids []int) {
+func (m *LessonReservationPreferredDateMutation) LessonReservationsIDs() (ids []int64) {
 	if id := m.lessonReservations; id != nil {
 		ids = append(ids, *id)
 	}
@@ -7575,7 +10775,7 @@ func (m *LessonReservationPreferredDateMutation) SetField(name string, value ent
 		m.SetUpdatedAt(v)
 		return nil
 	case lessonreservationpreferreddate.FieldLessonReservationID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -7765,7 +10965,7 @@ type LessonScheduleMutation struct {
 	config
 	op                          Op
 	typ                         string
-	id                          *int
+	id                          *int64
 	created_at                  *time.Time
 	updated_at                  *time.Time
 	title                       *string
@@ -7779,19 +10979,19 @@ type LessonScheduleMutation struct {
 	start_time                  *time.Time
 	end_time                    *time.Time
 	clearedFields               map[string]struct{}
-	plan                        *int
+	plan                        *int64
 	clearedplan                 bool
-	grades                      map[int]struct{}
-	removedgrades               map[int]struct{}
+	grades                      map[int64]struct{}
+	removedgrades               map[int64]struct{}
 	clearedgrades               bool
-	subjects                    map[int]struct{}
-	removedsubjects             map[int]struct{}
+	subjects                    map[int64]struct{}
+	removedsubjects             map[int64]struct{}
 	clearedsubjects             bool
-	education_categories        map[int]struct{}
-	removededucation_categories map[int]struct{}
+	education_categories        map[int64]struct{}
+	removededucation_categories map[int64]struct{}
 	clearededucation_categories bool
-	lesson_reservations         map[int]struct{}
-	removedlesson_reservations  map[int]struct{}
+	lesson_reservations         map[int64]struct{}
+	removedlesson_reservations  map[int64]struct{}
 	clearedlesson_reservations  bool
 	done                        bool
 	oldValue                    func(context.Context) (*LessonSchedule, error)
@@ -7818,7 +11018,7 @@ func newLessonScheduleMutation(c config, op Op, opts ...lessonscheduleOption) *L
 }
 
 // withLessonScheduleID sets the ID field of the mutation.
-func withLessonScheduleID(id int) lessonscheduleOption {
+func withLessonScheduleID(id int64) lessonscheduleOption {
 	return func(m *LessonScheduleMutation) {
 		var (
 			err   error
@@ -7868,9 +11068,15 @@ func (m LessonScheduleMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of LessonSchedule entities.
+func (m *LessonScheduleMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *LessonScheduleMutation) ID() (id int, exists bool) {
+func (m *LessonScheduleMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -7881,12 +11087,12 @@ func (m *LessonScheduleMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *LessonScheduleMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *LessonScheduleMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -7969,12 +11175,12 @@ func (m *LessonScheduleMutation) ResetUpdatedAt() {
 }
 
 // SetLessonPlanID sets the "lesson_plan_id" field.
-func (m *LessonScheduleMutation) SetLessonPlanID(i int) {
+func (m *LessonScheduleMutation) SetLessonPlanID(i int64) {
 	m.plan = &i
 }
 
 // LessonPlanID returns the value of the "lesson_plan_id" field in the mutation.
-func (m *LessonScheduleMutation) LessonPlanID() (r int, exists bool) {
+func (m *LessonScheduleMutation) LessonPlanID() (r int64, exists bool) {
 	v := m.plan
 	if v == nil {
 		return
@@ -7985,7 +11191,7 @@ func (m *LessonScheduleMutation) LessonPlanID() (r int, exists bool) {
 // OldLessonPlanID returns the old "lesson_plan_id" field's value of the LessonSchedule entity.
 // If the LessonSchedule object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *LessonScheduleMutation) OldLessonPlanID(ctx context.Context) (v int, err error) {
+func (m *LessonScheduleMutation) OldLessonPlanID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldLessonPlanID is only allowed on UpdateOne operations")
 	}
@@ -8375,7 +11581,7 @@ func (m *LessonScheduleMutation) ResetEndTime() {
 }
 
 // SetPlanID sets the "plan" edge to the LessonPlan entity by id.
-func (m *LessonScheduleMutation) SetPlanID(id int) {
+func (m *LessonScheduleMutation) SetPlanID(id int64) {
 	m.plan = &id
 }
 
@@ -8391,7 +11597,7 @@ func (m *LessonScheduleMutation) PlanCleared() bool {
 }
 
 // PlanID returns the "plan" edge ID in the mutation.
-func (m *LessonScheduleMutation) PlanID() (id int, exists bool) {
+func (m *LessonScheduleMutation) PlanID() (id int64, exists bool) {
 	if m.plan != nil {
 		return *m.plan, true
 	}
@@ -8401,7 +11607,7 @@ func (m *LessonScheduleMutation) PlanID() (id int, exists bool) {
 // PlanIDs returns the "plan" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // PlanID instead. It exists only for internal usage by the builders.
-func (m *LessonScheduleMutation) PlanIDs() (ids []int) {
+func (m *LessonScheduleMutation) PlanIDs() (ids []int64) {
 	if id := m.plan; id != nil {
 		ids = append(ids, *id)
 	}
@@ -8415,9 +11621,9 @@ func (m *LessonScheduleMutation) ResetPlan() {
 }
 
 // AddGradeIDs adds the "grades" edge to the Grade entity by ids.
-func (m *LessonScheduleMutation) AddGradeIDs(ids ...int) {
+func (m *LessonScheduleMutation) AddGradeIDs(ids ...int64) {
 	if m.grades == nil {
-		m.grades = make(map[int]struct{})
+		m.grades = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.grades[ids[i]] = struct{}{}
@@ -8435,9 +11641,9 @@ func (m *LessonScheduleMutation) GradesCleared() bool {
 }
 
 // RemoveGradeIDs removes the "grades" edge to the Grade entity by IDs.
-func (m *LessonScheduleMutation) RemoveGradeIDs(ids ...int) {
+func (m *LessonScheduleMutation) RemoveGradeIDs(ids ...int64) {
 	if m.removedgrades == nil {
-		m.removedgrades = make(map[int]struct{})
+		m.removedgrades = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.grades, ids[i])
@@ -8446,7 +11652,7 @@ func (m *LessonScheduleMutation) RemoveGradeIDs(ids ...int) {
 }
 
 // RemovedGrades returns the removed IDs of the "grades" edge to the Grade entity.
-func (m *LessonScheduleMutation) RemovedGradesIDs() (ids []int) {
+func (m *LessonScheduleMutation) RemovedGradesIDs() (ids []int64) {
 	for id := range m.removedgrades {
 		ids = append(ids, id)
 	}
@@ -8454,7 +11660,7 @@ func (m *LessonScheduleMutation) RemovedGradesIDs() (ids []int) {
 }
 
 // GradesIDs returns the "grades" edge IDs in the mutation.
-func (m *LessonScheduleMutation) GradesIDs() (ids []int) {
+func (m *LessonScheduleMutation) GradesIDs() (ids []int64) {
 	for id := range m.grades {
 		ids = append(ids, id)
 	}
@@ -8469,9 +11675,9 @@ func (m *LessonScheduleMutation) ResetGrades() {
 }
 
 // AddSubjectIDs adds the "subjects" edge to the Subject entity by ids.
-func (m *LessonScheduleMutation) AddSubjectIDs(ids ...int) {
+func (m *LessonScheduleMutation) AddSubjectIDs(ids ...int64) {
 	if m.subjects == nil {
-		m.subjects = make(map[int]struct{})
+		m.subjects = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.subjects[ids[i]] = struct{}{}
@@ -8489,9 +11695,9 @@ func (m *LessonScheduleMutation) SubjectsCleared() bool {
 }
 
 // RemoveSubjectIDs removes the "subjects" edge to the Subject entity by IDs.
-func (m *LessonScheduleMutation) RemoveSubjectIDs(ids ...int) {
+func (m *LessonScheduleMutation) RemoveSubjectIDs(ids ...int64) {
 	if m.removedsubjects == nil {
-		m.removedsubjects = make(map[int]struct{})
+		m.removedsubjects = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.subjects, ids[i])
@@ -8500,7 +11706,7 @@ func (m *LessonScheduleMutation) RemoveSubjectIDs(ids ...int) {
 }
 
 // RemovedSubjects returns the removed IDs of the "subjects" edge to the Subject entity.
-func (m *LessonScheduleMutation) RemovedSubjectsIDs() (ids []int) {
+func (m *LessonScheduleMutation) RemovedSubjectsIDs() (ids []int64) {
 	for id := range m.removedsubjects {
 		ids = append(ids, id)
 	}
@@ -8508,7 +11714,7 @@ func (m *LessonScheduleMutation) RemovedSubjectsIDs() (ids []int) {
 }
 
 // SubjectsIDs returns the "subjects" edge IDs in the mutation.
-func (m *LessonScheduleMutation) SubjectsIDs() (ids []int) {
+func (m *LessonScheduleMutation) SubjectsIDs() (ids []int64) {
 	for id := range m.subjects {
 		ids = append(ids, id)
 	}
@@ -8523,9 +11729,9 @@ func (m *LessonScheduleMutation) ResetSubjects() {
 }
 
 // AddEducationCategoryIDs adds the "education_categories" edge to the EducationCategory entity by ids.
-func (m *LessonScheduleMutation) AddEducationCategoryIDs(ids ...int) {
+func (m *LessonScheduleMutation) AddEducationCategoryIDs(ids ...int64) {
 	if m.education_categories == nil {
-		m.education_categories = make(map[int]struct{})
+		m.education_categories = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.education_categories[ids[i]] = struct{}{}
@@ -8543,9 +11749,9 @@ func (m *LessonScheduleMutation) EducationCategoriesCleared() bool {
 }
 
 // RemoveEducationCategoryIDs removes the "education_categories" edge to the EducationCategory entity by IDs.
-func (m *LessonScheduleMutation) RemoveEducationCategoryIDs(ids ...int) {
+func (m *LessonScheduleMutation) RemoveEducationCategoryIDs(ids ...int64) {
 	if m.removededucation_categories == nil {
-		m.removededucation_categories = make(map[int]struct{})
+		m.removededucation_categories = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.education_categories, ids[i])
@@ -8554,7 +11760,7 @@ func (m *LessonScheduleMutation) RemoveEducationCategoryIDs(ids ...int) {
 }
 
 // RemovedEducationCategories returns the removed IDs of the "education_categories" edge to the EducationCategory entity.
-func (m *LessonScheduleMutation) RemovedEducationCategoriesIDs() (ids []int) {
+func (m *LessonScheduleMutation) RemovedEducationCategoriesIDs() (ids []int64) {
 	for id := range m.removededucation_categories {
 		ids = append(ids, id)
 	}
@@ -8562,7 +11768,7 @@ func (m *LessonScheduleMutation) RemovedEducationCategoriesIDs() (ids []int) {
 }
 
 // EducationCategoriesIDs returns the "education_categories" edge IDs in the mutation.
-func (m *LessonScheduleMutation) EducationCategoriesIDs() (ids []int) {
+func (m *LessonScheduleMutation) EducationCategoriesIDs() (ids []int64) {
 	for id := range m.education_categories {
 		ids = append(ids, id)
 	}
@@ -8577,9 +11783,9 @@ func (m *LessonScheduleMutation) ResetEducationCategories() {
 }
 
 // AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by ids.
-func (m *LessonScheduleMutation) AddLessonReservationIDs(ids ...int) {
+func (m *LessonScheduleMutation) AddLessonReservationIDs(ids ...int64) {
 	if m.lesson_reservations == nil {
-		m.lesson_reservations = make(map[int]struct{})
+		m.lesson_reservations = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_reservations[ids[i]] = struct{}{}
@@ -8597,9 +11803,9 @@ func (m *LessonScheduleMutation) LessonReservationsCleared() bool {
 }
 
 // RemoveLessonReservationIDs removes the "lesson_reservations" edge to the LessonReservation entity by IDs.
-func (m *LessonScheduleMutation) RemoveLessonReservationIDs(ids ...int) {
+func (m *LessonScheduleMutation) RemoveLessonReservationIDs(ids ...int64) {
 	if m.removedlesson_reservations == nil {
-		m.removedlesson_reservations = make(map[int]struct{})
+		m.removedlesson_reservations = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_reservations, ids[i])
@@ -8608,7 +11814,7 @@ func (m *LessonScheduleMutation) RemoveLessonReservationIDs(ids ...int) {
 }
 
 // RemovedLessonReservations returns the removed IDs of the "lesson_reservations" edge to the LessonReservation entity.
-func (m *LessonScheduleMutation) RemovedLessonReservationsIDs() (ids []int) {
+func (m *LessonScheduleMutation) RemovedLessonReservationsIDs() (ids []int64) {
 	for id := range m.removedlesson_reservations {
 		ids = append(ids, id)
 	}
@@ -8616,7 +11822,7 @@ func (m *LessonScheduleMutation) RemovedLessonReservationsIDs() (ids []int) {
 }
 
 // LessonReservationsIDs returns the "lesson_reservations" edge IDs in the mutation.
-func (m *LessonScheduleMutation) LessonReservationsIDs() (ids []int) {
+func (m *LessonScheduleMutation) LessonReservationsIDs() (ids []int64) {
 	for id := range m.lesson_reservations {
 		ids = append(ids, id)
 	}
@@ -8790,7 +11996,7 @@ func (m *LessonScheduleMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdatedAt(v)
 		return nil
 	case lessonschedule.FieldLessonPlanID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -9163,7 +12369,7 @@ type ProductMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *int64
 	created_at    *time.Time
 	updated_at    *time.Time
 	name          *string
@@ -9196,7 +12402,7 @@ func newProductMutation(c config, op Op, opts ...productOption) *ProductMutation
 }
 
 // withProductID sets the ID field of the mutation.
-func withProductID(id int) productOption {
+func withProductID(id int64) productOption {
 	return func(m *ProductMutation) {
 		var (
 			err   error
@@ -9246,9 +12452,15 @@ func (m ProductMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Product entities.
+func (m *ProductMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ProductMutation) ID() (id int, exists bool) {
+func (m *ProductMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -9259,12 +12471,12 @@ func (m *ProductMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *ProductMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *ProductMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -9763,25 +12975,25 @@ type SchoolMutation struct {
 	config
 	op                         Op
 	typ                        string
-	id                         *int
+	id                         *int64
 	created_at                 *time.Time
 	updated_at                 *time.Time
 	school_type                *school.SchoolType
 	name                       *string
 	email                      *string
 	phone_number               *string
-	prefecture                 *int
-	addprefecture              *int
+	prefecture                 *int64
+	addprefecture              *int64
 	city                       *string
 	street                     *string
 	post_code                  *string
 	url                        *string
 	clearedFields              map[string]struct{}
-	teachers                   map[int]struct{}
-	removedteachers            map[int]struct{}
+	teachers                   map[int64]struct{}
+	removedteachers            map[int64]struct{}
 	clearedteachers            bool
-	lesson_reservations        map[int]struct{}
-	removedlesson_reservations map[int]struct{}
+	lesson_reservations        map[int64]struct{}
+	removedlesson_reservations map[int64]struct{}
 	clearedlesson_reservations bool
 	done                       bool
 	oldValue                   func(context.Context) (*School, error)
@@ -9808,7 +13020,7 @@ func newSchoolMutation(c config, op Op, opts ...schoolOption) *SchoolMutation {
 }
 
 // withSchoolID sets the ID field of the mutation.
-func withSchoolID(id int) schoolOption {
+func withSchoolID(id int64) schoolOption {
 	return func(m *SchoolMutation) {
 		var (
 			err   error
@@ -9858,9 +13070,15 @@ func (m SchoolMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of School entities.
+func (m *SchoolMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SchoolMutation) ID() (id int, exists bool) {
+func (m *SchoolMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -9871,12 +13089,12 @@ func (m *SchoolMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SchoolMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *SchoolMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -10116,13 +13334,13 @@ func (m *SchoolMutation) ResetPhoneNumber() {
 }
 
 // SetPrefecture sets the "prefecture" field.
-func (m *SchoolMutation) SetPrefecture(i int) {
+func (m *SchoolMutation) SetPrefecture(i int64) {
 	m.prefecture = &i
 	m.addprefecture = nil
 }
 
 // Prefecture returns the value of the "prefecture" field in the mutation.
-func (m *SchoolMutation) Prefecture() (r int, exists bool) {
+func (m *SchoolMutation) Prefecture() (r int64, exists bool) {
 	v := m.prefecture
 	if v == nil {
 		return
@@ -10133,7 +13351,7 @@ func (m *SchoolMutation) Prefecture() (r int, exists bool) {
 // OldPrefecture returns the old "prefecture" field's value of the School entity.
 // If the School object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *SchoolMutation) OldPrefecture(ctx context.Context) (v int, err error) {
+func (m *SchoolMutation) OldPrefecture(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPrefecture is only allowed on UpdateOne operations")
 	}
@@ -10148,7 +13366,7 @@ func (m *SchoolMutation) OldPrefecture(ctx context.Context) (v int, err error) {
 }
 
 // AddPrefecture adds i to the "prefecture" field.
-func (m *SchoolMutation) AddPrefecture(i int) {
+func (m *SchoolMutation) AddPrefecture(i int64) {
 	if m.addprefecture != nil {
 		*m.addprefecture += i
 	} else {
@@ -10157,7 +13375,7 @@ func (m *SchoolMutation) AddPrefecture(i int) {
 }
 
 // AddedPrefecture returns the value that was added to the "prefecture" field in this mutation.
-func (m *SchoolMutation) AddedPrefecture() (r int, exists bool) {
+func (m *SchoolMutation) AddedPrefecture() (r int64, exists bool) {
 	v := m.addprefecture
 	if v == nil {
 		return
@@ -10342,9 +13560,9 @@ func (m *SchoolMutation) ResetURL() {
 }
 
 // AddTeacherIDs adds the "teachers" edge to the User entity by ids.
-func (m *SchoolMutation) AddTeacherIDs(ids ...int) {
+func (m *SchoolMutation) AddTeacherIDs(ids ...int64) {
 	if m.teachers == nil {
-		m.teachers = make(map[int]struct{})
+		m.teachers = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.teachers[ids[i]] = struct{}{}
@@ -10362,9 +13580,9 @@ func (m *SchoolMutation) TeachersCleared() bool {
 }
 
 // RemoveTeacherIDs removes the "teachers" edge to the User entity by IDs.
-func (m *SchoolMutation) RemoveTeacherIDs(ids ...int) {
+func (m *SchoolMutation) RemoveTeacherIDs(ids ...int64) {
 	if m.removedteachers == nil {
-		m.removedteachers = make(map[int]struct{})
+		m.removedteachers = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.teachers, ids[i])
@@ -10373,7 +13591,7 @@ func (m *SchoolMutation) RemoveTeacherIDs(ids ...int) {
 }
 
 // RemovedTeachers returns the removed IDs of the "teachers" edge to the User entity.
-func (m *SchoolMutation) RemovedTeachersIDs() (ids []int) {
+func (m *SchoolMutation) RemovedTeachersIDs() (ids []int64) {
 	for id := range m.removedteachers {
 		ids = append(ids, id)
 	}
@@ -10381,7 +13599,7 @@ func (m *SchoolMutation) RemovedTeachersIDs() (ids []int) {
 }
 
 // TeachersIDs returns the "teachers" edge IDs in the mutation.
-func (m *SchoolMutation) TeachersIDs() (ids []int) {
+func (m *SchoolMutation) TeachersIDs() (ids []int64) {
 	for id := range m.teachers {
 		ids = append(ids, id)
 	}
@@ -10396,9 +13614,9 @@ func (m *SchoolMutation) ResetTeachers() {
 }
 
 // AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by ids.
-func (m *SchoolMutation) AddLessonReservationIDs(ids ...int) {
+func (m *SchoolMutation) AddLessonReservationIDs(ids ...int64) {
 	if m.lesson_reservations == nil {
-		m.lesson_reservations = make(map[int]struct{})
+		m.lesson_reservations = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_reservations[ids[i]] = struct{}{}
@@ -10416,9 +13634,9 @@ func (m *SchoolMutation) LessonReservationsCleared() bool {
 }
 
 // RemoveLessonReservationIDs removes the "lesson_reservations" edge to the LessonReservation entity by IDs.
-func (m *SchoolMutation) RemoveLessonReservationIDs(ids ...int) {
+func (m *SchoolMutation) RemoveLessonReservationIDs(ids ...int64) {
 	if m.removedlesson_reservations == nil {
-		m.removedlesson_reservations = make(map[int]struct{})
+		m.removedlesson_reservations = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_reservations, ids[i])
@@ -10427,7 +13645,7 @@ func (m *SchoolMutation) RemoveLessonReservationIDs(ids ...int) {
 }
 
 // RemovedLessonReservations returns the removed IDs of the "lesson_reservations" edge to the LessonReservation entity.
-func (m *SchoolMutation) RemovedLessonReservationsIDs() (ids []int) {
+func (m *SchoolMutation) RemovedLessonReservationsIDs() (ids []int64) {
 	for id := range m.removedlesson_reservations {
 		ids = append(ids, id)
 	}
@@ -10435,7 +13653,7 @@ func (m *SchoolMutation) RemovedLessonReservationsIDs() (ids []int) {
 }
 
 // LessonReservationsIDs returns the "lesson_reservations" edge IDs in the mutation.
-func (m *SchoolMutation) LessonReservationsIDs() (ids []int) {
+func (m *SchoolMutation) LessonReservationsIDs() (ids []int64) {
 	for id := range m.lesson_reservations {
 		ids = append(ids, id)
 	}
@@ -10630,7 +13848,7 @@ func (m *SchoolMutation) SetField(name string, value ent.Value) error {
 		m.SetPhoneNumber(v)
 		return nil
 	case school.FieldPrefecture:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -10695,7 +13913,7 @@ func (m *SchoolMutation) AddedField(name string) (ent.Value, bool) {
 func (m *SchoolMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case school.FieldPrefecture:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -10899,20 +14117,23 @@ func (m *SchoolMutation) ResetEdge(name string) error {
 // SubjectMutation represents an operation that mutates the Subject nodes in the graph.
 type SubjectMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *int
-	created_at          *time.Time
-	updated_at          *time.Time
-	name                *string
-	code                *string
-	clearedFields       map[string]struct{}
-	lesson_plans        map[int]struct{}
-	removedlesson_plans map[int]struct{}
-	clearedlesson_plans bool
-	done                bool
-	oldValue            func(context.Context) (*Subject, error)
-	predicates          []predicate.Subject
+	op                          Op
+	typ                         string
+	id                          *int64
+	created_at                  *time.Time
+	updated_at                  *time.Time
+	name                        *string
+	code                        *string
+	clearedFields               map[string]struct{}
+	lesson_plans                map[int64]struct{}
+	removedlesson_plans         map[int64]struct{}
+	clearedlesson_plans         bool
+	lesson_plan_subjects        map[int64]struct{}
+	removedlesson_plan_subjects map[int64]struct{}
+	clearedlesson_plan_subjects bool
+	done                        bool
+	oldValue                    func(context.Context) (*Subject, error)
+	predicates                  []predicate.Subject
 }
 
 var _ ent.Mutation = (*SubjectMutation)(nil)
@@ -10935,7 +14156,7 @@ func newSubjectMutation(c config, op Op, opts ...subjectOption) *SubjectMutation
 }
 
 // withSubjectID sets the ID field of the mutation.
-func withSubjectID(id int) subjectOption {
+func withSubjectID(id int64) subjectOption {
 	return func(m *SubjectMutation) {
 		var (
 			err   error
@@ -10985,9 +14206,15 @@ func (m SubjectMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Subject entities.
+func (m *SubjectMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *SubjectMutation) ID() (id int, exists bool) {
+func (m *SubjectMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -10998,12 +14225,12 @@ func (m *SubjectMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *SubjectMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *SubjectMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -11158,9 +14385,9 @@ func (m *SubjectMutation) ResetCode() {
 }
 
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by ids.
-func (m *SubjectMutation) AddLessonPlanIDs(ids ...int) {
+func (m *SubjectMutation) AddLessonPlanIDs(ids ...int64) {
 	if m.lesson_plans == nil {
-		m.lesson_plans = make(map[int]struct{})
+		m.lesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_plans[ids[i]] = struct{}{}
@@ -11178,9 +14405,9 @@ func (m *SubjectMutation) LessonPlansCleared() bool {
 }
 
 // RemoveLessonPlanIDs removes the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (m *SubjectMutation) RemoveLessonPlanIDs(ids ...int) {
+func (m *SubjectMutation) RemoveLessonPlanIDs(ids ...int64) {
 	if m.removedlesson_plans == nil {
-		m.removedlesson_plans = make(map[int]struct{})
+		m.removedlesson_plans = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_plans, ids[i])
@@ -11189,7 +14416,7 @@ func (m *SubjectMutation) RemoveLessonPlanIDs(ids ...int) {
 }
 
 // RemovedLessonPlans returns the removed IDs of the "lesson_plans" edge to the LessonPlan entity.
-func (m *SubjectMutation) RemovedLessonPlansIDs() (ids []int) {
+func (m *SubjectMutation) RemovedLessonPlansIDs() (ids []int64) {
 	for id := range m.removedlesson_plans {
 		ids = append(ids, id)
 	}
@@ -11197,7 +14424,7 @@ func (m *SubjectMutation) RemovedLessonPlansIDs() (ids []int) {
 }
 
 // LessonPlansIDs returns the "lesson_plans" edge IDs in the mutation.
-func (m *SubjectMutation) LessonPlansIDs() (ids []int) {
+func (m *SubjectMutation) LessonPlansIDs() (ids []int64) {
 	for id := range m.lesson_plans {
 		ids = append(ids, id)
 	}
@@ -11209,6 +14436,60 @@ func (m *SubjectMutation) ResetLessonPlans() {
 	m.lesson_plans = nil
 	m.clearedlesson_plans = false
 	m.removedlesson_plans = nil
+}
+
+// AddLessonPlanSubjectIDs adds the "lesson_plan_subjects" edge to the LessonPlanSubject entity by ids.
+func (m *SubjectMutation) AddLessonPlanSubjectIDs(ids ...int64) {
+	if m.lesson_plan_subjects == nil {
+		m.lesson_plan_subjects = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_subjects[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanSubjects clears the "lesson_plan_subjects" edge to the LessonPlanSubject entity.
+func (m *SubjectMutation) ClearLessonPlanSubjects() {
+	m.clearedlesson_plan_subjects = true
+}
+
+// LessonPlanSubjectsCleared reports if the "lesson_plan_subjects" edge to the LessonPlanSubject entity was cleared.
+func (m *SubjectMutation) LessonPlanSubjectsCleared() bool {
+	return m.clearedlesson_plan_subjects
+}
+
+// RemoveLessonPlanSubjectIDs removes the "lesson_plan_subjects" edge to the LessonPlanSubject entity by IDs.
+func (m *SubjectMutation) RemoveLessonPlanSubjectIDs(ids ...int64) {
+	if m.removedlesson_plan_subjects == nil {
+		m.removedlesson_plan_subjects = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_subjects, ids[i])
+		m.removedlesson_plan_subjects[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanSubjects returns the removed IDs of the "lesson_plan_subjects" edge to the LessonPlanSubject entity.
+func (m *SubjectMutation) RemovedLessonPlanSubjectsIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_subjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanSubjectsIDs returns the "lesson_plan_subjects" edge IDs in the mutation.
+func (m *SubjectMutation) LessonPlanSubjectsIDs() (ids []int64) {
+	for id := range m.lesson_plan_subjects {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanSubjects resets all changes to the "lesson_plan_subjects" edge.
+func (m *SubjectMutation) ResetLessonPlanSubjects() {
+	m.lesson_plan_subjects = nil
+	m.clearedlesson_plan_subjects = false
+	m.removedlesson_plan_subjects = nil
 }
 
 // Where appends a list predicates to the SubjectMutation builder.
@@ -11395,9 +14676,12 @@ func (m *SubjectMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *SubjectMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.lesson_plans != nil {
 		edges = append(edges, subject.EdgeLessonPlans)
+	}
+	if m.lesson_plan_subjects != nil {
+		edges = append(edges, subject.EdgeLessonPlanSubjects)
 	}
 	return edges
 }
@@ -11412,15 +14696,24 @@ func (m *SubjectMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subject.EdgeLessonPlanSubjects:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_subjects))
+		for id := range m.lesson_plan_subjects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *SubjectMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedlesson_plans != nil {
 		edges = append(edges, subject.EdgeLessonPlans)
+	}
+	if m.removedlesson_plan_subjects != nil {
+		edges = append(edges, subject.EdgeLessonPlanSubjects)
 	}
 	return edges
 }
@@ -11435,15 +14728,24 @@ func (m *SubjectMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case subject.EdgeLessonPlanSubjects:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_subjects))
+		for id := range m.removedlesson_plan_subjects {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *SubjectMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedlesson_plans {
 		edges = append(edges, subject.EdgeLessonPlans)
+	}
+	if m.clearedlesson_plan_subjects {
+		edges = append(edges, subject.EdgeLessonPlanSubjects)
 	}
 	return edges
 }
@@ -11454,6 +14756,8 @@ func (m *SubjectMutation) EdgeCleared(name string) bool {
 	switch name {
 	case subject.EdgeLessonPlans:
 		return m.clearedlesson_plans
+	case subject.EdgeLessonPlanSubjects:
+		return m.clearedlesson_plan_subjects
 	}
 	return false
 }
@@ -11473,6 +14777,9 @@ func (m *SubjectMutation) ResetEdge(name string) error {
 	case subject.EdgeLessonPlans:
 		m.ResetLessonPlans()
 		return nil
+	case subject.EdgeLessonPlanSubjects:
+		m.ResetLessonPlanSubjects()
+		return nil
 	}
 	return fmt.Errorf("unknown Subject edge %s", name)
 }
@@ -11480,20 +14787,24 @@ func (m *SubjectMutation) ResetEdge(name string) error {
 // UploadFileMutation represents an operation that mutates the UploadFile nodes in the graph.
 type UploadFileMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	created_at         *time.Time
-	updated_at         *time.Time
-	photo_key          *string
-	user_id            *int
-	adduser_id         *int
-	clearedFields      map[string]struct{}
-	_LessonPlan        *int
-	cleared_LessonPlan bool
-	done               bool
-	oldValue           func(context.Context) (*UploadFile, error)
-	predicates         []predicate.UploadFile
+	op                              Op
+	typ                             string
+	id                              *int64
+	created_at                      *time.Time
+	updated_at                      *time.Time
+	photo_key                       *string
+	user_id                         *int64
+	adduser_id                      *int64
+	clearedFields                   map[string]struct{}
+	_LessonPlan                     map[int64]struct{}
+	removed_LessonPlan              map[int64]struct{}
+	cleared_LessonPlan              bool
+	lesson_plan_upload_files        map[int64]struct{}
+	removedlesson_plan_upload_files map[int64]struct{}
+	clearedlesson_plan_upload_files bool
+	done                            bool
+	oldValue                        func(context.Context) (*UploadFile, error)
+	predicates                      []predicate.UploadFile
 }
 
 var _ ent.Mutation = (*UploadFileMutation)(nil)
@@ -11516,7 +14827,7 @@ func newUploadFileMutation(c config, op Op, opts ...uploadfileOption) *UploadFil
 }
 
 // withUploadFileID sets the ID field of the mutation.
-func withUploadFileID(id int) uploadfileOption {
+func withUploadFileID(id int64) uploadfileOption {
 	return func(m *UploadFileMutation) {
 		var (
 			err   error
@@ -11566,9 +14877,15 @@ func (m UploadFileMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of UploadFile entities.
+func (m *UploadFileMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UploadFileMutation) ID() (id int, exists bool) {
+func (m *UploadFileMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -11579,12 +14896,12 @@ func (m *UploadFileMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UploadFileMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UploadFileMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -11703,13 +15020,13 @@ func (m *UploadFileMutation) ResetPhotoKey() {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *UploadFileMutation) SetUserID(i int) {
+func (m *UploadFileMutation) SetUserID(i int64) {
 	m.user_id = &i
 	m.adduser_id = nil
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *UploadFileMutation) UserID() (r int, exists bool) {
+func (m *UploadFileMutation) UserID() (r int64, exists bool) {
 	v := m.user_id
 	if v == nil {
 		return
@@ -11720,7 +15037,7 @@ func (m *UploadFileMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "user_id" field's value of the UploadFile entity.
 // If the UploadFile object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UploadFileMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *UploadFileMutation) OldUserID(ctx context.Context) (v int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -11735,7 +15052,7 @@ func (m *UploadFileMutation) OldUserID(ctx context.Context) (v int, err error) {
 }
 
 // AddUserID adds i to the "user_id" field.
-func (m *UploadFileMutation) AddUserID(i int) {
+func (m *UploadFileMutation) AddUserID(i int64) {
 	if m.adduser_id != nil {
 		*m.adduser_id += i
 	} else {
@@ -11744,7 +15061,7 @@ func (m *UploadFileMutation) AddUserID(i int) {
 }
 
 // AddedUserID returns the value that was added to the "user_id" field in this mutation.
-func (m *UploadFileMutation) AddedUserID() (r int, exists bool) {
+func (m *UploadFileMutation) AddedUserID() (r int64, exists bool) {
 	v := m.adduser_id
 	if v == nil {
 		return
@@ -11758,9 +15075,14 @@ func (m *UploadFileMutation) ResetUserID() {
 	m.adduser_id = nil
 }
 
-// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by id.
-func (m *UploadFileMutation) SetLessonPlanID(id int) {
-	m._LessonPlan = &id
+// AddLessonPlanIDs adds the "LessonPlan" edge to the LessonPlan entity by ids.
+func (m *UploadFileMutation) AddLessonPlanIDs(ids ...int64) {
+	if m._LessonPlan == nil {
+		m._LessonPlan = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m._LessonPlan[ids[i]] = struct{}{}
+	}
 }
 
 // ClearLessonPlan clears the "LessonPlan" edge to the LessonPlan entity.
@@ -11773,20 +15095,29 @@ func (m *UploadFileMutation) LessonPlanCleared() bool {
 	return m.cleared_LessonPlan
 }
 
-// LessonPlanID returns the "LessonPlan" edge ID in the mutation.
-func (m *UploadFileMutation) LessonPlanID() (id int, exists bool) {
-	if m._LessonPlan != nil {
-		return *m._LessonPlan, true
+// RemoveLessonPlanIDs removes the "LessonPlan" edge to the LessonPlan entity by IDs.
+func (m *UploadFileMutation) RemoveLessonPlanIDs(ids ...int64) {
+	if m.removed_LessonPlan == nil {
+		m.removed_LessonPlan = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m._LessonPlan, ids[i])
+		m.removed_LessonPlan[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlan returns the removed IDs of the "LessonPlan" edge to the LessonPlan entity.
+func (m *UploadFileMutation) RemovedLessonPlanIDs() (ids []int64) {
+	for id := range m.removed_LessonPlan {
+		ids = append(ids, id)
 	}
 	return
 }
 
 // LessonPlanIDs returns the "LessonPlan" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// LessonPlanID instead. It exists only for internal usage by the builders.
-func (m *UploadFileMutation) LessonPlanIDs() (ids []int) {
-	if id := m._LessonPlan; id != nil {
-		ids = append(ids, *id)
+func (m *UploadFileMutation) LessonPlanIDs() (ids []int64) {
+	for id := range m._LessonPlan {
+		ids = append(ids, id)
 	}
 	return
 }
@@ -11795,6 +15126,61 @@ func (m *UploadFileMutation) LessonPlanIDs() (ids []int) {
 func (m *UploadFileMutation) ResetLessonPlan() {
 	m._LessonPlan = nil
 	m.cleared_LessonPlan = false
+	m.removed_LessonPlan = nil
+}
+
+// AddLessonPlanUploadFileIDs adds the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by ids.
+func (m *UploadFileMutation) AddLessonPlanUploadFileIDs(ids ...int64) {
+	if m.lesson_plan_upload_files == nil {
+		m.lesson_plan_upload_files = make(map[int64]struct{})
+	}
+	for i := range ids {
+		m.lesson_plan_upload_files[ids[i]] = struct{}{}
+	}
+}
+
+// ClearLessonPlanUploadFiles clears the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity.
+func (m *UploadFileMutation) ClearLessonPlanUploadFiles() {
+	m.clearedlesson_plan_upload_files = true
+}
+
+// LessonPlanUploadFilesCleared reports if the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity was cleared.
+func (m *UploadFileMutation) LessonPlanUploadFilesCleared() bool {
+	return m.clearedlesson_plan_upload_files
+}
+
+// RemoveLessonPlanUploadFileIDs removes the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by IDs.
+func (m *UploadFileMutation) RemoveLessonPlanUploadFileIDs(ids ...int64) {
+	if m.removedlesson_plan_upload_files == nil {
+		m.removedlesson_plan_upload_files = make(map[int64]struct{})
+	}
+	for i := range ids {
+		delete(m.lesson_plan_upload_files, ids[i])
+		m.removedlesson_plan_upload_files[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedLessonPlanUploadFiles returns the removed IDs of the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity.
+func (m *UploadFileMutation) RemovedLessonPlanUploadFilesIDs() (ids []int64) {
+	for id := range m.removedlesson_plan_upload_files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// LessonPlanUploadFilesIDs returns the "lesson_plan_upload_files" edge IDs in the mutation.
+func (m *UploadFileMutation) LessonPlanUploadFilesIDs() (ids []int64) {
+	for id := range m.lesson_plan_upload_files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetLessonPlanUploadFiles resets all changes to the "lesson_plan_upload_files" edge.
+func (m *UploadFileMutation) ResetLessonPlanUploadFiles() {
+	m.lesson_plan_upload_files = nil
+	m.clearedlesson_plan_upload_files = false
+	m.removedlesson_plan_upload_files = nil
 }
 
 // Where appends a list predicates to the UploadFileMutation builder.
@@ -11908,7 +15294,7 @@ func (m *UploadFileMutation) SetField(name string, value ent.Value) error {
 		m.SetPhotoKey(v)
 		return nil
 	case uploadfile.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -11945,7 +15331,7 @@ func (m *UploadFileMutation) AddedField(name string) (ent.Value, bool) {
 func (m *UploadFileMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case uploadfile.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -11996,9 +15382,12 @@ func (m *UploadFileMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *UploadFileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m._LessonPlan != nil {
 		edges = append(edges, uploadfile.EdgeLessonPlan)
+	}
+	if m.lesson_plan_upload_files != nil {
+		edges = append(edges, uploadfile.EdgeLessonPlanUploadFiles)
 	}
 	return edges
 }
@@ -12008,30 +15397,61 @@ func (m *UploadFileMutation) AddedEdges() []string {
 func (m *UploadFileMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case uploadfile.EdgeLessonPlan:
-		if id := m._LessonPlan; id != nil {
-			return []ent.Value{*id}
+		ids := make([]ent.Value, 0, len(m._LessonPlan))
+		for id := range m._LessonPlan {
+			ids = append(ids, id)
 		}
+		return ids
+	case uploadfile.EdgeLessonPlanUploadFiles:
+		ids := make([]ent.Value, 0, len(m.lesson_plan_upload_files))
+		for id := range m.lesson_plan_upload_files {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *UploadFileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removed_LessonPlan != nil {
+		edges = append(edges, uploadfile.EdgeLessonPlan)
+	}
+	if m.removedlesson_plan_upload_files != nil {
+		edges = append(edges, uploadfile.EdgeLessonPlanUploadFiles)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *UploadFileMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case uploadfile.EdgeLessonPlan:
+		ids := make([]ent.Value, 0, len(m.removed_LessonPlan))
+		for id := range m.removed_LessonPlan {
+			ids = append(ids, id)
+		}
+		return ids
+	case uploadfile.EdgeLessonPlanUploadFiles:
+		ids := make([]ent.Value, 0, len(m.removedlesson_plan_upload_files))
+		for id := range m.removedlesson_plan_upload_files {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *UploadFileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.cleared_LessonPlan {
 		edges = append(edges, uploadfile.EdgeLessonPlan)
+	}
+	if m.clearedlesson_plan_upload_files {
+		edges = append(edges, uploadfile.EdgeLessonPlanUploadFiles)
 	}
 	return edges
 }
@@ -12042,6 +15462,8 @@ func (m *UploadFileMutation) EdgeCleared(name string) bool {
 	switch name {
 	case uploadfile.EdgeLessonPlan:
 		return m.cleared_LessonPlan
+	case uploadfile.EdgeLessonPlanUploadFiles:
+		return m.clearedlesson_plan_upload_files
 	}
 	return false
 }
@@ -12050,9 +15472,6 @@ func (m *UploadFileMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *UploadFileMutation) ClearEdge(name string) error {
 	switch name {
-	case uploadfile.EdgeLessonPlan:
-		m.ClearLessonPlan()
-		return nil
 	}
 	return fmt.Errorf("unknown UploadFile unique edge %s", name)
 }
@@ -12064,6 +15483,9 @@ func (m *UploadFileMutation) ResetEdge(name string) error {
 	case uploadfile.EdgeLessonPlan:
 		m.ResetLessonPlan()
 		return nil
+	case uploadfile.EdgeLessonPlanUploadFiles:
+		m.ResetLessonPlanUploadFiles()
+		return nil
 	}
 	return fmt.Errorf("unknown UploadFile edge %s", name)
 }
@@ -12073,7 +15495,7 @@ type UserMutation struct {
 	config
 	op                         Op
 	typ                        string
-	id                         *int
+	id                         *int64
 	created_at                 *time.Time
 	updated_at                 *time.Time
 	user_type                  *user.UserType
@@ -12083,15 +15505,15 @@ type UserMutation struct {
 	phone_number               *string
 	password                   *string
 	clearedFields              map[string]struct{}
-	school                     *int
+	school                     *int64
 	clearedschool              bool
-	company                    *int
+	company                    *int64
 	clearedcompany             bool
-	inquiries                  map[int]struct{}
-	removedinquiries           map[int]struct{}
+	inquiries                  map[int64]struct{}
+	removedinquiries           map[int64]struct{}
 	clearedinquiries           bool
-	lesson_reservations        map[int]struct{}
-	removedlesson_reservations map[int]struct{}
+	lesson_reservations        map[int64]struct{}
+	removedlesson_reservations map[int64]struct{}
 	clearedlesson_reservations bool
 	done                       bool
 	oldValue                   func(context.Context) (*User, error)
@@ -12118,7 +15540,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id int64) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -12168,9 +15590,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id int64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id int64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -12181,12 +15609,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]int64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []int64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -12305,12 +15733,12 @@ func (m *UserMutation) ResetUserType() {
 }
 
 // SetSchoolID sets the "school_id" field.
-func (m *UserMutation) SetSchoolID(i int) {
+func (m *UserMutation) SetSchoolID(i int64) {
 	m.school = &i
 }
 
 // SchoolID returns the value of the "school_id" field in the mutation.
-func (m *UserMutation) SchoolID() (r int, exists bool) {
+func (m *UserMutation) SchoolID() (r int64, exists bool) {
 	v := m.school
 	if v == nil {
 		return
@@ -12321,7 +15749,7 @@ func (m *UserMutation) SchoolID() (r int, exists bool) {
 // OldSchoolID returns the old "school_id" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldSchoolID(ctx context.Context) (v *int, err error) {
+func (m *UserMutation) OldSchoolID(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSchoolID is only allowed on UpdateOne operations")
 	}
@@ -12354,12 +15782,12 @@ func (m *UserMutation) ResetSchoolID() {
 }
 
 // SetCompanyID sets the "company_id" field.
-func (m *UserMutation) SetCompanyID(i int) {
+func (m *UserMutation) SetCompanyID(i int64) {
 	m.company = &i
 }
 
 // CompanyID returns the value of the "company_id" field in the mutation.
-func (m *UserMutation) CompanyID() (r int, exists bool) {
+func (m *UserMutation) CompanyID() (r int64, exists bool) {
 	v := m.company
 	if v == nil {
 		return
@@ -12370,7 +15798,7 @@ func (m *UserMutation) CompanyID() (r int, exists bool) {
 // OldCompanyID returns the old "company_id" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldCompanyID(ctx context.Context) (v *int, err error) {
+func (m *UserMutation) OldCompanyID(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldCompanyID is only allowed on UpdateOne operations")
 	}
@@ -12609,7 +16037,7 @@ func (m *UserMutation) SchoolCleared() bool {
 // SchoolIDs returns the "school" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // SchoolID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) SchoolIDs() (ids []int) {
+func (m *UserMutation) SchoolIDs() (ids []int64) {
 	if id := m.school; id != nil {
 		ids = append(ids, *id)
 	}
@@ -12636,7 +16064,7 @@ func (m *UserMutation) CompanyCleared() bool {
 // CompanyIDs returns the "company" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // CompanyID instead. It exists only for internal usage by the builders.
-func (m *UserMutation) CompanyIDs() (ids []int) {
+func (m *UserMutation) CompanyIDs() (ids []int64) {
 	if id := m.company; id != nil {
 		ids = append(ids, *id)
 	}
@@ -12650,9 +16078,9 @@ func (m *UserMutation) ResetCompany() {
 }
 
 // AddInquiryIDs adds the "inquiries" edge to the Inquiry entity by ids.
-func (m *UserMutation) AddInquiryIDs(ids ...int) {
+func (m *UserMutation) AddInquiryIDs(ids ...int64) {
 	if m.inquiries == nil {
-		m.inquiries = make(map[int]struct{})
+		m.inquiries = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.inquiries[ids[i]] = struct{}{}
@@ -12670,9 +16098,9 @@ func (m *UserMutation) InquiriesCleared() bool {
 }
 
 // RemoveInquiryIDs removes the "inquiries" edge to the Inquiry entity by IDs.
-func (m *UserMutation) RemoveInquiryIDs(ids ...int) {
+func (m *UserMutation) RemoveInquiryIDs(ids ...int64) {
 	if m.removedinquiries == nil {
-		m.removedinquiries = make(map[int]struct{})
+		m.removedinquiries = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.inquiries, ids[i])
@@ -12681,7 +16109,7 @@ func (m *UserMutation) RemoveInquiryIDs(ids ...int) {
 }
 
 // RemovedInquiries returns the removed IDs of the "inquiries" edge to the Inquiry entity.
-func (m *UserMutation) RemovedInquiriesIDs() (ids []int) {
+func (m *UserMutation) RemovedInquiriesIDs() (ids []int64) {
 	for id := range m.removedinquiries {
 		ids = append(ids, id)
 	}
@@ -12689,7 +16117,7 @@ func (m *UserMutation) RemovedInquiriesIDs() (ids []int) {
 }
 
 // InquiriesIDs returns the "inquiries" edge IDs in the mutation.
-func (m *UserMutation) InquiriesIDs() (ids []int) {
+func (m *UserMutation) InquiriesIDs() (ids []int64) {
 	for id := range m.inquiries {
 		ids = append(ids, id)
 	}
@@ -12704,9 +16132,9 @@ func (m *UserMutation) ResetInquiries() {
 }
 
 // AddLessonReservationIDs adds the "lesson_reservations" edge to the LessonReservation entity by ids.
-func (m *UserMutation) AddLessonReservationIDs(ids ...int) {
+func (m *UserMutation) AddLessonReservationIDs(ids ...int64) {
 	if m.lesson_reservations == nil {
-		m.lesson_reservations = make(map[int]struct{})
+		m.lesson_reservations = make(map[int64]struct{})
 	}
 	for i := range ids {
 		m.lesson_reservations[ids[i]] = struct{}{}
@@ -12724,9 +16152,9 @@ func (m *UserMutation) LessonReservationsCleared() bool {
 }
 
 // RemoveLessonReservationIDs removes the "lesson_reservations" edge to the LessonReservation entity by IDs.
-func (m *UserMutation) RemoveLessonReservationIDs(ids ...int) {
+func (m *UserMutation) RemoveLessonReservationIDs(ids ...int64) {
 	if m.removedlesson_reservations == nil {
-		m.removedlesson_reservations = make(map[int]struct{})
+		m.removedlesson_reservations = make(map[int64]struct{})
 	}
 	for i := range ids {
 		delete(m.lesson_reservations, ids[i])
@@ -12735,7 +16163,7 @@ func (m *UserMutation) RemoveLessonReservationIDs(ids ...int) {
 }
 
 // RemovedLessonReservations returns the removed IDs of the "lesson_reservations" edge to the LessonReservation entity.
-func (m *UserMutation) RemovedLessonReservationsIDs() (ids []int) {
+func (m *UserMutation) RemovedLessonReservationsIDs() (ids []int64) {
 	for id := range m.removedlesson_reservations {
 		ids = append(ids, id)
 	}
@@ -12743,7 +16171,7 @@ func (m *UserMutation) RemovedLessonReservationsIDs() (ids []int) {
 }
 
 // LessonReservationsIDs returns the "lesson_reservations" edge IDs in the mutation.
-func (m *UserMutation) LessonReservationsIDs() (ids []int) {
+func (m *UserMutation) LessonReservationsIDs() (ids []int64) {
 	for id := range m.lesson_reservations {
 		ids = append(ids, id)
 	}
@@ -12910,14 +16338,14 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		m.SetUserType(v)
 		return nil
 	case user.FieldSchoolID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSchoolID(v)
 		return nil
 	case user.FieldCompanyID:
-		v, ok := value.(int)
+		v, ok := value.(int64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

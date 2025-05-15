@@ -108,9 +108,9 @@ var (
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// SchoolIDValidator is a validator for the "school_id" field. It is called by the builders before save.
-	SchoolIDValidator func(int) error
+	SchoolIDValidator func(int64) error
 	// CompanyIDValidator is a validator for the "company_id" field. It is called by the builders before save.
-	CompanyIDValidator func(int) error
+	CompanyIDValidator func(int64) error
 	// FirstNameValidator is a validator for the "first_name" field. It is called by the builders before save.
 	FirstNameValidator func(string) error
 	// FamilyNameValidator is a validator for the "family_name" field. It is called by the builders before save.
@@ -119,6 +119,8 @@ var (
 	EmailValidator func(string) error
 	// PhoneNumberValidator is a validator for the "phone_number" field. It is called by the builders before save.
 	PhoneNumberValidator func(string) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // UserType defines the type for the "user_type" enum field.

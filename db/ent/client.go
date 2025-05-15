@@ -22,6 +22,10 @@ import (
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/inquiry"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonconfirmation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplaneducationcategory"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplangrade"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplanuploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservation"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonreservationpreferreddate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonschedule"
@@ -51,6 +55,14 @@ type Client struct {
 	LessonConfirmation *LessonConfirmationClient
 	// LessonPlan is the client for interacting with the LessonPlan builders.
 	LessonPlan *LessonPlanClient
+	// LessonPlanEducationCategory is the client for interacting with the LessonPlanEducationCategory builders.
+	LessonPlanEducationCategory *LessonPlanEducationCategoryClient
+	// LessonPlanGrade is the client for interacting with the LessonPlanGrade builders.
+	LessonPlanGrade *LessonPlanGradeClient
+	// LessonPlanSubject is the client for interacting with the LessonPlanSubject builders.
+	LessonPlanSubject *LessonPlanSubjectClient
+	// LessonPlanUploadFile is the client for interacting with the LessonPlanUploadFile builders.
+	LessonPlanUploadFile *LessonPlanUploadFileClient
 	// LessonReservation is the client for interacting with the LessonReservation builders.
 	LessonReservation *LessonReservationClient
 	// LessonReservationPreferredDate is the client for interacting with the LessonReservationPreferredDate builders.
@@ -85,6 +97,10 @@ func (c *Client) init() {
 	c.Inquiry = NewInquiryClient(c.config)
 	c.LessonConfirmation = NewLessonConfirmationClient(c.config)
 	c.LessonPlan = NewLessonPlanClient(c.config)
+	c.LessonPlanEducationCategory = NewLessonPlanEducationCategoryClient(c.config)
+	c.LessonPlanGrade = NewLessonPlanGradeClient(c.config)
+	c.LessonPlanSubject = NewLessonPlanSubjectClient(c.config)
+	c.LessonPlanUploadFile = NewLessonPlanUploadFileClient(c.config)
 	c.LessonReservation = NewLessonReservationClient(c.config)
 	c.LessonReservationPreferredDate = NewLessonReservationPreferredDateClient(c.config)
 	c.LessonSchedule = NewLessonScheduleClient(c.config)
@@ -192,6 +208,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Inquiry:                        NewInquiryClient(cfg),
 		LessonConfirmation:             NewLessonConfirmationClient(cfg),
 		LessonPlan:                     NewLessonPlanClient(cfg),
+		LessonPlanEducationCategory:    NewLessonPlanEducationCategoryClient(cfg),
+		LessonPlanGrade:                NewLessonPlanGradeClient(cfg),
+		LessonPlanSubject:              NewLessonPlanSubjectClient(cfg),
+		LessonPlanUploadFile:           NewLessonPlanUploadFileClient(cfg),
 		LessonReservation:              NewLessonReservationClient(cfg),
 		LessonReservationPreferredDate: NewLessonReservationPreferredDateClient(cfg),
 		LessonSchedule:                 NewLessonScheduleClient(cfg),
@@ -226,6 +246,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Inquiry:                        NewInquiryClient(cfg),
 		LessonConfirmation:             NewLessonConfirmationClient(cfg),
 		LessonPlan:                     NewLessonPlanClient(cfg),
+		LessonPlanEducationCategory:    NewLessonPlanEducationCategoryClient(cfg),
+		LessonPlanGrade:                NewLessonPlanGradeClient(cfg),
+		LessonPlanSubject:              NewLessonPlanSubjectClient(cfg),
+		LessonPlanUploadFile:           NewLessonPlanUploadFileClient(cfg),
 		LessonReservation:              NewLessonReservationClient(cfg),
 		LessonReservationPreferredDate: NewLessonReservationPreferredDateClient(cfg),
 		LessonSchedule:                 NewLessonScheduleClient(cfg),
@@ -264,9 +288,10 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Company, c.EducationCategory, c.EmailVerification, c.Grade, c.Inquiry,
-		c.LessonConfirmation, c.LessonPlan, c.LessonReservation,
-		c.LessonReservationPreferredDate, c.LessonSchedule, c.Product, c.School,
-		c.Subject, c.UploadFile, c.User,
+		c.LessonConfirmation, c.LessonPlan, c.LessonPlanEducationCategory,
+		c.LessonPlanGrade, c.LessonPlanSubject, c.LessonPlanUploadFile,
+		c.LessonReservation, c.LessonReservationPreferredDate, c.LessonSchedule,
+		c.Product, c.School, c.Subject, c.UploadFile, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -277,9 +302,10 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Company, c.EducationCategory, c.EmailVerification, c.Grade, c.Inquiry,
-		c.LessonConfirmation, c.LessonPlan, c.LessonReservation,
-		c.LessonReservationPreferredDate, c.LessonSchedule, c.Product, c.School,
-		c.Subject, c.UploadFile, c.User,
+		c.LessonConfirmation, c.LessonPlan, c.LessonPlanEducationCategory,
+		c.LessonPlanGrade, c.LessonPlanSubject, c.LessonPlanUploadFile,
+		c.LessonReservation, c.LessonReservationPreferredDate, c.LessonSchedule,
+		c.Product, c.School, c.Subject, c.UploadFile, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -302,6 +328,14 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.LessonConfirmation.mutate(ctx, m)
 	case *LessonPlanMutation:
 		return c.LessonPlan.mutate(ctx, m)
+	case *LessonPlanEducationCategoryMutation:
+		return c.LessonPlanEducationCategory.mutate(ctx, m)
+	case *LessonPlanGradeMutation:
+		return c.LessonPlanGrade.mutate(ctx, m)
+	case *LessonPlanSubjectMutation:
+		return c.LessonPlanSubject.mutate(ctx, m)
+	case *LessonPlanUploadFileMutation:
+		return c.LessonPlanUploadFile.mutate(ctx, m)
 	case *LessonReservationMutation:
 		return c.LessonReservation.mutate(ctx, m)
 	case *LessonReservationPreferredDateMutation:
@@ -384,7 +418,7 @@ func (c *CompanyClient) UpdateOne(co *Company) *CompanyUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *CompanyClient) UpdateOneID(id int) *CompanyUpdateOne {
+func (c *CompanyClient) UpdateOneID(id int64) *CompanyUpdateOne {
 	mutation := newCompanyMutation(c.config, OpUpdateOne, withCompanyID(id))
 	return &CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -401,7 +435,7 @@ func (c *CompanyClient) DeleteOne(co *Company) *CompanyDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *CompanyClient) DeleteOneID(id int) *CompanyDeleteOne {
+func (c *CompanyClient) DeleteOneID(id int64) *CompanyDeleteOne {
 	builder := c.Delete().Where(company.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -418,12 +452,12 @@ func (c *CompanyClient) Query() *CompanyQuery {
 }
 
 // Get returns a Company entity by its id.
-func (c *CompanyClient) Get(ctx context.Context, id int) (*Company, error) {
+func (c *CompanyClient) Get(ctx context.Context, id int64) (*Company, error) {
 	return c.Query().Where(company.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *CompanyClient) GetX(ctx context.Context, id int) *Company {
+func (c *CompanyClient) GetX(ctx context.Context, id int64) *Company {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -549,7 +583,7 @@ func (c *EducationCategoryClient) UpdateOne(ec *EducationCategory) *EducationCat
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *EducationCategoryClient) UpdateOneID(id int) *EducationCategoryUpdateOne {
+func (c *EducationCategoryClient) UpdateOneID(id int64) *EducationCategoryUpdateOne {
 	mutation := newEducationCategoryMutation(c.config, OpUpdateOne, withEducationCategoryID(id))
 	return &EducationCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -566,7 +600,7 @@ func (c *EducationCategoryClient) DeleteOne(ec *EducationCategory) *EducationCat
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *EducationCategoryClient) DeleteOneID(id int) *EducationCategoryDeleteOne {
+func (c *EducationCategoryClient) DeleteOneID(id int64) *EducationCategoryDeleteOne {
 	builder := c.Delete().Where(educationcategory.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -583,12 +617,12 @@ func (c *EducationCategoryClient) Query() *EducationCategoryQuery {
 }
 
 // Get returns a EducationCategory entity by its id.
-func (c *EducationCategoryClient) Get(ctx context.Context, id int) (*EducationCategory, error) {
+func (c *EducationCategoryClient) Get(ctx context.Context, id int64) (*EducationCategory, error) {
 	return c.Query().Where(educationcategory.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *EducationCategoryClient) GetX(ctx context.Context, id int) *EducationCategory {
+func (c *EducationCategoryClient) GetX(ctx context.Context, id int64) *EducationCategory {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -605,6 +639,22 @@ func (c *EducationCategoryClient) QueryLessonPlans(ec *EducationCategory) *Lesso
 			sqlgraph.From(educationcategory.Table, educationcategory.FieldID, id),
 			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, educationcategory.LessonPlansTable, educationcategory.LessonPlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ec.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanEducationCategories queries the lesson_plan_education_categories edge of a EducationCategory.
+func (c *EducationCategoryClient) QueryLessonPlanEducationCategories(ec *EducationCategory) *LessonPlanEducationCategoryQuery {
+	query := (&LessonPlanEducationCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ec.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(educationcategory.Table, educationcategory.FieldID, id),
+			sqlgraph.To(lessonplaneducationcategory.Table, lessonplaneducationcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, educationcategory.LessonPlanEducationCategoriesTable, educationcategory.LessonPlanEducationCategoriesColumn),
 		)
 		fromV = sqlgraph.Neighbors(ec.driver.Dialect(), step)
 		return fromV, nil
@@ -698,7 +748,7 @@ func (c *EmailVerificationClient) UpdateOne(ev *EmailVerification) *EmailVerific
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *EmailVerificationClient) UpdateOneID(id int) *EmailVerificationUpdateOne {
+func (c *EmailVerificationClient) UpdateOneID(id int64) *EmailVerificationUpdateOne {
 	mutation := newEmailVerificationMutation(c.config, OpUpdateOne, withEmailVerificationID(id))
 	return &EmailVerificationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -715,7 +765,7 @@ func (c *EmailVerificationClient) DeleteOne(ev *EmailVerification) *EmailVerific
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *EmailVerificationClient) DeleteOneID(id int) *EmailVerificationDeleteOne {
+func (c *EmailVerificationClient) DeleteOneID(id int64) *EmailVerificationDeleteOne {
 	builder := c.Delete().Where(emailverification.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -732,12 +782,12 @@ func (c *EmailVerificationClient) Query() *EmailVerificationQuery {
 }
 
 // Get returns a EmailVerification entity by its id.
-func (c *EmailVerificationClient) Get(ctx context.Context, id int) (*EmailVerification, error) {
+func (c *EmailVerificationClient) Get(ctx context.Context, id int64) (*EmailVerification, error) {
 	return c.Query().Where(emailverification.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *EmailVerificationClient) GetX(ctx context.Context, id int) *EmailVerification {
+func (c *EmailVerificationClient) GetX(ctx context.Context, id int64) *EmailVerification {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -831,7 +881,7 @@ func (c *GradeClient) UpdateOne(gr *Grade) *GradeUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *GradeClient) UpdateOneID(id int) *GradeUpdateOne {
+func (c *GradeClient) UpdateOneID(id int64) *GradeUpdateOne {
 	mutation := newGradeMutation(c.config, OpUpdateOne, withGradeID(id))
 	return &GradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -848,7 +898,7 @@ func (c *GradeClient) DeleteOne(gr *Grade) *GradeDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *GradeClient) DeleteOneID(id int) *GradeDeleteOne {
+func (c *GradeClient) DeleteOneID(id int64) *GradeDeleteOne {
 	builder := c.Delete().Where(grade.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -865,12 +915,12 @@ func (c *GradeClient) Query() *GradeQuery {
 }
 
 // Get returns a Grade entity by its id.
-func (c *GradeClient) Get(ctx context.Context, id int) (*Grade, error) {
+func (c *GradeClient) Get(ctx context.Context, id int64) (*Grade, error) {
 	return c.Query().Where(grade.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *GradeClient) GetX(ctx context.Context, id int) *Grade {
+func (c *GradeClient) GetX(ctx context.Context, id int64) *Grade {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -887,6 +937,22 @@ func (c *GradeClient) QueryLessonPlans(gr *Grade) *LessonPlanQuery {
 			sqlgraph.From(grade.Table, grade.FieldID, id),
 			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, grade.LessonPlansTable, grade.LessonPlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(gr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanGrades queries the lesson_plan_grades edge of a Grade.
+func (c *GradeClient) QueryLessonPlanGrades(gr *Grade) *LessonPlanGradeQuery {
+	query := (&LessonPlanGradeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := gr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(grade.Table, grade.FieldID, id),
+			sqlgraph.To(lessonplangrade.Table, lessonplangrade.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, grade.LessonPlanGradesTable, grade.LessonPlanGradesColumn),
 		)
 		fromV = sqlgraph.Neighbors(gr.driver.Dialect(), step)
 		return fromV, nil
@@ -980,7 +1046,7 @@ func (c *InquiryClient) UpdateOne(i *Inquiry) *InquiryUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *InquiryClient) UpdateOneID(id int) *InquiryUpdateOne {
+func (c *InquiryClient) UpdateOneID(id int64) *InquiryUpdateOne {
 	mutation := newInquiryMutation(c.config, OpUpdateOne, withInquiryID(id))
 	return &InquiryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -997,7 +1063,7 @@ func (c *InquiryClient) DeleteOne(i *Inquiry) *InquiryDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *InquiryClient) DeleteOneID(id int) *InquiryDeleteOne {
+func (c *InquiryClient) DeleteOneID(id int64) *InquiryDeleteOne {
 	builder := c.Delete().Where(inquiry.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1014,12 +1080,12 @@ func (c *InquiryClient) Query() *InquiryQuery {
 }
 
 // Get returns a Inquiry entity by its id.
-func (c *InquiryClient) Get(ctx context.Context, id int) (*Inquiry, error) {
+func (c *InquiryClient) Get(ctx context.Context, id int64) (*Inquiry, error) {
 	return c.Query().Where(inquiry.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *InquiryClient) GetX(ctx context.Context, id int) *Inquiry {
+func (c *InquiryClient) GetX(ctx context.Context, id int64) *Inquiry {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1161,7 +1227,7 @@ func (c *LessonConfirmationClient) UpdateOne(lc *LessonConfirmation) *LessonConf
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonConfirmationClient) UpdateOneID(id int) *LessonConfirmationUpdateOne {
+func (c *LessonConfirmationClient) UpdateOneID(id int64) *LessonConfirmationUpdateOne {
 	mutation := newLessonConfirmationMutation(c.config, OpUpdateOne, withLessonConfirmationID(id))
 	return &LessonConfirmationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1178,7 +1244,7 @@ func (c *LessonConfirmationClient) DeleteOne(lc *LessonConfirmation) *LessonConf
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonConfirmationClient) DeleteOneID(id int) *LessonConfirmationDeleteOne {
+func (c *LessonConfirmationClient) DeleteOneID(id int64) *LessonConfirmationDeleteOne {
 	builder := c.Delete().Where(lessonconfirmation.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1195,12 +1261,12 @@ func (c *LessonConfirmationClient) Query() *LessonConfirmationQuery {
 }
 
 // Get returns a LessonConfirmation entity by its id.
-func (c *LessonConfirmationClient) Get(ctx context.Context, id int) (*LessonConfirmation, error) {
+func (c *LessonConfirmationClient) Get(ctx context.Context, id int64) (*LessonConfirmation, error) {
 	return c.Query().Where(lessonconfirmation.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonConfirmationClient) GetX(ctx context.Context, id int) *LessonConfirmation {
+func (c *LessonConfirmationClient) GetX(ctx context.Context, id int64) *LessonConfirmation {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1310,7 +1376,7 @@ func (c *LessonPlanClient) UpdateOne(lp *LessonPlan) *LessonPlanUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonPlanClient) UpdateOneID(id int) *LessonPlanUpdateOne {
+func (c *LessonPlanClient) UpdateOneID(id int64) *LessonPlanUpdateOne {
 	mutation := newLessonPlanMutation(c.config, OpUpdateOne, withLessonPlanID(id))
 	return &LessonPlanUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1327,7 +1393,7 @@ func (c *LessonPlanClient) DeleteOne(lp *LessonPlan) *LessonPlanDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonPlanClient) DeleteOneID(id int) *LessonPlanDeleteOne {
+func (c *LessonPlanClient) DeleteOneID(id int64) *LessonPlanDeleteOne {
 	builder := c.Delete().Where(lessonplan.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1344,12 +1410,12 @@ func (c *LessonPlanClient) Query() *LessonPlanQuery {
 }
 
 // Get returns a LessonPlan entity by its id.
-func (c *LessonPlanClient) Get(ctx context.Context, id int) (*LessonPlan, error) {
+func (c *LessonPlanClient) Get(ctx context.Context, id int64) (*LessonPlan, error) {
 	return c.Query().Where(lessonplan.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonPlanClient) GetX(ctx context.Context, id int) *LessonPlan {
+func (c *LessonPlanClient) GetX(ctx context.Context, id int64) *LessonPlan {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1389,15 +1455,15 @@ func (c *LessonPlanClient) QuerySchedules(lp *LessonPlan) *LessonScheduleQuery {
 	return query
 }
 
-// QueryGrades queries the grades edge of a LessonPlan.
-func (c *LessonPlanClient) QueryGrades(lp *LessonPlan) *GradeQuery {
-	query := (&GradeClient{config: c.config}).Query()
+// QueryUploadFiles queries the upload_files edge of a LessonPlan.
+func (c *LessonPlanClient) QueryUploadFiles(lp *LessonPlan) *UploadFileQuery {
+	query := (&UploadFileClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := lp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
-			sqlgraph.To(grade.Table, grade.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, lessonplan.GradesTable, lessonplan.GradesPrimaryKey...),
+			sqlgraph.To(uploadfile.Table, uploadfile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, lessonplan.UploadFilesTable, lessonplan.UploadFilesPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
 		return fromV, nil
@@ -1421,6 +1487,22 @@ func (c *LessonPlanClient) QuerySubjects(lp *LessonPlan) *SubjectQuery {
 	return query
 }
 
+// QueryGrades queries the grades edge of a LessonPlan.
+func (c *LessonPlanClient) QueryGrades(lp *LessonPlan) *GradeQuery {
+	query := (&GradeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
+			sqlgraph.To(grade.Table, grade.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, lessonplan.GradesTable, lessonplan.GradesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEducationCategories queries the education_categories edge of a LessonPlan.
 func (c *LessonPlanClient) QueryEducationCategories(lp *LessonPlan) *EducationCategoryQuery {
 	query := (&EducationCategoryClient{config: c.config}).Query()
@@ -1437,15 +1519,63 @@ func (c *LessonPlanClient) QueryEducationCategories(lp *LessonPlan) *EducationCa
 	return query
 }
 
-// QueryUploadFiles queries the upload_files edge of a LessonPlan.
-func (c *LessonPlanClient) QueryUploadFiles(lp *LessonPlan) *UploadFileQuery {
-	query := (&UploadFileClient{config: c.config}).Query()
+// QueryLessonPlanUploadFiles queries the lesson_plan_upload_files edge of a LessonPlan.
+func (c *LessonPlanClient) QueryLessonPlanUploadFiles(lp *LessonPlan) *LessonPlanUploadFileQuery {
+	query := (&LessonPlanUploadFileClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := lp.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
-			sqlgraph.To(uploadfile.Table, uploadfile.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, lessonplan.UploadFilesTable, lessonplan.UploadFilesColumn),
+			sqlgraph.To(lessonplanuploadfile.Table, lessonplanuploadfile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, lessonplan.LessonPlanUploadFilesTable, lessonplan.LessonPlanUploadFilesColumn),
+		)
+		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanSubjects queries the lesson_plan_subjects edge of a LessonPlan.
+func (c *LessonPlanClient) QueryLessonPlanSubjects(lp *LessonPlan) *LessonPlanSubjectQuery {
+	query := (&LessonPlanSubjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
+			sqlgraph.To(lessonplansubject.Table, lessonplansubject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, lessonplan.LessonPlanSubjectsTable, lessonplan.LessonPlanSubjectsColumn),
+		)
+		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanGrades queries the lesson_plan_grades edge of a LessonPlan.
+func (c *LessonPlanClient) QueryLessonPlanGrades(lp *LessonPlan) *LessonPlanGradeQuery {
+	query := (&LessonPlanGradeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
+			sqlgraph.To(lessonplangrade.Table, lessonplangrade.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, lessonplan.LessonPlanGradesTable, lessonplan.LessonPlanGradesColumn),
+		)
+		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanEducationCategories queries the lesson_plan_education_categories edge of a LessonPlan.
+func (c *LessonPlanClient) QueryLessonPlanEducationCategories(lp *LessonPlan) *LessonPlanEducationCategoryQuery {
+	query := (&LessonPlanEducationCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplan.Table, lessonplan.FieldID, id),
+			sqlgraph.To(lessonplaneducationcategory.Table, lessonplaneducationcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, lessonplan.LessonPlanEducationCategoriesTable, lessonplan.LessonPlanEducationCategoriesColumn),
 		)
 		fromV = sqlgraph.Neighbors(lp.driver.Dialect(), step)
 		return fromV, nil
@@ -1475,6 +1605,666 @@ func (c *LessonPlanClient) mutate(ctx context.Context, m *LessonPlanMutation) (V
 		return (&LessonPlanDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown LessonPlan mutation op: %q", m.Op())
+	}
+}
+
+// LessonPlanEducationCategoryClient is a client for the LessonPlanEducationCategory schema.
+type LessonPlanEducationCategoryClient struct {
+	config
+}
+
+// NewLessonPlanEducationCategoryClient returns a client for the LessonPlanEducationCategory from the given config.
+func NewLessonPlanEducationCategoryClient(c config) *LessonPlanEducationCategoryClient {
+	return &LessonPlanEducationCategoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonplaneducationcategory.Hooks(f(g(h())))`.
+func (c *LessonPlanEducationCategoryClient) Use(hooks ...Hook) {
+	c.hooks.LessonPlanEducationCategory = append(c.hooks.LessonPlanEducationCategory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonplaneducationcategory.Intercept(f(g(h())))`.
+func (c *LessonPlanEducationCategoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonPlanEducationCategory = append(c.inters.LessonPlanEducationCategory, interceptors...)
+}
+
+// Create returns a builder for creating a LessonPlanEducationCategory entity.
+func (c *LessonPlanEducationCategoryClient) Create() *LessonPlanEducationCategoryCreate {
+	mutation := newLessonPlanEducationCategoryMutation(c.config, OpCreate)
+	return &LessonPlanEducationCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonPlanEducationCategory entities.
+func (c *LessonPlanEducationCategoryClient) CreateBulk(builders ...*LessonPlanEducationCategoryCreate) *LessonPlanEducationCategoryCreateBulk {
+	return &LessonPlanEducationCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonPlanEducationCategoryClient) MapCreateBulk(slice any, setFunc func(*LessonPlanEducationCategoryCreate, int)) *LessonPlanEducationCategoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonPlanEducationCategoryCreateBulk{err: fmt.Errorf("calling to LessonPlanEducationCategoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonPlanEducationCategoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonPlanEducationCategoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonPlanEducationCategory.
+func (c *LessonPlanEducationCategoryClient) Update() *LessonPlanEducationCategoryUpdate {
+	mutation := newLessonPlanEducationCategoryMutation(c.config, OpUpdate)
+	return &LessonPlanEducationCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonPlanEducationCategoryClient) UpdateOne(lpec *LessonPlanEducationCategory) *LessonPlanEducationCategoryUpdateOne {
+	mutation := newLessonPlanEducationCategoryMutation(c.config, OpUpdateOne, withLessonPlanEducationCategory(lpec))
+	return &LessonPlanEducationCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonPlanEducationCategoryClient) UpdateOneID(id int64) *LessonPlanEducationCategoryUpdateOne {
+	mutation := newLessonPlanEducationCategoryMutation(c.config, OpUpdateOne, withLessonPlanEducationCategoryID(id))
+	return &LessonPlanEducationCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonPlanEducationCategory.
+func (c *LessonPlanEducationCategoryClient) Delete() *LessonPlanEducationCategoryDelete {
+	mutation := newLessonPlanEducationCategoryMutation(c.config, OpDelete)
+	return &LessonPlanEducationCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonPlanEducationCategoryClient) DeleteOne(lpec *LessonPlanEducationCategory) *LessonPlanEducationCategoryDeleteOne {
+	return c.DeleteOneID(lpec.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonPlanEducationCategoryClient) DeleteOneID(id int64) *LessonPlanEducationCategoryDeleteOne {
+	builder := c.Delete().Where(lessonplaneducationcategory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonPlanEducationCategoryDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonPlanEducationCategory.
+func (c *LessonPlanEducationCategoryClient) Query() *LessonPlanEducationCategoryQuery {
+	return &LessonPlanEducationCategoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonPlanEducationCategory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonPlanEducationCategory entity by its id.
+func (c *LessonPlanEducationCategoryClient) Get(ctx context.Context, id int64) (*LessonPlanEducationCategory, error) {
+	return c.Query().Where(lessonplaneducationcategory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonPlanEducationCategoryClient) GetX(ctx context.Context, id int64) *LessonPlanEducationCategory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLessonPlan queries the lesson_plan edge of a LessonPlanEducationCategory.
+func (c *LessonPlanEducationCategoryClient) QueryLessonPlan(lpec *LessonPlanEducationCategory) *LessonPlanQuery {
+	query := (&LessonPlanClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lpec.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplaneducationcategory.Table, lessonplaneducationcategory.FieldID, id),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplaneducationcategory.LessonPlanTable, lessonplaneducationcategory.LessonPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(lpec.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryEducationCategory queries the education_category edge of a LessonPlanEducationCategory.
+func (c *LessonPlanEducationCategoryClient) QueryEducationCategory(lpec *LessonPlanEducationCategory) *EducationCategoryQuery {
+	query := (&EducationCategoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lpec.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplaneducationcategory.Table, lessonplaneducationcategory.FieldID, id),
+			sqlgraph.To(educationcategory.Table, educationcategory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplaneducationcategory.EducationCategoryTable, lessonplaneducationcategory.EducationCategoryColumn),
+		)
+		fromV = sqlgraph.Neighbors(lpec.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LessonPlanEducationCategoryClient) Hooks() []Hook {
+	return c.hooks.LessonPlanEducationCategory
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonPlanEducationCategoryClient) Interceptors() []Interceptor {
+	return c.inters.LessonPlanEducationCategory
+}
+
+func (c *LessonPlanEducationCategoryClient) mutate(ctx context.Context, m *LessonPlanEducationCategoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonPlanEducationCategoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonPlanEducationCategoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonPlanEducationCategoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonPlanEducationCategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonPlanEducationCategory mutation op: %q", m.Op())
+	}
+}
+
+// LessonPlanGradeClient is a client for the LessonPlanGrade schema.
+type LessonPlanGradeClient struct {
+	config
+}
+
+// NewLessonPlanGradeClient returns a client for the LessonPlanGrade from the given config.
+func NewLessonPlanGradeClient(c config) *LessonPlanGradeClient {
+	return &LessonPlanGradeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonplangrade.Hooks(f(g(h())))`.
+func (c *LessonPlanGradeClient) Use(hooks ...Hook) {
+	c.hooks.LessonPlanGrade = append(c.hooks.LessonPlanGrade, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonplangrade.Intercept(f(g(h())))`.
+func (c *LessonPlanGradeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonPlanGrade = append(c.inters.LessonPlanGrade, interceptors...)
+}
+
+// Create returns a builder for creating a LessonPlanGrade entity.
+func (c *LessonPlanGradeClient) Create() *LessonPlanGradeCreate {
+	mutation := newLessonPlanGradeMutation(c.config, OpCreate)
+	return &LessonPlanGradeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonPlanGrade entities.
+func (c *LessonPlanGradeClient) CreateBulk(builders ...*LessonPlanGradeCreate) *LessonPlanGradeCreateBulk {
+	return &LessonPlanGradeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonPlanGradeClient) MapCreateBulk(slice any, setFunc func(*LessonPlanGradeCreate, int)) *LessonPlanGradeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonPlanGradeCreateBulk{err: fmt.Errorf("calling to LessonPlanGradeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonPlanGradeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonPlanGradeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonPlanGrade.
+func (c *LessonPlanGradeClient) Update() *LessonPlanGradeUpdate {
+	mutation := newLessonPlanGradeMutation(c.config, OpUpdate)
+	return &LessonPlanGradeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonPlanGradeClient) UpdateOne(lpg *LessonPlanGrade) *LessonPlanGradeUpdateOne {
+	mutation := newLessonPlanGradeMutation(c.config, OpUpdateOne, withLessonPlanGrade(lpg))
+	return &LessonPlanGradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonPlanGradeClient) UpdateOneID(id int64) *LessonPlanGradeUpdateOne {
+	mutation := newLessonPlanGradeMutation(c.config, OpUpdateOne, withLessonPlanGradeID(id))
+	return &LessonPlanGradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonPlanGrade.
+func (c *LessonPlanGradeClient) Delete() *LessonPlanGradeDelete {
+	mutation := newLessonPlanGradeMutation(c.config, OpDelete)
+	return &LessonPlanGradeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonPlanGradeClient) DeleteOne(lpg *LessonPlanGrade) *LessonPlanGradeDeleteOne {
+	return c.DeleteOneID(lpg.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonPlanGradeClient) DeleteOneID(id int64) *LessonPlanGradeDeleteOne {
+	builder := c.Delete().Where(lessonplangrade.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonPlanGradeDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonPlanGrade.
+func (c *LessonPlanGradeClient) Query() *LessonPlanGradeQuery {
+	return &LessonPlanGradeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonPlanGrade},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonPlanGrade entity by its id.
+func (c *LessonPlanGradeClient) Get(ctx context.Context, id int64) (*LessonPlanGrade, error) {
+	return c.Query().Where(lessonplangrade.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonPlanGradeClient) GetX(ctx context.Context, id int64) *LessonPlanGrade {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLessonPlan queries the lesson_plan edge of a LessonPlanGrade.
+func (c *LessonPlanGradeClient) QueryLessonPlan(lpg *LessonPlanGrade) *LessonPlanQuery {
+	query := (&LessonPlanClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lpg.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplangrade.Table, lessonplangrade.FieldID, id),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplangrade.LessonPlanTable, lessonplangrade.LessonPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(lpg.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryGrade queries the grade edge of a LessonPlanGrade.
+func (c *LessonPlanGradeClient) QueryGrade(lpg *LessonPlanGrade) *GradeQuery {
+	query := (&GradeClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lpg.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplangrade.Table, lessonplangrade.FieldID, id),
+			sqlgraph.To(grade.Table, grade.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplangrade.GradeTable, lessonplangrade.GradeColumn),
+		)
+		fromV = sqlgraph.Neighbors(lpg.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LessonPlanGradeClient) Hooks() []Hook {
+	return c.hooks.LessonPlanGrade
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonPlanGradeClient) Interceptors() []Interceptor {
+	return c.inters.LessonPlanGrade
+}
+
+func (c *LessonPlanGradeClient) mutate(ctx context.Context, m *LessonPlanGradeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonPlanGradeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonPlanGradeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonPlanGradeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonPlanGradeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonPlanGrade mutation op: %q", m.Op())
+	}
+}
+
+// LessonPlanSubjectClient is a client for the LessonPlanSubject schema.
+type LessonPlanSubjectClient struct {
+	config
+}
+
+// NewLessonPlanSubjectClient returns a client for the LessonPlanSubject from the given config.
+func NewLessonPlanSubjectClient(c config) *LessonPlanSubjectClient {
+	return &LessonPlanSubjectClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonplansubject.Hooks(f(g(h())))`.
+func (c *LessonPlanSubjectClient) Use(hooks ...Hook) {
+	c.hooks.LessonPlanSubject = append(c.hooks.LessonPlanSubject, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonplansubject.Intercept(f(g(h())))`.
+func (c *LessonPlanSubjectClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonPlanSubject = append(c.inters.LessonPlanSubject, interceptors...)
+}
+
+// Create returns a builder for creating a LessonPlanSubject entity.
+func (c *LessonPlanSubjectClient) Create() *LessonPlanSubjectCreate {
+	mutation := newLessonPlanSubjectMutation(c.config, OpCreate)
+	return &LessonPlanSubjectCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonPlanSubject entities.
+func (c *LessonPlanSubjectClient) CreateBulk(builders ...*LessonPlanSubjectCreate) *LessonPlanSubjectCreateBulk {
+	return &LessonPlanSubjectCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonPlanSubjectClient) MapCreateBulk(slice any, setFunc func(*LessonPlanSubjectCreate, int)) *LessonPlanSubjectCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonPlanSubjectCreateBulk{err: fmt.Errorf("calling to LessonPlanSubjectClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonPlanSubjectCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonPlanSubjectCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonPlanSubject.
+func (c *LessonPlanSubjectClient) Update() *LessonPlanSubjectUpdate {
+	mutation := newLessonPlanSubjectMutation(c.config, OpUpdate)
+	return &LessonPlanSubjectUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonPlanSubjectClient) UpdateOne(lps *LessonPlanSubject) *LessonPlanSubjectUpdateOne {
+	mutation := newLessonPlanSubjectMutation(c.config, OpUpdateOne, withLessonPlanSubject(lps))
+	return &LessonPlanSubjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonPlanSubjectClient) UpdateOneID(id int64) *LessonPlanSubjectUpdateOne {
+	mutation := newLessonPlanSubjectMutation(c.config, OpUpdateOne, withLessonPlanSubjectID(id))
+	return &LessonPlanSubjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonPlanSubject.
+func (c *LessonPlanSubjectClient) Delete() *LessonPlanSubjectDelete {
+	mutation := newLessonPlanSubjectMutation(c.config, OpDelete)
+	return &LessonPlanSubjectDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonPlanSubjectClient) DeleteOne(lps *LessonPlanSubject) *LessonPlanSubjectDeleteOne {
+	return c.DeleteOneID(lps.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonPlanSubjectClient) DeleteOneID(id int64) *LessonPlanSubjectDeleteOne {
+	builder := c.Delete().Where(lessonplansubject.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonPlanSubjectDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonPlanSubject.
+func (c *LessonPlanSubjectClient) Query() *LessonPlanSubjectQuery {
+	return &LessonPlanSubjectQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonPlanSubject},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonPlanSubject entity by its id.
+func (c *LessonPlanSubjectClient) Get(ctx context.Context, id int64) (*LessonPlanSubject, error) {
+	return c.Query().Where(lessonplansubject.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonPlanSubjectClient) GetX(ctx context.Context, id int64) *LessonPlanSubject {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLessonPlan queries the lesson_plan edge of a LessonPlanSubject.
+func (c *LessonPlanSubjectClient) QueryLessonPlan(lps *LessonPlanSubject) *LessonPlanQuery {
+	query := (&LessonPlanClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lps.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplansubject.Table, lessonplansubject.FieldID, id),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplansubject.LessonPlanTable, lessonplansubject.LessonPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(lps.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QuerySubject queries the subject edge of a LessonPlanSubject.
+func (c *LessonPlanSubjectClient) QuerySubject(lps *LessonPlanSubject) *SubjectQuery {
+	query := (&SubjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lps.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplansubject.Table, lessonplansubject.FieldID, id),
+			sqlgraph.To(subject.Table, subject.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplansubject.SubjectTable, lessonplansubject.SubjectColumn),
+		)
+		fromV = sqlgraph.Neighbors(lps.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LessonPlanSubjectClient) Hooks() []Hook {
+	return c.hooks.LessonPlanSubject
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonPlanSubjectClient) Interceptors() []Interceptor {
+	return c.inters.LessonPlanSubject
+}
+
+func (c *LessonPlanSubjectClient) mutate(ctx context.Context, m *LessonPlanSubjectMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonPlanSubjectCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonPlanSubjectUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonPlanSubjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonPlanSubjectDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonPlanSubject mutation op: %q", m.Op())
+	}
+}
+
+// LessonPlanUploadFileClient is a client for the LessonPlanUploadFile schema.
+type LessonPlanUploadFileClient struct {
+	config
+}
+
+// NewLessonPlanUploadFileClient returns a client for the LessonPlanUploadFile from the given config.
+func NewLessonPlanUploadFileClient(c config) *LessonPlanUploadFileClient {
+	return &LessonPlanUploadFileClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `lessonplanuploadfile.Hooks(f(g(h())))`.
+func (c *LessonPlanUploadFileClient) Use(hooks ...Hook) {
+	c.hooks.LessonPlanUploadFile = append(c.hooks.LessonPlanUploadFile, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `lessonplanuploadfile.Intercept(f(g(h())))`.
+func (c *LessonPlanUploadFileClient) Intercept(interceptors ...Interceptor) {
+	c.inters.LessonPlanUploadFile = append(c.inters.LessonPlanUploadFile, interceptors...)
+}
+
+// Create returns a builder for creating a LessonPlanUploadFile entity.
+func (c *LessonPlanUploadFileClient) Create() *LessonPlanUploadFileCreate {
+	mutation := newLessonPlanUploadFileMutation(c.config, OpCreate)
+	return &LessonPlanUploadFileCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of LessonPlanUploadFile entities.
+func (c *LessonPlanUploadFileClient) CreateBulk(builders ...*LessonPlanUploadFileCreate) *LessonPlanUploadFileCreateBulk {
+	return &LessonPlanUploadFileCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *LessonPlanUploadFileClient) MapCreateBulk(slice any, setFunc func(*LessonPlanUploadFileCreate, int)) *LessonPlanUploadFileCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &LessonPlanUploadFileCreateBulk{err: fmt.Errorf("calling to LessonPlanUploadFileClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*LessonPlanUploadFileCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &LessonPlanUploadFileCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for LessonPlanUploadFile.
+func (c *LessonPlanUploadFileClient) Update() *LessonPlanUploadFileUpdate {
+	mutation := newLessonPlanUploadFileMutation(c.config, OpUpdate)
+	return &LessonPlanUploadFileUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *LessonPlanUploadFileClient) UpdateOne(lpuf *LessonPlanUploadFile) *LessonPlanUploadFileUpdateOne {
+	mutation := newLessonPlanUploadFileMutation(c.config, OpUpdateOne, withLessonPlanUploadFile(lpuf))
+	return &LessonPlanUploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *LessonPlanUploadFileClient) UpdateOneID(id int64) *LessonPlanUploadFileUpdateOne {
+	mutation := newLessonPlanUploadFileMutation(c.config, OpUpdateOne, withLessonPlanUploadFileID(id))
+	return &LessonPlanUploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for LessonPlanUploadFile.
+func (c *LessonPlanUploadFileClient) Delete() *LessonPlanUploadFileDelete {
+	mutation := newLessonPlanUploadFileMutation(c.config, OpDelete)
+	return &LessonPlanUploadFileDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *LessonPlanUploadFileClient) DeleteOne(lpuf *LessonPlanUploadFile) *LessonPlanUploadFileDeleteOne {
+	return c.DeleteOneID(lpuf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *LessonPlanUploadFileClient) DeleteOneID(id int64) *LessonPlanUploadFileDeleteOne {
+	builder := c.Delete().Where(lessonplanuploadfile.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &LessonPlanUploadFileDeleteOne{builder}
+}
+
+// Query returns a query builder for LessonPlanUploadFile.
+func (c *LessonPlanUploadFileClient) Query() *LessonPlanUploadFileQuery {
+	return &LessonPlanUploadFileQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeLessonPlanUploadFile},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a LessonPlanUploadFile entity by its id.
+func (c *LessonPlanUploadFileClient) Get(ctx context.Context, id int64) (*LessonPlanUploadFile, error) {
+	return c.Query().Where(lessonplanuploadfile.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *LessonPlanUploadFileClient) GetX(ctx context.Context, id int64) *LessonPlanUploadFile {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryLessonPlan queries the lesson_plan edge of a LessonPlanUploadFile.
+func (c *LessonPlanUploadFileClient) QueryLessonPlan(lpuf *LessonPlanUploadFile) *LessonPlanQuery {
+	query := (&LessonPlanClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lpuf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplanuploadfile.Table, lessonplanuploadfile.FieldID, id),
+			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplanuploadfile.LessonPlanTable, lessonplanuploadfile.LessonPlanColumn),
+		)
+		fromV = sqlgraph.Neighbors(lpuf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryUploadFile queries the upload_file edge of a LessonPlanUploadFile.
+func (c *LessonPlanUploadFileClient) QueryUploadFile(lpuf *LessonPlanUploadFile) *UploadFileQuery {
+	query := (&UploadFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := lpuf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(lessonplanuploadfile.Table, lessonplanuploadfile.FieldID, id),
+			sqlgraph.To(uploadfile.Table, uploadfile.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, lessonplanuploadfile.UploadFileTable, lessonplanuploadfile.UploadFileColumn),
+		)
+		fromV = sqlgraph.Neighbors(lpuf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *LessonPlanUploadFileClient) Hooks() []Hook {
+	return c.hooks.LessonPlanUploadFile
+}
+
+// Interceptors returns the client interceptors.
+func (c *LessonPlanUploadFileClient) Interceptors() []Interceptor {
+	return c.inters.LessonPlanUploadFile
+}
+
+func (c *LessonPlanUploadFileClient) mutate(ctx context.Context, m *LessonPlanUploadFileMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&LessonPlanUploadFileCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&LessonPlanUploadFileUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&LessonPlanUploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&LessonPlanUploadFileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown LessonPlanUploadFile mutation op: %q", m.Op())
 	}
 }
 
@@ -1539,7 +2329,7 @@ func (c *LessonReservationClient) UpdateOne(lr *LessonReservation) *LessonReserv
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonReservationClient) UpdateOneID(id int) *LessonReservationUpdateOne {
+func (c *LessonReservationClient) UpdateOneID(id int64) *LessonReservationUpdateOne {
 	mutation := newLessonReservationMutation(c.config, OpUpdateOne, withLessonReservationID(id))
 	return &LessonReservationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1556,7 +2346,7 @@ func (c *LessonReservationClient) DeleteOne(lr *LessonReservation) *LessonReserv
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonReservationClient) DeleteOneID(id int) *LessonReservationDeleteOne {
+func (c *LessonReservationClient) DeleteOneID(id int64) *LessonReservationDeleteOne {
 	builder := c.Delete().Where(lessonreservation.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1573,12 +2363,12 @@ func (c *LessonReservationClient) Query() *LessonReservationQuery {
 }
 
 // Get returns a LessonReservation entity by its id.
-func (c *LessonReservationClient) Get(ctx context.Context, id int) (*LessonReservation, error) {
+func (c *LessonReservationClient) Get(ctx context.Context, id int64) (*LessonReservation, error) {
 	return c.Query().Where(lessonreservation.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonReservationClient) GetX(ctx context.Context, id int) *LessonReservation {
+func (c *LessonReservationClient) GetX(ctx context.Context, id int64) *LessonReservation {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1752,7 +2542,7 @@ func (c *LessonReservationPreferredDateClient) UpdateOne(lrpd *LessonReservation
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonReservationPreferredDateClient) UpdateOneID(id int) *LessonReservationPreferredDateUpdateOne {
+func (c *LessonReservationPreferredDateClient) UpdateOneID(id int64) *LessonReservationPreferredDateUpdateOne {
 	mutation := newLessonReservationPreferredDateMutation(c.config, OpUpdateOne, withLessonReservationPreferredDateID(id))
 	return &LessonReservationPreferredDateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1769,7 +2559,7 @@ func (c *LessonReservationPreferredDateClient) DeleteOne(lrpd *LessonReservation
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonReservationPreferredDateClient) DeleteOneID(id int) *LessonReservationPreferredDateDeleteOne {
+func (c *LessonReservationPreferredDateClient) DeleteOneID(id int64) *LessonReservationPreferredDateDeleteOne {
 	builder := c.Delete().Where(lessonreservationpreferreddate.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1786,12 +2576,12 @@ func (c *LessonReservationPreferredDateClient) Query() *LessonReservationPreferr
 }
 
 // Get returns a LessonReservationPreferredDate entity by its id.
-func (c *LessonReservationPreferredDateClient) Get(ctx context.Context, id int) (*LessonReservationPreferredDate, error) {
+func (c *LessonReservationPreferredDateClient) Get(ctx context.Context, id int64) (*LessonReservationPreferredDate, error) {
 	return c.Query().Where(lessonreservationpreferreddate.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonReservationPreferredDateClient) GetX(ctx context.Context, id int) *LessonReservationPreferredDate {
+func (c *LessonReservationPreferredDateClient) GetX(ctx context.Context, id int64) *LessonReservationPreferredDate {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -1901,7 +2691,7 @@ func (c *LessonScheduleClient) UpdateOne(ls *LessonSchedule) *LessonScheduleUpda
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *LessonScheduleClient) UpdateOneID(id int) *LessonScheduleUpdateOne {
+func (c *LessonScheduleClient) UpdateOneID(id int64) *LessonScheduleUpdateOne {
 	mutation := newLessonScheduleMutation(c.config, OpUpdateOne, withLessonScheduleID(id))
 	return &LessonScheduleUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -1918,7 +2708,7 @@ func (c *LessonScheduleClient) DeleteOne(ls *LessonSchedule) *LessonScheduleDele
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *LessonScheduleClient) DeleteOneID(id int) *LessonScheduleDeleteOne {
+func (c *LessonScheduleClient) DeleteOneID(id int64) *LessonScheduleDeleteOne {
 	builder := c.Delete().Where(lessonschedule.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -1935,12 +2725,12 @@ func (c *LessonScheduleClient) Query() *LessonScheduleQuery {
 }
 
 // Get returns a LessonSchedule entity by its id.
-func (c *LessonScheduleClient) Get(ctx context.Context, id int) (*LessonSchedule, error) {
+func (c *LessonScheduleClient) Get(ctx context.Context, id int64) (*LessonSchedule, error) {
 	return c.Query().Where(lessonschedule.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *LessonScheduleClient) GetX(ctx context.Context, id int) *LessonSchedule {
+func (c *LessonScheduleClient) GetX(ctx context.Context, id int64) *LessonSchedule {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2114,7 +2904,7 @@ func (c *ProductClient) UpdateOne(pr *Product) *ProductUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ProductClient) UpdateOneID(id int) *ProductUpdateOne {
+func (c *ProductClient) UpdateOneID(id int64) *ProductUpdateOne {
 	mutation := newProductMutation(c.config, OpUpdateOne, withProductID(id))
 	return &ProductUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2131,7 +2921,7 @@ func (c *ProductClient) DeleteOne(pr *Product) *ProductDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *ProductClient) DeleteOneID(id int) *ProductDeleteOne {
+func (c *ProductClient) DeleteOneID(id int64) *ProductDeleteOne {
 	builder := c.Delete().Where(product.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2148,12 +2938,12 @@ func (c *ProductClient) Query() *ProductQuery {
 }
 
 // Get returns a Product entity by its id.
-func (c *ProductClient) Get(ctx context.Context, id int) (*Product, error) {
+func (c *ProductClient) Get(ctx context.Context, id int64) (*Product, error) {
 	return c.Query().Where(product.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ProductClient) GetX(ctx context.Context, id int) *Product {
+func (c *ProductClient) GetX(ctx context.Context, id int64) *Product {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2247,7 +3037,7 @@ func (c *SchoolClient) UpdateOne(s *School) *SchoolUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SchoolClient) UpdateOneID(id int) *SchoolUpdateOne {
+func (c *SchoolClient) UpdateOneID(id int64) *SchoolUpdateOne {
 	mutation := newSchoolMutation(c.config, OpUpdateOne, withSchoolID(id))
 	return &SchoolUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2264,7 +3054,7 @@ func (c *SchoolClient) DeleteOne(s *School) *SchoolDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SchoolClient) DeleteOneID(id int) *SchoolDeleteOne {
+func (c *SchoolClient) DeleteOneID(id int64) *SchoolDeleteOne {
 	builder := c.Delete().Where(school.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2281,12 +3071,12 @@ func (c *SchoolClient) Query() *SchoolQuery {
 }
 
 // Get returns a School entity by its id.
-func (c *SchoolClient) Get(ctx context.Context, id int) (*School, error) {
+func (c *SchoolClient) Get(ctx context.Context, id int64) (*School, error) {
 	return c.Query().Where(school.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SchoolClient) GetX(ctx context.Context, id int) *School {
+func (c *SchoolClient) GetX(ctx context.Context, id int64) *School {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2412,7 +3202,7 @@ func (c *SubjectClient) UpdateOne(s *Subject) *SubjectUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *SubjectClient) UpdateOneID(id int) *SubjectUpdateOne {
+func (c *SubjectClient) UpdateOneID(id int64) *SubjectUpdateOne {
 	mutation := newSubjectMutation(c.config, OpUpdateOne, withSubjectID(id))
 	return &SubjectUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2429,7 +3219,7 @@ func (c *SubjectClient) DeleteOne(s *Subject) *SubjectDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *SubjectClient) DeleteOneID(id int) *SubjectDeleteOne {
+func (c *SubjectClient) DeleteOneID(id int64) *SubjectDeleteOne {
 	builder := c.Delete().Where(subject.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2446,12 +3236,12 @@ func (c *SubjectClient) Query() *SubjectQuery {
 }
 
 // Get returns a Subject entity by its id.
-func (c *SubjectClient) Get(ctx context.Context, id int) (*Subject, error) {
+func (c *SubjectClient) Get(ctx context.Context, id int64) (*Subject, error) {
 	return c.Query().Where(subject.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *SubjectClient) GetX(ctx context.Context, id int) *Subject {
+func (c *SubjectClient) GetX(ctx context.Context, id int64) *Subject {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2468,6 +3258,22 @@ func (c *SubjectClient) QueryLessonPlans(s *Subject) *LessonPlanQuery {
 			sqlgraph.From(subject.Table, subject.FieldID, id),
 			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, true, subject.LessonPlansTable, subject.LessonPlansPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanSubjects queries the lesson_plan_subjects edge of a Subject.
+func (c *SubjectClient) QueryLessonPlanSubjects(s *Subject) *LessonPlanSubjectQuery {
+	query := (&LessonPlanSubjectClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := s.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subject.Table, subject.FieldID, id),
+			sqlgraph.To(lessonplansubject.Table, lessonplansubject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, subject.LessonPlanSubjectsTable, subject.LessonPlanSubjectsColumn),
 		)
 		fromV = sqlgraph.Neighbors(s.driver.Dialect(), step)
 		return fromV, nil
@@ -2561,7 +3367,7 @@ func (c *UploadFileClient) UpdateOne(uf *UploadFile) *UploadFileUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UploadFileClient) UpdateOneID(id int) *UploadFileUpdateOne {
+func (c *UploadFileClient) UpdateOneID(id int64) *UploadFileUpdateOne {
 	mutation := newUploadFileMutation(c.config, OpUpdateOne, withUploadFileID(id))
 	return &UploadFileUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2578,7 +3384,7 @@ func (c *UploadFileClient) DeleteOne(uf *UploadFile) *UploadFileDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UploadFileClient) DeleteOneID(id int) *UploadFileDeleteOne {
+func (c *UploadFileClient) DeleteOneID(id int64) *UploadFileDeleteOne {
 	builder := c.Delete().Where(uploadfile.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2595,12 +3401,12 @@ func (c *UploadFileClient) Query() *UploadFileQuery {
 }
 
 // Get returns a UploadFile entity by its id.
-func (c *UploadFileClient) Get(ctx context.Context, id int) (*UploadFile, error) {
+func (c *UploadFileClient) Get(ctx context.Context, id int64) (*UploadFile, error) {
 	return c.Query().Where(uploadfile.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UploadFileClient) GetX(ctx context.Context, id int) *UploadFile {
+func (c *UploadFileClient) GetX(ctx context.Context, id int64) *UploadFile {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2616,7 +3422,23 @@ func (c *UploadFileClient) QueryLessonPlan(uf *UploadFile) *LessonPlanQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(uploadfile.Table, uploadfile.FieldID, id),
 			sqlgraph.To(lessonplan.Table, lessonplan.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, uploadfile.LessonPlanTable, uploadfile.LessonPlanColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, uploadfile.LessonPlanTable, uploadfile.LessonPlanPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(uf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryLessonPlanUploadFiles queries the lesson_plan_upload_files edge of a UploadFile.
+func (c *UploadFileClient) QueryLessonPlanUploadFiles(uf *UploadFile) *LessonPlanUploadFileQuery {
+	query := (&LessonPlanUploadFileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := uf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(uploadfile.Table, uploadfile.FieldID, id),
+			sqlgraph.To(lessonplanuploadfile.Table, lessonplanuploadfile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, uploadfile.LessonPlanUploadFilesTable, uploadfile.LessonPlanUploadFilesColumn),
 		)
 		fromV = sqlgraph.Neighbors(uf.driver.Dialect(), step)
 		return fromV, nil
@@ -2710,7 +3532,7 @@ func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
+func (c *UserClient) UpdateOneID(id int64) *UserUpdateOne {
 	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
 	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -2727,7 +3549,7 @@ func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
+func (c *UserClient) DeleteOneID(id int64) *UserDeleteOne {
 	builder := c.Delete().Where(user.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -2744,12 +3566,12 @@ func (c *UserClient) Query() *UserQuery {
 }
 
 // Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
+func (c *UserClient) Get(ctx context.Context, id int64) (*User, error) {
 	return c.Query().Where(user.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int) *User {
+func (c *UserClient) GetX(ctx context.Context, id int64) *User {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -2850,13 +3672,15 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		Company, EducationCategory, EmailVerification, Grade, Inquiry,
-		LessonConfirmation, LessonPlan, LessonReservation,
+		LessonConfirmation, LessonPlan, LessonPlanEducationCategory, LessonPlanGrade,
+		LessonPlanSubject, LessonPlanUploadFile, LessonReservation,
 		LessonReservationPreferredDate, LessonSchedule, Product, School, Subject,
 		UploadFile, User []ent.Hook
 	}
 	inters struct {
 		Company, EducationCategory, EmailVerification, Grade, Inquiry,
-		LessonConfirmation, LessonPlan, LessonReservation,
+		LessonConfirmation, LessonPlan, LessonPlanEducationCategory, LessonPlanGrade,
+		LessonPlanSubject, LessonPlanUploadFile, LessonReservation,
 		LessonReservationPreferredDate, LessonSchedule, Product, School, Subject,
 		UploadFile, User []ent.Interceptor
 	}

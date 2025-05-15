@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Company {
+func ID(id int64) predicate.Company {
 	return predicate.Company(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Company {
+func IDEQ(id int64) predicate.Company {
 	return predicate.Company(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Company {
+func IDNEQ(id int64) predicate.Company {
 	return predicate.Company(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Company {
+func IDIn(ids ...int64) predicate.Company {
 	return predicate.Company(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Company {
+func IDNotIn(ids ...int64) predicate.Company {
 	return predicate.Company(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Company {
+func IDGT(id int64) predicate.Company {
 	return predicate.Company(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Company {
+func IDGTE(id int64) predicate.Company {
 	return predicate.Company(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Company {
+func IDLT(id int64) predicate.Company {
 	return predicate.Company(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Company {
+func IDLTE(id int64) predicate.Company {
 	return predicate.Company(sql.FieldLTE(FieldID, id))
 }
 

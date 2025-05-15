@@ -22,6 +22,7 @@ func (Product) Fields() []ent.Field {
 
 func (Product) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

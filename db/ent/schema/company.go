@@ -39,6 +39,7 @@ func (Company) Fields() []ent.Field {
 
 func (Company) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

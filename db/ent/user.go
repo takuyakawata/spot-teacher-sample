@@ -18,7 +18,7 @@ import (
 type User struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -26,9 +26,9 @@ type User struct {
 	// UserType holds the value of the "user_type" field.
 	UserType user.UserType `json:"user_type,omitempty"`
 	// SchoolID holds the value of the "school_id" field.
-	SchoolID *int `json:"school_id,omitempty"`
+	SchoolID *int64 `json:"school_id,omitempty"`
 	// CompanyID holds the value of the "company_id" field.
-	CompanyID *int `json:"company_id,omitempty"`
+	CompanyID *int64 `json:"company_id,omitempty"`
 	// FirstName holds the value of the "first_name" field.
 	FirstName string `json:"first_name,omitempty"`
 	// FamilyName holds the value of the "family_name" field.
@@ -131,7 +131,7 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			u.ID = int(value.Int64)
+			u.ID = int64(value.Int64)
 		case user.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -154,15 +154,15 @@ func (u *User) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field school_id", values[i])
 			} else if value.Valid {
-				u.SchoolID = new(int)
-				*u.SchoolID = int(value.Int64)
+				u.SchoolID = new(int64)
+				*u.SchoolID = value.Int64
 			}
 		case user.FieldCompanyID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field company_id", values[i])
 			} else if value.Valid {
-				u.CompanyID = new(int)
-				*u.CompanyID = int(value.Int64)
+				u.CompanyID = new(int64)
+				*u.CompanyID = value.Int64
 			}
 		case user.FieldFirstName:
 			if value, ok := values[i].(*sql.NullString); !ok {

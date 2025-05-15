@@ -40,7 +40,7 @@ func (lcd *LessonConfirmationDelete) ExecX(ctx context.Context) int {
 }
 
 func (lcd *LessonConfirmationDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(lessonconfirmation.Table, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(lessonconfirmation.Table, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt64))
 	if ps := lcd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

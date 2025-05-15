@@ -24,6 +24,8 @@ const (
 	FieldCode = "code"
 	// EdgeLessonPlans holds the string denoting the lesson_plans edge name in mutations.
 	EdgeLessonPlans = "lesson_plans"
+	// EdgeLessonPlanEducationCategories holds the string denoting the lesson_plan_education_categories edge name in mutations.
+	EdgeLessonPlanEducationCategories = "lesson_plan_education_categories"
 	// Table holds the table name of the educationcategory in the database.
 	Table = "education_categories"
 	// LessonPlansTable is the table that holds the lesson_plans relation/edge. The primary key declared below.
@@ -31,6 +33,13 @@ const (
 	// LessonPlansInverseTable is the table name for the LessonPlan entity.
 	// It exists in this package in order to avoid circular dependency with the "lessonplan" package.
 	LessonPlansInverseTable = "lesson_plans"
+	// LessonPlanEducationCategoriesTable is the table that holds the lesson_plan_education_categories relation/edge.
+	LessonPlanEducationCategoriesTable = "lesson_plan_education_categories"
+	// LessonPlanEducationCategoriesInverseTable is the table name for the LessonPlanEducationCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplaneducationcategory" package.
+	LessonPlanEducationCategoriesInverseTable = "lesson_plan_education_categories"
+	// LessonPlanEducationCategoriesColumn is the table column denoting the lesson_plan_education_categories relation/edge.
+	LessonPlanEducationCategoriesColumn = "education_category_id"
 )
 
 // Columns holds all SQL columns for educationcategory fields.
@@ -80,6 +89,8 @@ var (
 	NameValidator func(string) error
 	// CodeValidator is a validator for the "code" field. It is called by the builders before save.
 	CodeValidator func(string) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // OrderOption defines the ordering options for the EducationCategory queries.
@@ -123,10 +134,31 @@ func ByLessonPlans(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newLessonPlansStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByLessonPlanEducationCategoriesCount orders the results by lesson_plan_education_categories count.
+func ByLessonPlanEducationCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanEducationCategoriesStep(), opts...)
+	}
+}
+
+// ByLessonPlanEducationCategories orders the results by lesson_plan_education_categories terms.
+func ByLessonPlanEducationCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanEducationCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newLessonPlansStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(LessonPlansInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, true, LessonPlansTable, LessonPlansPrimaryKey...),
+	)
+}
+func newLessonPlanEducationCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanEducationCategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanEducationCategoriesTable, LessonPlanEducationCategoriesColumn),
 	)
 }

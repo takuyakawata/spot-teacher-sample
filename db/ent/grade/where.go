@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Grade {
+func ID(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Grade {
+func IDEQ(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Grade {
+func IDNEQ(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Grade {
+func IDIn(ids ...int64) predicate.Grade {
 	return predicate.Grade(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Grade {
+func IDNotIn(ids ...int64) predicate.Grade {
 	return predicate.Grade(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Grade {
+func IDGT(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Grade {
+func IDGTE(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Grade {
+func IDLT(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Grade {
+func IDLTE(id int64) predicate.Grade {
 	return predicate.Grade(sql.FieldLTE(FieldID, id))
 }
 
@@ -65,9 +65,9 @@ func UpdatedAt(v time.Time) predicate.Grade {
 	return predicate.Grade(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldEQ(FieldName, v))
+// CodeNumber applies equality check predicate on the "code_number" field. It's identical to CodeNumberEQ.
+func CodeNumber(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldEQ(FieldCodeNumber, v))
 }
 
 // Code applies equality check predicate on the "code" field. It's identical to CodeEQ.
@@ -155,69 +155,44 @@ func UpdatedAtLTE(v time.Time) predicate.Grade {
 	return predicate.Grade(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
-// NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldEQ(FieldName, v))
+// CodeNumberEQ applies the EQ predicate on the "code_number" field.
+func CodeNumberEQ(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldEQ(FieldCodeNumber, v))
 }
 
-// NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldNEQ(FieldName, v))
+// CodeNumberNEQ applies the NEQ predicate on the "code_number" field.
+func CodeNumberNEQ(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldNEQ(FieldCodeNumber, v))
 }
 
-// NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Grade {
-	return predicate.Grade(sql.FieldIn(FieldName, vs...))
+// CodeNumberIn applies the In predicate on the "code_number" field.
+func CodeNumberIn(vs ...int64) predicate.Grade {
+	return predicate.Grade(sql.FieldIn(FieldCodeNumber, vs...))
 }
 
-// NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Grade {
-	return predicate.Grade(sql.FieldNotIn(FieldName, vs...))
+// CodeNumberNotIn applies the NotIn predicate on the "code_number" field.
+func CodeNumberNotIn(vs ...int64) predicate.Grade {
+	return predicate.Grade(sql.FieldNotIn(FieldCodeNumber, vs...))
 }
 
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldGT(FieldName, v))
+// CodeNumberGT applies the GT predicate on the "code_number" field.
+func CodeNumberGT(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldGT(FieldCodeNumber, v))
 }
 
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldGTE(FieldName, v))
+// CodeNumberGTE applies the GTE predicate on the "code_number" field.
+func CodeNumberGTE(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldGTE(FieldCodeNumber, v))
 }
 
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldLT(FieldName, v))
+// CodeNumberLT applies the LT predicate on the "code_number" field.
+func CodeNumberLT(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldLT(FieldCodeNumber, v))
 }
 
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldLTE(FieldName, v))
-}
-
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldContains(FieldName, v))
-}
-
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldHasPrefix(FieldName, v))
-}
-
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldHasSuffix(FieldName, v))
-}
-
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldEqualFold(FieldName, v))
-}
-
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Grade {
-	return predicate.Grade(sql.FieldContainsFold(FieldName, v))
+// CodeNumberLTE applies the LTE predicate on the "code_number" field.
+func CodeNumberLTE(v int64) predicate.Grade {
+	return predicate.Grade(sql.FieldLTE(FieldCodeNumber, v))
 }
 
 // CodeEQ applies the EQ predicate on the "code" field.
@@ -300,6 +275,29 @@ func HasLessonPlans() predicate.Grade {
 func HasLessonPlansWith(preds ...predicate.LessonPlan) predicate.Grade {
 	return predicate.Grade(func(s *sql.Selector) {
 		step := newLessonPlansStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessonPlanGrades applies the HasEdge predicate on the "lesson_plan_grades" edge.
+func HasLessonPlanGrades() predicate.Grade {
+	return predicate.Grade(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanGradesTable, LessonPlanGradesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonPlanGradesWith applies the HasEdge predicate on the "lesson_plan_grades" edge with a given conditions (other predicates).
+func HasLessonPlanGradesWith(preds ...predicate.LessonPlanGrade) predicate.Grade {
+	return predicate.Grade(func(s *sql.Selector) {
+		step := newLessonPlanGradesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

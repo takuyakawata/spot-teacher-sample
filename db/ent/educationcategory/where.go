@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.EducationCategory {
+func ID(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.EducationCategory {
+func IDEQ(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.EducationCategory {
+func IDNEQ(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.EducationCategory {
+func IDIn(ids ...int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.EducationCategory {
+func IDNotIn(ids ...int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.EducationCategory {
+func IDGT(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.EducationCategory {
+func IDGTE(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.EducationCategory {
+func IDLT(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.EducationCategory {
+func IDLTE(id int64) predicate.EducationCategory {
 	return predicate.EducationCategory(sql.FieldLTE(FieldID, id))
 }
 
@@ -300,6 +300,29 @@ func HasLessonPlans() predicate.EducationCategory {
 func HasLessonPlansWith(preds ...predicate.LessonPlan) predicate.EducationCategory {
 	return predicate.EducationCategory(func(s *sql.Selector) {
 		step := newLessonPlansStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessonPlanEducationCategories applies the HasEdge predicate on the "lesson_plan_education_categories" edge.
+func HasLessonPlanEducationCategories() predicate.EducationCategory {
+	return predicate.EducationCategory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanEducationCategoriesTable, LessonPlanEducationCategoriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonPlanEducationCategoriesWith applies the HasEdge predicate on the "lesson_plan_education_categories" edge with a given conditions (other predicates).
+func HasLessonPlanEducationCategoriesWith(preds ...predicate.LessonPlanEducationCategory) predicate.EducationCategory {
+	return predicate.EducationCategory(func(s *sql.Selector) {
+		step := newLessonPlanEducationCategoriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

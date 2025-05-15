@@ -16,7 +16,7 @@ import (
 type EducationCategory struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -28,7 +28,7 @@ type EducationCategory struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the EducationCategoryQuery when eager-loading is set.
 	Edges                                EducationCategoryEdges `json:"edges"`
-	lesson_schedule_education_categories *int
+	lesson_schedule_education_categories *int64
 	selectValues                         sql.SelectValues
 }
 
@@ -36,9 +36,11 @@ type EducationCategory struct {
 type EducationCategoryEdges struct {
 	// LessonPlans holds the value of the lesson_plans edge.
 	LessonPlans []*LessonPlan `json:"lesson_plans,omitempty"`
+	// LessonPlanEducationCategories holds the value of the lesson_plan_education_categories edge.
+	LessonPlanEducationCategories []*LessonPlanEducationCategory `json:"lesson_plan_education_categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // LessonPlansOrErr returns the LessonPlans value or an error if the edge
@@ -48,6 +50,15 @@ func (e EducationCategoryEdges) LessonPlansOrErr() ([]*LessonPlan, error) {
 		return e.LessonPlans, nil
 	}
 	return nil, &NotLoadedError{edge: "lesson_plans"}
+}
+
+// LessonPlanEducationCategoriesOrErr returns the LessonPlanEducationCategories value or an error if the edge
+// was not loaded in eager-loading.
+func (e EducationCategoryEdges) LessonPlanEducationCategoriesOrErr() ([]*LessonPlanEducationCategory, error) {
+	if e.loadedTypes[1] {
+		return e.LessonPlanEducationCategories, nil
+	}
+	return nil, &NotLoadedError{edge: "lesson_plan_education_categories"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -83,7 +94,7 @@ func (ec *EducationCategory) assignValues(columns []string, values []any) error 
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			ec.ID = int(value.Int64)
+			ec.ID = int64(value.Int64)
 		case educationcategory.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -112,8 +123,8 @@ func (ec *EducationCategory) assignValues(columns []string, values []any) error 
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for edge-field lesson_schedule_education_categories", value)
 			} else if value.Valid {
-				ec.lesson_schedule_education_categories = new(int)
-				*ec.lesson_schedule_education_categories = int(value.Int64)
+				ec.lesson_schedule_education_categories = new(int64)
+				*ec.lesson_schedule_education_categories = int64(value.Int64)
 			}
 		default:
 			ec.selectValues.Set(columns[i], values[i])
@@ -131,6 +142,11 @@ func (ec *EducationCategory) Value(name string) (ent.Value, error) {
 // QueryLessonPlans queries the "lesson_plans" edge of the EducationCategory entity.
 func (ec *EducationCategory) QueryLessonPlans() *LessonPlanQuery {
 	return NewEducationCategoryClient(ec.config).QueryLessonPlans(ec)
+}
+
+// QueryLessonPlanEducationCategories queries the "lesson_plan_education_categories" edge of the EducationCategory entity.
+func (ec *EducationCategory) QueryLessonPlanEducationCategories() *LessonPlanEducationCategoryQuery {
+	return NewEducationCategoryClient(ec.config).QueryLessonPlanEducationCategories(ec)
 }
 
 // Update returns a builder for updating this EducationCategory.

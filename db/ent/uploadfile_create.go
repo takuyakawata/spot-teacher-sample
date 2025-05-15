@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplanuploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
 
@@ -56,20 +57,45 @@ func (ufc *UploadFileCreate) SetPhotoKey(s string) *UploadFileCreate {
 }
 
 // SetUserID sets the "user_id" field.
-func (ufc *UploadFileCreate) SetUserID(i int) *UploadFileCreate {
+func (ufc *UploadFileCreate) SetUserID(i int64) *UploadFileCreate {
 	ufc.mutation.SetUserID(i)
 	return ufc
 }
 
-// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by ID.
-func (ufc *UploadFileCreate) SetLessonPlanID(id int) *UploadFileCreate {
-	ufc.mutation.SetLessonPlanID(id)
+// SetID sets the "id" field.
+func (ufc *UploadFileCreate) SetID(i int64) *UploadFileCreate {
+	ufc.mutation.SetID(i)
 	return ufc
 }
 
-// SetLessonPlan sets the "LessonPlan" edge to the LessonPlan entity.
-func (ufc *UploadFileCreate) SetLessonPlan(l *LessonPlan) *UploadFileCreate {
-	return ufc.SetLessonPlanID(l.ID)
+// AddLessonPlanIDs adds the "LessonPlan" edge to the LessonPlan entity by IDs.
+func (ufc *UploadFileCreate) AddLessonPlanIDs(ids ...int64) *UploadFileCreate {
+	ufc.mutation.AddLessonPlanIDs(ids...)
+	return ufc
+}
+
+// AddLessonPlan adds the "LessonPlan" edges to the LessonPlan entity.
+func (ufc *UploadFileCreate) AddLessonPlan(l ...*LessonPlan) *UploadFileCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufc.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanUploadFileIDs adds the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by IDs.
+func (ufc *UploadFileCreate) AddLessonPlanUploadFileIDs(ids ...int64) *UploadFileCreate {
+	ufc.mutation.AddLessonPlanUploadFileIDs(ids...)
+	return ufc
+}
+
+// AddLessonPlanUploadFiles adds the "lesson_plan_upload_files" edges to the LessonPlanUploadFile entity.
+func (ufc *UploadFileCreate) AddLessonPlanUploadFiles(l ...*LessonPlanUploadFile) *UploadFileCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufc.AddLessonPlanUploadFileIDs(ids...)
 }
 
 // Mutation returns the UploadFileMutation object of the builder.
@@ -141,8 +167,10 @@ func (ufc *UploadFileCreate) check() error {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.user_id": %w`, err)}
 		}
 	}
-	if len(ufc.mutation.LessonPlanIDs()) == 0 {
-		return &ValidationError{Name: "LessonPlan", err: errors.New(`ent: missing required edge "UploadFile.LessonPlan"`)}
+	if v, ok := ufc.mutation.ID(); ok {
+		if err := uploadfile.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.id": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -158,8 +186,10 @@ func (ufc *UploadFileCreate) sqlSave(ctx context.Context) (*UploadFile, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	ufc.mutation.id = &_node.ID
 	ufc.mutation.done = true
 	return _node, nil
@@ -168,8 +198,12 @@ func (ufc *UploadFileCreate) sqlSave(ctx context.Context) (*UploadFile, error) {
 func (ufc *UploadFileCreate) createSpec() (*UploadFile, *sqlgraph.CreateSpec) {
 	var (
 		_node = &UploadFile{config: ufc.config}
-		_spec = sqlgraph.NewCreateSpec(uploadfile.Table, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(uploadfile.Table, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt64))
 	)
+	if id, ok := ufc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := ufc.mutation.CreatedAt(); ok {
 		_spec.SetField(uploadfile.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -183,24 +217,43 @@ func (ufc *UploadFileCreate) createSpec() (*UploadFile, *sqlgraph.CreateSpec) {
 		_node.PhotoKey = value
 	}
 	if value, ok := ufc.mutation.UserID(); ok {
-		_spec.SetField(uploadfile.FieldUserID, field.TypeInt, value)
+		_spec.SetField(uploadfile.FieldUserID, field.TypeInt64, value)
 		_node.UserID = value
 	}
 	if nodes := ufc.mutation.LessonPlanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
 			Table:   uploadfile.LessonPlanTable,
-			Columns: []string{uploadfile.LessonPlanColumn},
+			Columns: uploadfile.LessonPlanPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.lesson_plan_upload_files = &nodes[0]
+		createE := &LessonPlanUploadFileCreate{config: ufc.config, mutation: newLessonPlanUploadFileMutation(ufc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ufc.mutation.LessonPlanUploadFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -251,9 +304,9 @@ func (ufcb *UploadFileCreateBulk) Save(ctx context.Context) ([]*UploadFile, erro
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

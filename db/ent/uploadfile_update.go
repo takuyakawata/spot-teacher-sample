@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplanuploadfile"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/uploadfile"
 )
@@ -50,14 +51,14 @@ func (ufu *UploadFileUpdate) SetNillablePhotoKey(s *string) *UploadFileUpdate {
 }
 
 // SetUserID sets the "user_id" field.
-func (ufu *UploadFileUpdate) SetUserID(i int) *UploadFileUpdate {
+func (ufu *UploadFileUpdate) SetUserID(i int64) *UploadFileUpdate {
 	ufu.mutation.ResetUserID()
 	ufu.mutation.SetUserID(i)
 	return ufu
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (ufu *UploadFileUpdate) SetNillableUserID(i *int) *UploadFileUpdate {
+func (ufu *UploadFileUpdate) SetNillableUserID(i *int64) *UploadFileUpdate {
 	if i != nil {
 		ufu.SetUserID(*i)
 	}
@@ -65,20 +66,39 @@ func (ufu *UploadFileUpdate) SetNillableUserID(i *int) *UploadFileUpdate {
 }
 
 // AddUserID adds i to the "user_id" field.
-func (ufu *UploadFileUpdate) AddUserID(i int) *UploadFileUpdate {
+func (ufu *UploadFileUpdate) AddUserID(i int64) *UploadFileUpdate {
 	ufu.mutation.AddUserID(i)
 	return ufu
 }
 
-// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by ID.
-func (ufu *UploadFileUpdate) SetLessonPlanID(id int) *UploadFileUpdate {
-	ufu.mutation.SetLessonPlanID(id)
+// AddLessonPlanIDs adds the "LessonPlan" edge to the LessonPlan entity by IDs.
+func (ufu *UploadFileUpdate) AddLessonPlanIDs(ids ...int64) *UploadFileUpdate {
+	ufu.mutation.AddLessonPlanIDs(ids...)
 	return ufu
 }
 
-// SetLessonPlan sets the "LessonPlan" edge to the LessonPlan entity.
-func (ufu *UploadFileUpdate) SetLessonPlan(l *LessonPlan) *UploadFileUpdate {
-	return ufu.SetLessonPlanID(l.ID)
+// AddLessonPlan adds the "LessonPlan" edges to the LessonPlan entity.
+func (ufu *UploadFileUpdate) AddLessonPlan(l ...*LessonPlan) *UploadFileUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufu.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanUploadFileIDs adds the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by IDs.
+func (ufu *UploadFileUpdate) AddLessonPlanUploadFileIDs(ids ...int64) *UploadFileUpdate {
+	ufu.mutation.AddLessonPlanUploadFileIDs(ids...)
+	return ufu
+}
+
+// AddLessonPlanUploadFiles adds the "lesson_plan_upload_files" edges to the LessonPlanUploadFile entity.
+func (ufu *UploadFileUpdate) AddLessonPlanUploadFiles(l ...*LessonPlanUploadFile) *UploadFileUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufu.AddLessonPlanUploadFileIDs(ids...)
 }
 
 // Mutation returns the UploadFileMutation object of the builder.
@@ -86,10 +106,46 @@ func (ufu *UploadFileUpdate) Mutation() *UploadFileMutation {
 	return ufu.mutation
 }
 
-// ClearLessonPlan clears the "LessonPlan" edge to the LessonPlan entity.
+// ClearLessonPlan clears all "LessonPlan" edges to the LessonPlan entity.
 func (ufu *UploadFileUpdate) ClearLessonPlan() *UploadFileUpdate {
 	ufu.mutation.ClearLessonPlan()
 	return ufu
+}
+
+// RemoveLessonPlanIDs removes the "LessonPlan" edge to LessonPlan entities by IDs.
+func (ufu *UploadFileUpdate) RemoveLessonPlanIDs(ids ...int64) *UploadFileUpdate {
+	ufu.mutation.RemoveLessonPlanIDs(ids...)
+	return ufu
+}
+
+// RemoveLessonPlan removes "LessonPlan" edges to LessonPlan entities.
+func (ufu *UploadFileUpdate) RemoveLessonPlan(l ...*LessonPlan) *UploadFileUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufu.RemoveLessonPlanIDs(ids...)
+}
+
+// ClearLessonPlanUploadFiles clears all "lesson_plan_upload_files" edges to the LessonPlanUploadFile entity.
+func (ufu *UploadFileUpdate) ClearLessonPlanUploadFiles() *UploadFileUpdate {
+	ufu.mutation.ClearLessonPlanUploadFiles()
+	return ufu
+}
+
+// RemoveLessonPlanUploadFileIDs removes the "lesson_plan_upload_files" edge to LessonPlanUploadFile entities by IDs.
+func (ufu *UploadFileUpdate) RemoveLessonPlanUploadFileIDs(ids ...int64) *UploadFileUpdate {
+	ufu.mutation.RemoveLessonPlanUploadFileIDs(ids...)
+	return ufu
+}
+
+// RemoveLessonPlanUploadFiles removes "lesson_plan_upload_files" edges to LessonPlanUploadFile entities.
+func (ufu *UploadFileUpdate) RemoveLessonPlanUploadFiles(l ...*LessonPlanUploadFile) *UploadFileUpdate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufu.RemoveLessonPlanUploadFileIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -140,9 +196,6 @@ func (ufu *UploadFileUpdate) check() error {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.user_id": %w`, err)}
 		}
 	}
-	if ufu.mutation.LessonPlanCleared() && len(ufu.mutation.LessonPlanIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "UploadFile.LessonPlan"`)
-	}
 	return nil
 }
 
@@ -150,7 +203,7 @@ func (ufu *UploadFileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := ufu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(uploadfile.Table, uploadfile.Columns, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(uploadfile.Table, uploadfile.Columns, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt64))
 	if ps := ufu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -165,33 +218,106 @@ func (ufu *UploadFileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.SetField(uploadfile.FieldPhotoKey, field.TypeString, value)
 	}
 	if value, ok := ufu.mutation.UserID(); ok {
-		_spec.SetField(uploadfile.FieldUserID, field.TypeInt, value)
+		_spec.SetField(uploadfile.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := ufu.mutation.AddedUserID(); ok {
-		_spec.AddField(uploadfile.FieldUserID, field.TypeInt, value)
+		_spec.AddField(uploadfile.FieldUserID, field.TypeInt64, value)
 	}
 	if ufu.mutation.LessonPlanCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
 			Table:   uploadfile.LessonPlanTable,
-			Columns: []string{uploadfile.LessonPlanColumn},
+			Columns: uploadfile.LessonPlanPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
+		createE := &LessonPlanUploadFileCreate{config: ufu.config, mutation: newLessonPlanUploadFileMutation(ufu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufu.mutation.RemovedLessonPlanIDs(); len(nodes) > 0 && !ufu.mutation.LessonPlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: uploadfile.LessonPlanPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanUploadFileCreate{config: ufu.config, mutation: newLessonPlanUploadFileMutation(ufu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ufu.mutation.LessonPlanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
 			Table:   uploadfile.LessonPlanTable,
-			Columns: []string{uploadfile.LessonPlanColumn},
+			Columns: uploadfile.LessonPlanPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanUploadFileCreate{config: ufu.config, mutation: newLessonPlanUploadFileMutation(ufu.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ufu.mutation.LessonPlanUploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufu.mutation.RemovedLessonPlanUploadFilesIDs(); len(nodes) > 0 && !ufu.mutation.LessonPlanUploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufu.mutation.LessonPlanUploadFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -240,14 +366,14 @@ func (ufuo *UploadFileUpdateOne) SetNillablePhotoKey(s *string) *UploadFileUpdat
 }
 
 // SetUserID sets the "user_id" field.
-func (ufuo *UploadFileUpdateOne) SetUserID(i int) *UploadFileUpdateOne {
+func (ufuo *UploadFileUpdateOne) SetUserID(i int64) *UploadFileUpdateOne {
 	ufuo.mutation.ResetUserID()
 	ufuo.mutation.SetUserID(i)
 	return ufuo
 }
 
 // SetNillableUserID sets the "user_id" field if the given value is not nil.
-func (ufuo *UploadFileUpdateOne) SetNillableUserID(i *int) *UploadFileUpdateOne {
+func (ufuo *UploadFileUpdateOne) SetNillableUserID(i *int64) *UploadFileUpdateOne {
 	if i != nil {
 		ufuo.SetUserID(*i)
 	}
@@ -255,20 +381,39 @@ func (ufuo *UploadFileUpdateOne) SetNillableUserID(i *int) *UploadFileUpdateOne 
 }
 
 // AddUserID adds i to the "user_id" field.
-func (ufuo *UploadFileUpdateOne) AddUserID(i int) *UploadFileUpdateOne {
+func (ufuo *UploadFileUpdateOne) AddUserID(i int64) *UploadFileUpdateOne {
 	ufuo.mutation.AddUserID(i)
 	return ufuo
 }
 
-// SetLessonPlanID sets the "LessonPlan" edge to the LessonPlan entity by ID.
-func (ufuo *UploadFileUpdateOne) SetLessonPlanID(id int) *UploadFileUpdateOne {
-	ufuo.mutation.SetLessonPlanID(id)
+// AddLessonPlanIDs adds the "LessonPlan" edge to the LessonPlan entity by IDs.
+func (ufuo *UploadFileUpdateOne) AddLessonPlanIDs(ids ...int64) *UploadFileUpdateOne {
+	ufuo.mutation.AddLessonPlanIDs(ids...)
 	return ufuo
 }
 
-// SetLessonPlan sets the "LessonPlan" edge to the LessonPlan entity.
-func (ufuo *UploadFileUpdateOne) SetLessonPlan(l *LessonPlan) *UploadFileUpdateOne {
-	return ufuo.SetLessonPlanID(l.ID)
+// AddLessonPlan adds the "LessonPlan" edges to the LessonPlan entity.
+func (ufuo *UploadFileUpdateOne) AddLessonPlan(l ...*LessonPlan) *UploadFileUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufuo.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanUploadFileIDs adds the "lesson_plan_upload_files" edge to the LessonPlanUploadFile entity by IDs.
+func (ufuo *UploadFileUpdateOne) AddLessonPlanUploadFileIDs(ids ...int64) *UploadFileUpdateOne {
+	ufuo.mutation.AddLessonPlanUploadFileIDs(ids...)
+	return ufuo
+}
+
+// AddLessonPlanUploadFiles adds the "lesson_plan_upload_files" edges to the LessonPlanUploadFile entity.
+func (ufuo *UploadFileUpdateOne) AddLessonPlanUploadFiles(l ...*LessonPlanUploadFile) *UploadFileUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufuo.AddLessonPlanUploadFileIDs(ids...)
 }
 
 // Mutation returns the UploadFileMutation object of the builder.
@@ -276,10 +421,46 @@ func (ufuo *UploadFileUpdateOne) Mutation() *UploadFileMutation {
 	return ufuo.mutation
 }
 
-// ClearLessonPlan clears the "LessonPlan" edge to the LessonPlan entity.
+// ClearLessonPlan clears all "LessonPlan" edges to the LessonPlan entity.
 func (ufuo *UploadFileUpdateOne) ClearLessonPlan() *UploadFileUpdateOne {
 	ufuo.mutation.ClearLessonPlan()
 	return ufuo
+}
+
+// RemoveLessonPlanIDs removes the "LessonPlan" edge to LessonPlan entities by IDs.
+func (ufuo *UploadFileUpdateOne) RemoveLessonPlanIDs(ids ...int64) *UploadFileUpdateOne {
+	ufuo.mutation.RemoveLessonPlanIDs(ids...)
+	return ufuo
+}
+
+// RemoveLessonPlan removes "LessonPlan" edges to LessonPlan entities.
+func (ufuo *UploadFileUpdateOne) RemoveLessonPlan(l ...*LessonPlan) *UploadFileUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufuo.RemoveLessonPlanIDs(ids...)
+}
+
+// ClearLessonPlanUploadFiles clears all "lesson_plan_upload_files" edges to the LessonPlanUploadFile entity.
+func (ufuo *UploadFileUpdateOne) ClearLessonPlanUploadFiles() *UploadFileUpdateOne {
+	ufuo.mutation.ClearLessonPlanUploadFiles()
+	return ufuo
+}
+
+// RemoveLessonPlanUploadFileIDs removes the "lesson_plan_upload_files" edge to LessonPlanUploadFile entities by IDs.
+func (ufuo *UploadFileUpdateOne) RemoveLessonPlanUploadFileIDs(ids ...int64) *UploadFileUpdateOne {
+	ufuo.mutation.RemoveLessonPlanUploadFileIDs(ids...)
+	return ufuo
+}
+
+// RemoveLessonPlanUploadFiles removes "lesson_plan_upload_files" edges to LessonPlanUploadFile entities.
+func (ufuo *UploadFileUpdateOne) RemoveLessonPlanUploadFiles(l ...*LessonPlanUploadFile) *UploadFileUpdateOne {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return ufuo.RemoveLessonPlanUploadFileIDs(ids...)
 }
 
 // Where appends a list predicates to the UploadFileUpdate builder.
@@ -343,9 +524,6 @@ func (ufuo *UploadFileUpdateOne) check() error {
 			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "UploadFile.user_id": %w`, err)}
 		}
 	}
-	if ufuo.mutation.LessonPlanCleared() && len(ufuo.mutation.LessonPlanIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "UploadFile.LessonPlan"`)
-	}
 	return nil
 }
 
@@ -353,7 +531,7 @@ func (ufuo *UploadFileUpdateOne) sqlSave(ctx context.Context) (_node *UploadFile
 	if err := ufuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(uploadfile.Table, uploadfile.Columns, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(uploadfile.Table, uploadfile.Columns, sqlgraph.NewFieldSpec(uploadfile.FieldID, field.TypeInt64))
 	id, ok := ufuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "UploadFile.id" for update`)}
@@ -385,33 +563,106 @@ func (ufuo *UploadFileUpdateOne) sqlSave(ctx context.Context) (_node *UploadFile
 		_spec.SetField(uploadfile.FieldPhotoKey, field.TypeString, value)
 	}
 	if value, ok := ufuo.mutation.UserID(); ok {
-		_spec.SetField(uploadfile.FieldUserID, field.TypeInt, value)
+		_spec.SetField(uploadfile.FieldUserID, field.TypeInt64, value)
 	}
 	if value, ok := ufuo.mutation.AddedUserID(); ok {
-		_spec.AddField(uploadfile.FieldUserID, field.TypeInt, value)
+		_spec.AddField(uploadfile.FieldUserID, field.TypeInt64, value)
 	}
 	if ufuo.mutation.LessonPlanCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
 			Table:   uploadfile.LessonPlanTable,
-			Columns: []string{uploadfile.LessonPlanColumn},
+			Columns: uploadfile.LessonPlanPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
+		createE := &LessonPlanUploadFileCreate{config: ufuo.config, mutation: newLessonPlanUploadFileMutation(ufuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufuo.mutation.RemovedLessonPlanIDs(); len(nodes) > 0 && !ufuo.mutation.LessonPlanCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanTable,
+			Columns: uploadfile.LessonPlanPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanUploadFileCreate{config: ufuo.config, mutation: newLessonPlanUploadFileMutation(ufuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
 	if nodes := ufuo.mutation.LessonPlanIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
+			Rel:     sqlgraph.M2M,
 			Inverse: true,
 			Table:   uploadfile.LessonPlanTable,
-			Columns: []string{uploadfile.LessonPlanColumn},
+			Columns: uploadfile.LessonPlanPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanUploadFileCreate{config: ufuo.config, mutation: newLessonPlanUploadFileMutation(ufuo.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ufuo.mutation.LessonPlanUploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufuo.mutation.RemovedLessonPlanUploadFilesIDs(); len(nodes) > 0 && !ufuo.mutation.LessonPlanUploadFilesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ufuo.mutation.LessonPlanUploadFilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   uploadfile.LessonPlanUploadFilesTable,
+			Columns: []string{uploadfile.LessonPlanUploadFilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplanuploadfile.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {

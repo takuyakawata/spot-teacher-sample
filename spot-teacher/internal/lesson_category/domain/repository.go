@@ -3,7 +3,7 @@ package domain
 import "context"
 
 type GradeRepository interface {
-	Create(ctx context.Context, grade *Grade) (*Grade, error)
+	Create(ctx context.Context, grade *Grade) error
 	RetrieveAll(ctx context.Context) ([]*Grade, error)
 }
 

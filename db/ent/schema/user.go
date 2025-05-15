@@ -15,12 +15,12 @@ func (User) Fields() []ent.Field {
 			Values("teacher", "company_member", "admin").
 			Default("teacher"),
 
-		field.Int("school_id").
+		field.Int64("school_id").
 			Positive().
 			Optional().
 			Nillable(),
 
-		field.Int("company_id").
+		field.Int64("company_id").
 			Positive().
 			Optional().
 			Nillable(),
@@ -60,6 +60,7 @@ func (User) Edges() []ent.Edge {
 
 func (User) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }

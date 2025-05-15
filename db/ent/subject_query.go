@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/predicate"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 )
@@ -20,12 +21,13 @@ import (
 // SubjectQuery is the builder for querying Subject entities.
 type SubjectQuery struct {
 	config
-	ctx             *QueryContext
-	order           []subject.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Subject
-	withLessonPlans *LessonPlanQuery
-	withFKs         bool
+	ctx                    *QueryContext
+	order                  []subject.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.Subject
+	withLessonPlans        *LessonPlanQuery
+	withLessonPlanSubjects *LessonPlanSubjectQuery
+	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -84,6 +86,28 @@ func (sq *SubjectQuery) QueryLessonPlans() *LessonPlanQuery {
 	return query
 }
 
+// QueryLessonPlanSubjects chains the current query on the "lesson_plan_subjects" edge.
+func (sq *SubjectQuery) QueryLessonPlanSubjects() *LessonPlanSubjectQuery {
+	query := (&LessonPlanSubjectClient{config: sq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := sq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := sq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(subject.Table, subject.FieldID, selector),
+			sqlgraph.To(lessonplansubject.Table, lessonplansubject.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, subject.LessonPlanSubjectsTable, subject.LessonPlanSubjectsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Subject entity from the query.
 // Returns a *NotFoundError when no Subject was found.
 func (sq *SubjectQuery) First(ctx context.Context) (*Subject, error) {
@@ -108,8 +132,8 @@ func (sq *SubjectQuery) FirstX(ctx context.Context) *Subject {
 
 // FirstID returns the first Subject ID from the query.
 // Returns a *NotFoundError when no Subject ID was found.
-func (sq *SubjectQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (sq *SubjectQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = sq.Limit(1).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -121,7 +145,7 @@ func (sq *SubjectQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (sq *SubjectQuery) FirstIDX(ctx context.Context) int {
+func (sq *SubjectQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := sq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -159,8 +183,8 @@ func (sq *SubjectQuery) OnlyX(ctx context.Context) *Subject {
 // OnlyID is like Only, but returns the only Subject ID in the query.
 // Returns a *NotSingularError when more than one Subject ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (sq *SubjectQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (sq *SubjectQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = sq.Limit(2).IDs(setContextOp(ctx, sq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -176,7 +200,7 @@ func (sq *SubjectQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (sq *SubjectQuery) OnlyIDX(ctx context.Context) int {
+func (sq *SubjectQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := sq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -204,7 +228,7 @@ func (sq *SubjectQuery) AllX(ctx context.Context) []*Subject {
 }
 
 // IDs executes the query and returns a list of Subject IDs.
-func (sq *SubjectQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (sq *SubjectQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if sq.ctx.Unique == nil && sq.path != nil {
 		sq.Unique(true)
 	}
@@ -216,7 +240,7 @@ func (sq *SubjectQuery) IDs(ctx context.Context) (ids []int, err error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (sq *SubjectQuery) IDsX(ctx context.Context) []int {
+func (sq *SubjectQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := sq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -271,12 +295,13 @@ func (sq *SubjectQuery) Clone() *SubjectQuery {
 		return nil
 	}
 	return &SubjectQuery{
-		config:          sq.config,
-		ctx:             sq.ctx.Clone(),
-		order:           append([]subject.OrderOption{}, sq.order...),
-		inters:          append([]Interceptor{}, sq.inters...),
-		predicates:      append([]predicate.Subject{}, sq.predicates...),
-		withLessonPlans: sq.withLessonPlans.Clone(),
+		config:                 sq.config,
+		ctx:                    sq.ctx.Clone(),
+		order:                  append([]subject.OrderOption{}, sq.order...),
+		inters:                 append([]Interceptor{}, sq.inters...),
+		predicates:             append([]predicate.Subject{}, sq.predicates...),
+		withLessonPlans:        sq.withLessonPlans.Clone(),
+		withLessonPlanSubjects: sq.withLessonPlanSubjects.Clone(),
 		// clone intermediate query.
 		sql:  sq.sql.Clone(),
 		path: sq.path,
@@ -291,6 +316,17 @@ func (sq *SubjectQuery) WithLessonPlans(opts ...func(*LessonPlanQuery)) *Subject
 		opt(query)
 	}
 	sq.withLessonPlans = query
+	return sq
+}
+
+// WithLessonPlanSubjects tells the query-builder to eager-load the nodes that are connected to
+// the "lesson_plan_subjects" edge. The optional arguments are used to configure the query builder of the edge.
+func (sq *SubjectQuery) WithLessonPlanSubjects(opts ...func(*LessonPlanSubjectQuery)) *SubjectQuery {
+	query := (&LessonPlanSubjectClient{config: sq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	sq.withLessonPlanSubjects = query
 	return sq
 }
 
@@ -373,8 +409,9 @@ func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subj
 		nodes       = []*Subject{}
 		withFKs     = sq.withFKs
 		_spec       = sq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			sq.withLessonPlans != nil,
+			sq.withLessonPlanSubjects != nil,
 		}
 	)
 	if withFKs {
@@ -405,13 +442,22 @@ func (sq *SubjectQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Subj
 			return nil, err
 		}
 	}
+	if query := sq.withLessonPlanSubjects; query != nil {
+		if err := sq.loadLessonPlanSubjects(ctx, query, nodes,
+			func(n *Subject) { n.Edges.LessonPlanSubjects = []*LessonPlanSubject{} },
+			func(n *Subject, e *LessonPlanSubject) {
+				n.Edges.LessonPlanSubjects = append(n.Edges.LessonPlanSubjects, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
 func (sq *SubjectQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *LessonPlan)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
-	byID := make(map[int]*Subject)
-	nids := make(map[int]map[*Subject]struct{})
+	byID := make(map[int64]*Subject)
+	nids := make(map[int64]map[*Subject]struct{})
 	for i, node := range nodes {
 		edgeIDs[i] = node.ID
 		byID[node.ID] = node
@@ -443,8 +489,8 @@ func (sq *SubjectQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQu
 				return append([]any{new(sql.NullInt64)}, values...), nil
 			}
 			spec.Assign = func(columns []string, values []any) error {
-				outValue := int(values[0].(*sql.NullInt64).Int64)
-				inValue := int(values[1].(*sql.NullInt64).Int64)
+				outValue := values[0].(*sql.NullInt64).Int64
+				inValue := values[1].(*sql.NullInt64).Int64
 				if nids[inValue] == nil {
 					nids[inValue] = map[*Subject]struct{}{byID[outValue]: {}}
 					return assign(columns[1:], values[1:])
@@ -469,6 +515,36 @@ func (sq *SubjectQuery) loadLessonPlans(ctx context.Context, query *LessonPlanQu
 	}
 	return nil
 }
+func (sq *SubjectQuery) loadLessonPlanSubjects(ctx context.Context, query *LessonPlanSubjectQuery, nodes []*Subject, init func(*Subject), assign func(*Subject, *LessonPlanSubject)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int64]*Subject)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(lessonplansubject.FieldSubjectID)
+	}
+	query.Where(predicate.LessonPlanSubject(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(subject.LessonPlanSubjectsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.SubjectID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "subject_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (sq *SubjectQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := sq.querySpec()
@@ -480,7 +556,7 @@ func (sq *SubjectQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (sq *SubjectQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(subject.Table, subject.Columns, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt64))
 	_spec.From = sq.sql
 	if unique := sq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

@@ -106,8 +106,8 @@ func (lcq *LessonConfirmationQuery) FirstX(ctx context.Context) *LessonConfirmat
 
 // FirstID returns the first LessonConfirmation ID from the query.
 // Returns a *NotFoundError when no LessonConfirmation ID was found.
-func (lcq *LessonConfirmationQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (lcq *LessonConfirmationQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = lcq.Limit(1).IDs(setContextOp(ctx, lcq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -119,7 +119,7 @@ func (lcq *LessonConfirmationQuery) FirstID(ctx context.Context) (id int, err er
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (lcq *LessonConfirmationQuery) FirstIDX(ctx context.Context) int {
+func (lcq *LessonConfirmationQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := lcq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -157,8 +157,8 @@ func (lcq *LessonConfirmationQuery) OnlyX(ctx context.Context) *LessonConfirmati
 // OnlyID is like Only, but returns the only LessonConfirmation ID in the query.
 // Returns a *NotSingularError when more than one LessonConfirmation ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (lcq *LessonConfirmationQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (lcq *LessonConfirmationQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = lcq.Limit(2).IDs(setContextOp(ctx, lcq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -174,7 +174,7 @@ func (lcq *LessonConfirmationQuery) OnlyID(ctx context.Context) (id int, err err
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (lcq *LessonConfirmationQuery) OnlyIDX(ctx context.Context) int {
+func (lcq *LessonConfirmationQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := lcq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -202,7 +202,7 @@ func (lcq *LessonConfirmationQuery) AllX(ctx context.Context) []*LessonConfirmat
 }
 
 // IDs executes the query and returns a list of LessonConfirmation IDs.
-func (lcq *LessonConfirmationQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (lcq *LessonConfirmationQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if lcq.ctx.Unique == nil && lcq.path != nil {
 		lcq.Unique(true)
 	}
@@ -214,7 +214,7 @@ func (lcq *LessonConfirmationQuery) IDs(ctx context.Context) (ids []int, err err
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lcq *LessonConfirmationQuery) IDsX(ctx context.Context) []int {
+func (lcq *LessonConfirmationQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := lcq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -298,12 +298,12 @@ func (lcq *LessonConfirmationQuery) WithLessonReservation(opts ...func(*LessonRe
 // Example:
 //
 //	var v []struct {
-//		LessonReservationID int `json:"lesson_reservation_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.LessonConfirmation.Query().
-//		GroupBy(lessonconfirmation.FieldLessonReservationID).
+//		GroupBy(lessonconfirmation.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (lcq *LessonConfirmationQuery) GroupBy(field string, fields ...string) *LessonConfirmationGroupBy {
@@ -321,11 +321,11 @@ func (lcq *LessonConfirmationQuery) GroupBy(field string, fields ...string) *Les
 // Example:
 //
 //	var v []struct {
-//		LessonReservationID int `json:"lesson_reservation_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.LessonConfirmation.Query().
-//		Select(lessonconfirmation.FieldLessonReservationID).
+//		Select(lessonconfirmation.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (lcq *LessonConfirmationQuery) Select(fields ...string) *LessonConfirmationSelect {
 	lcq.ctx.Fields = append(lcq.ctx.Fields, fields...)
@@ -402,8 +402,8 @@ func (lcq *LessonConfirmationQuery) sqlAll(ctx context.Context, hooks ...queryHo
 }
 
 func (lcq *LessonConfirmationQuery) loadLessonReservation(ctx context.Context, query *LessonReservationQuery, nodes []*LessonConfirmation, init func(*LessonConfirmation), assign func(*LessonConfirmation, *LessonReservation)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LessonConfirmation)
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*LessonConfirmation)
 	for i := range nodes {
 		fk := nodes[i].LessonReservationID
 		if _, ok := nodeids[fk]; !ok {
@@ -441,7 +441,7 @@ func (lcq *LessonConfirmationQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (lcq *LessonConfirmationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessonconfirmation.Table, lessonconfirmation.Columns, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(lessonconfirmation.Table, lessonconfirmation.Columns, sqlgraph.NewFieldSpec(lessonconfirmation.FieldID, field.TypeInt64))
 	_spec.From = lcq.sql
 	if unique := lcq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

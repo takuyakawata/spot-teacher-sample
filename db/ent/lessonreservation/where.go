@@ -11,62 +11,72 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.LessonReservation {
+func ID(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.LessonReservation {
+func IDEQ(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.LessonReservation {
+func IDNEQ(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.LessonReservation {
+func IDIn(ids ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.LessonReservation {
+func IDNotIn(ids ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.LessonReservation {
+func IDGT(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.LessonReservation {
+func IDGTE(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.LessonReservation {
+func IDLT(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.LessonReservation {
+func IDLTE(id int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldLTE(FieldID, id))
 }
 
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
 // LessonScheduleID applies equality check predicate on the "lesson_schedule_id" field. It's identical to LessonScheduleIDEQ.
-func LessonScheduleID(v int) predicate.LessonReservation {
+func LessonScheduleID(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldLessonScheduleID, v))
 }
 
 // SchoolID applies equality check predicate on the "school_id" field. It's identical to SchoolIDEQ.
-func SchoolID(v int) predicate.LessonReservation {
+func SchoolID(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.LessonReservation {
+func UserID(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -95,63 +105,143 @@ func ReservationConfirmAt(v time.Time) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldReservationConfirmAt, v))
 }
 
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.LessonReservation {
+	return predicate.LessonReservation(sql.FieldLTE(FieldUpdatedAt, v))
+}
+
 // LessonScheduleIDEQ applies the EQ predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDEQ(v int) predicate.LessonReservation {
+func LessonScheduleIDEQ(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldLessonScheduleID, v))
 }
 
 // LessonScheduleIDNEQ applies the NEQ predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDNEQ(v int) predicate.LessonReservation {
+func LessonScheduleIDNEQ(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNEQ(FieldLessonScheduleID, v))
 }
 
 // LessonScheduleIDIn applies the In predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDIn(vs ...int) predicate.LessonReservation {
+func LessonScheduleIDIn(vs ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldIn(FieldLessonScheduleID, vs...))
 }
 
 // LessonScheduleIDNotIn applies the NotIn predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDNotIn(vs ...int) predicate.LessonReservation {
+func LessonScheduleIDNotIn(vs ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNotIn(FieldLessonScheduleID, vs...))
 }
 
 // SchoolIDEQ applies the EQ predicate on the "school_id" field.
-func SchoolIDEQ(v int) predicate.LessonReservation {
+func SchoolIDEQ(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // SchoolIDNEQ applies the NEQ predicate on the "school_id" field.
-func SchoolIDNEQ(v int) predicate.LessonReservation {
+func SchoolIDNEQ(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNEQ(FieldSchoolID, v))
 }
 
 // SchoolIDIn applies the In predicate on the "school_id" field.
-func SchoolIDIn(vs ...int) predicate.LessonReservation {
+func SchoolIDIn(vs ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldIn(FieldSchoolID, vs...))
 }
 
 // SchoolIDNotIn applies the NotIn predicate on the "school_id" field.
-func SchoolIDNotIn(vs ...int) predicate.LessonReservation {
+func SchoolIDNotIn(vs ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNotIn(FieldSchoolID, vs...))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int) predicate.LessonReservation {
+func UserIDEQ(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int) predicate.LessonReservation {
+func UserIDNEQ(v int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int) predicate.LessonReservation {
+func UserIDIn(vs ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int) predicate.LessonReservation {
+func UserIDNotIn(vs ...int64) predicate.LessonReservation {
 	return predicate.LessonReservation(sql.FieldNotIn(FieldUserID, vs...))
 }
 

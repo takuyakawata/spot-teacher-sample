@@ -50,7 +50,7 @@ func (lrpdc *LessonReservationPreferredDateCreate) SetNillableUpdatedAt(t *time.
 }
 
 // SetLessonReservationID sets the "lesson_reservation_id" field.
-func (lrpdc *LessonReservationPreferredDateCreate) SetLessonReservationID(i int) *LessonReservationPreferredDateCreate {
+func (lrpdc *LessonReservationPreferredDateCreate) SetLessonReservationID(i int64) *LessonReservationPreferredDateCreate {
 	lrpdc.mutation.SetLessonReservationID(i)
 	return lrpdc
 }
@@ -79,8 +79,14 @@ func (lrpdc *LessonReservationPreferredDateCreate) SetEndTime(t time.Time) *Less
 	return lrpdc
 }
 
+// SetID sets the "id" field.
+func (lrpdc *LessonReservationPreferredDateCreate) SetID(i int64) *LessonReservationPreferredDateCreate {
+	lrpdc.mutation.SetID(i)
+	return lrpdc
+}
+
 // SetLessonReservationsID sets the "lessonReservations" edge to the LessonReservation entity by ID.
-func (lrpdc *LessonReservationPreferredDateCreate) SetLessonReservationsID(id int) *LessonReservationPreferredDateCreate {
+func (lrpdc *LessonReservationPreferredDateCreate) SetLessonReservationsID(id int64) *LessonReservationPreferredDateCreate {
 	lrpdc.mutation.SetLessonReservationsID(id)
 	return lrpdc
 }
@@ -168,6 +174,11 @@ func (lrpdc *LessonReservationPreferredDateCreate) check() error {
 	if _, ok := lrpdc.mutation.EndTime(); !ok {
 		return &ValidationError{Name: "end_time", err: errors.New(`ent: missing required field "LessonReservationPreferredDate.end_time"`)}
 	}
+	if v, ok := lrpdc.mutation.ID(); ok {
+		if err := lessonreservationpreferreddate.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "LessonReservationPreferredDate.id": %w`, err)}
+		}
+	}
 	if len(lrpdc.mutation.LessonReservationsIDs()) == 0 {
 		return &ValidationError{Name: "lessonReservations", err: errors.New(`ent: missing required edge "LessonReservationPreferredDate.lessonReservations"`)}
 	}
@@ -185,8 +196,10 @@ func (lrpdc *LessonReservationPreferredDateCreate) sqlSave(ctx context.Context) 
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	lrpdc.mutation.id = &_node.ID
 	lrpdc.mutation.done = true
 	return _node, nil
@@ -195,8 +208,12 @@ func (lrpdc *LessonReservationPreferredDateCreate) sqlSave(ctx context.Context) 
 func (lrpdc *LessonReservationPreferredDateCreate) createSpec() (*LessonReservationPreferredDate, *sqlgraph.CreateSpec) {
 	var (
 		_node = &LessonReservationPreferredDate{config: lrpdc.config}
-		_spec = sqlgraph.NewCreateSpec(lessonreservationpreferreddate.Table, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(lessonreservationpreferreddate.Table, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt64))
 	)
+	if id, ok := lrpdc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := lrpdc.mutation.CreatedAt(); ok {
 		_spec.SetField(lessonreservationpreferreddate.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -229,7 +246,7 @@ func (lrpdc *LessonReservationPreferredDateCreate) createSpec() (*LessonReservat
 			Columns: []string{lessonreservationpreferreddate.LessonReservationsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -286,9 +303,9 @@ func (lrpdcb *LessonReservationPreferredDateCreateBulk) Save(ctx context.Context
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

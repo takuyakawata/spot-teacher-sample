@@ -40,7 +40,7 @@ func (lrpdd *LessonReservationPreferredDateDelete) ExecX(ctx context.Context) in
 }
 
 func (lrpdd *LessonReservationPreferredDateDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(lessonreservationpreferreddate.Table, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(lessonreservationpreferreddate.Table, sqlgraph.NewFieldSpec(lessonreservationpreferreddate.FieldID, field.TypeInt64))
 	if ps := lrpdd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

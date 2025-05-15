@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplan"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/lessonplansubject"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent/subject"
 )
 
@@ -61,19 +62,40 @@ func (sc *SubjectCreate) SetCode(s string) *SubjectCreate {
 	return sc
 }
 
+// SetID sets the "id" field.
+func (sc *SubjectCreate) SetID(i int64) *SubjectCreate {
+	sc.mutation.SetID(i)
+	return sc
+}
+
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (sc *SubjectCreate) AddLessonPlanIDs(ids ...int) *SubjectCreate {
+func (sc *SubjectCreate) AddLessonPlanIDs(ids ...int64) *SubjectCreate {
 	sc.mutation.AddLessonPlanIDs(ids...)
 	return sc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (sc *SubjectCreate) AddLessonPlans(l ...*LessonPlan) *SubjectCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
 	return sc.AddLessonPlanIDs(ids...)
+}
+
+// AddLessonPlanSubjectIDs adds the "lesson_plan_subjects" edge to the LessonPlanSubject entity by IDs.
+func (sc *SubjectCreate) AddLessonPlanSubjectIDs(ids ...int64) *SubjectCreate {
+	sc.mutation.AddLessonPlanSubjectIDs(ids...)
+	return sc
+}
+
+// AddLessonPlanSubjects adds the "lesson_plan_subjects" edges to the LessonPlanSubject entity.
+func (sc *SubjectCreate) AddLessonPlanSubjects(l ...*LessonPlanSubject) *SubjectCreate {
+	ids := make([]int64, len(l))
+	for i := range l {
+		ids[i] = l[i].ID
+	}
+	return sc.AddLessonPlanSubjectIDs(ids...)
 }
 
 // Mutation returns the SubjectMutation object of the builder.
@@ -145,6 +167,11 @@ func (sc *SubjectCreate) check() error {
 			return &ValidationError{Name: "code", err: fmt.Errorf(`ent: validator failed for field "Subject.code": %w`, err)}
 		}
 	}
+	if v, ok := sc.mutation.ID(); ok {
+		if err := subject.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Subject.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -159,8 +186,10 @@ func (sc *SubjectCreate) sqlSave(ctx context.Context) (*Subject, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	sc.mutation.id = &_node.ID
 	sc.mutation.done = true
 	return _node, nil
@@ -169,8 +198,12 @@ func (sc *SubjectCreate) sqlSave(ctx context.Context) (*Subject, error) {
 func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Subject{config: sc.config}
-		_spec = sqlgraph.NewCreateSpec(subject.Table, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(subject.Table, sqlgraph.NewFieldSpec(subject.FieldID, field.TypeInt64))
 	)
+	if id, ok := sc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := sc.mutation.CreatedAt(); ok {
 		_spec.SetField(subject.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -195,7 +228,27 @@ func (sc *SubjectCreate) createSpec() (*Subject, *sqlgraph.CreateSpec) {
 			Columns: subject.LessonPlansPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &LessonPlanSubjectCreate{config: sc.config, mutation: newLessonPlanSubjectMutation(sc.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sc.mutation.LessonPlanSubjectsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   subject.LessonPlanSubjectsTable,
+			Columns: []string{subject.LessonPlanSubjectsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(lessonplansubject.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -251,9 +304,9 @@ func (scb *SubjectCreateBulk) Save(ctx context.Context) ([]*Subject, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

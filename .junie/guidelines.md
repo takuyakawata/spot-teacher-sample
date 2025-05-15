@@ -54,7 +54,7 @@ Docker Composeでローカル環境を構築し、デプロイはVercel（メイ
 - バリデーション: go-playground/validator
 - ロギング: Uber Zap
 - コンフィグ管理: Viper
-- ORM: GORM (MySQL)
+- ORM: ent.go (MySQL)
 - マイグレーションツール: golang-migrate
 - テスト: Go testing + Testify + GoMock
 - Docker: Docker, Docker Compose

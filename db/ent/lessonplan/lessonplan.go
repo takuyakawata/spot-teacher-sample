@@ -47,14 +47,22 @@ const (
 	EdgeCompany = "company"
 	// EdgeSchedules holds the string denoting the schedules edge name in mutations.
 	EdgeSchedules = "schedules"
-	// EdgeGrades holds the string denoting the grades edge name in mutations.
-	EdgeGrades = "grades"
-	// EdgeSubjects holds the string denoting the subjects edge name in mutations.
-	EdgeSubjects = "subjects"
-	// EdgeEducationCategories holds the string denoting the education_categories edge name in mutations.
-	EdgeEducationCategories = "education_categories"
 	// EdgeUploadFiles holds the string denoting the upload_files edge name in mutations.
 	EdgeUploadFiles = "upload_files"
+	// EdgeSubjects holds the string denoting the subjects edge name in mutations.
+	EdgeSubjects = "subjects"
+	// EdgeGrades holds the string denoting the grades edge name in mutations.
+	EdgeGrades = "grades"
+	// EdgeEducationCategories holds the string denoting the education_categories edge name in mutations.
+	EdgeEducationCategories = "education_categories"
+	// EdgeLessonPlanUploadFiles holds the string denoting the lesson_plan_upload_files edge name in mutations.
+	EdgeLessonPlanUploadFiles = "lesson_plan_upload_files"
+	// EdgeLessonPlanSubjects holds the string denoting the lesson_plan_subjects edge name in mutations.
+	EdgeLessonPlanSubjects = "lesson_plan_subjects"
+	// EdgeLessonPlanGrades holds the string denoting the lesson_plan_grades edge name in mutations.
+	EdgeLessonPlanGrades = "lesson_plan_grades"
+	// EdgeLessonPlanEducationCategories holds the string denoting the lesson_plan_education_categories edge name in mutations.
+	EdgeLessonPlanEducationCategories = "lesson_plan_education_categories"
 	// Table holds the table name of the lessonplan in the database.
 	Table = "lesson_plans"
 	// CompanyTable is the table that holds the company relation/edge.
@@ -71,28 +79,54 @@ const (
 	SchedulesInverseTable = "lesson_schedules"
 	// SchedulesColumn is the table column denoting the schedules relation/edge.
 	SchedulesColumn = "lesson_plan_id"
-	// GradesTable is the table that holds the grades relation/edge. The primary key declared below.
-	GradesTable = "lesson_plan_grades"
-	// GradesInverseTable is the table name for the Grade entity.
-	// It exists in this package in order to avoid circular dependency with the "grade" package.
-	GradesInverseTable = "grades"
+	// UploadFilesTable is the table that holds the upload_files relation/edge. The primary key declared below.
+	UploadFilesTable = "lesson_plan_upload_files"
+	// UploadFilesInverseTable is the table name for the UploadFile entity.
+	// It exists in this package in order to avoid circular dependency with the "uploadfile" package.
+	UploadFilesInverseTable = "upload_files"
 	// SubjectsTable is the table that holds the subjects relation/edge. The primary key declared below.
 	SubjectsTable = "lesson_plan_subjects"
 	// SubjectsInverseTable is the table name for the Subject entity.
 	// It exists in this package in order to avoid circular dependency with the "subject" package.
 	SubjectsInverseTable = "subjects"
+	// GradesTable is the table that holds the grades relation/edge. The primary key declared below.
+	GradesTable = "lesson_plan_grades"
+	// GradesInverseTable is the table name for the Grade entity.
+	// It exists in this package in order to avoid circular dependency with the "grade" package.
+	GradesInverseTable = "grades"
 	// EducationCategoriesTable is the table that holds the education_categories relation/edge. The primary key declared below.
 	EducationCategoriesTable = "lesson_plan_education_categories"
 	// EducationCategoriesInverseTable is the table name for the EducationCategory entity.
 	// It exists in this package in order to avoid circular dependency with the "educationcategory" package.
 	EducationCategoriesInverseTable = "education_categories"
-	// UploadFilesTable is the table that holds the upload_files relation/edge.
-	UploadFilesTable = "upload_files"
-	// UploadFilesInverseTable is the table name for the UploadFile entity.
-	// It exists in this package in order to avoid circular dependency with the "uploadfile" package.
-	UploadFilesInverseTable = "upload_files"
-	// UploadFilesColumn is the table column denoting the upload_files relation/edge.
-	UploadFilesColumn = "lesson_plan_upload_files"
+	// LessonPlanUploadFilesTable is the table that holds the lesson_plan_upload_files relation/edge.
+	LessonPlanUploadFilesTable = "lesson_plan_upload_files"
+	// LessonPlanUploadFilesInverseTable is the table name for the LessonPlanUploadFile entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplanuploadfile" package.
+	LessonPlanUploadFilesInverseTable = "lesson_plan_upload_files"
+	// LessonPlanUploadFilesColumn is the table column denoting the lesson_plan_upload_files relation/edge.
+	LessonPlanUploadFilesColumn = "lesson_plan_id"
+	// LessonPlanSubjectsTable is the table that holds the lesson_plan_subjects relation/edge.
+	LessonPlanSubjectsTable = "lesson_plan_subjects"
+	// LessonPlanSubjectsInverseTable is the table name for the LessonPlanSubject entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplansubject" package.
+	LessonPlanSubjectsInverseTable = "lesson_plan_subjects"
+	// LessonPlanSubjectsColumn is the table column denoting the lesson_plan_subjects relation/edge.
+	LessonPlanSubjectsColumn = "lesson_plan_id"
+	// LessonPlanGradesTable is the table that holds the lesson_plan_grades relation/edge.
+	LessonPlanGradesTable = "lesson_plan_grades"
+	// LessonPlanGradesInverseTable is the table name for the LessonPlanGrade entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplangrade" package.
+	LessonPlanGradesInverseTable = "lesson_plan_grades"
+	// LessonPlanGradesColumn is the table column denoting the lesson_plan_grades relation/edge.
+	LessonPlanGradesColumn = "lesson_plan_id"
+	// LessonPlanEducationCategoriesTable is the table that holds the lesson_plan_education_categories relation/edge.
+	LessonPlanEducationCategoriesTable = "lesson_plan_education_categories"
+	// LessonPlanEducationCategoriesInverseTable is the table name for the LessonPlanEducationCategory entity.
+	// It exists in this package in order to avoid circular dependency with the "lessonplaneducationcategory" package.
+	LessonPlanEducationCategoriesInverseTable = "lesson_plan_education_categories"
+	// LessonPlanEducationCategoriesColumn is the table column denoting the lesson_plan_education_categories relation/edge.
+	LessonPlanEducationCategoriesColumn = "lesson_plan_id"
 )
 
 // Columns holds all SQL columns for lessonplan fields.
@@ -115,12 +149,15 @@ var Columns = []string{
 }
 
 var (
-	// GradesPrimaryKey and GradesColumn2 are the table columns denoting the
-	// primary key for the grades relation (M2M).
-	GradesPrimaryKey = []string{"lesson_plan_id", "grade_id"}
+	// UploadFilesPrimaryKey and UploadFilesColumn2 are the table columns denoting the
+	// primary key for the upload_files relation (M2M).
+	UploadFilesPrimaryKey = []string{"lesson_plan_id", "upload_file_id"}
 	// SubjectsPrimaryKey and SubjectsColumn2 are the table columns denoting the
 	// primary key for the subjects relation (M2M).
 	SubjectsPrimaryKey = []string{"lesson_plan_id", "subject_id"}
+	// GradesPrimaryKey and GradesColumn2 are the table columns denoting the
+	// primary key for the grades relation (M2M).
+	GradesPrimaryKey = []string{"lesson_plan_id", "grade_id"}
 	// EducationCategoriesPrimaryKey and EducationCategoriesColumn2 are the table columns denoting the
 	// primary key for the education_categories relation (M2M).
 	EducationCategoriesPrimaryKey = []string{"lesson_plan_id", "education_category_id"}
@@ -144,7 +181,7 @@ var (
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
 	// CompanyIDValidator is a validator for the "company_id" field. It is called by the builders before save.
-	CompanyIDValidator func(int) error
+	CompanyIDValidator func(int64) error
 	// TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	TitleValidator func(string) error
 	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
@@ -152,15 +189,17 @@ var (
 	// LocationValidator is a validator for the "location" field. It is called by the builders before save.
 	LocationValidator func(string) error
 	// AnnualMaxExecutionsValidator is a validator for the "annual_max_executions" field. It is called by the builders before save.
-	AnnualMaxExecutionsValidator func(int) error
+	AnnualMaxExecutionsValidator func(int64) error
 	// StartMonthValidator is a validator for the "start_month" field. It is called by the builders before save.
-	StartMonthValidator func(int) error
+	StartMonthValidator func(int64) error
 	// StartDayValidator is a validator for the "start_day" field. It is called by the builders before save.
-	StartDayValidator func(int) error
+	StartDayValidator func(int64) error
 	// EndMonthValidator is a validator for the "end_month" field. It is called by the builders before save.
-	EndMonthValidator func(int) error
+	EndMonthValidator func(int64) error
 	// EndDayValidator is a validator for the "end_day" field. It is called by the builders before save.
-	EndDayValidator func(int) error
+	EndDayValidator func(int64) error
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(int64) error
 )
 
 // LessonType defines the type for the "lesson_type" enum field.
@@ -286,17 +325,17 @@ func BySchedules(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByGradesCount orders the results by grades count.
-func ByGradesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByUploadFilesCount orders the results by upload_files count.
+func ByUploadFilesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newGradesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newUploadFilesStep(), opts...)
 	}
 }
 
-// ByGrades orders the results by grades terms.
-func ByGrades(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByUploadFiles orders the results by upload_files terms.
+func ByUploadFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newGradesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newUploadFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 
@@ -314,6 +353,20 @@ func BySubjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByGradesCount orders the results by grades count.
+func ByGradesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newGradesStep(), opts...)
+	}
+}
+
+// ByGrades orders the results by grades terms.
+func ByGrades(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newGradesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByEducationCategoriesCount orders the results by education_categories count.
 func ByEducationCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -328,17 +381,59 @@ func ByEducationCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpti
 	}
 }
 
-// ByUploadFilesCount orders the results by upload_files count.
-func ByUploadFilesCount(opts ...sql.OrderTermOption) OrderOption {
+// ByLessonPlanUploadFilesCount orders the results by lesson_plan_upload_files count.
+func ByLessonPlanUploadFilesCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newUploadFilesStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanUploadFilesStep(), opts...)
 	}
 }
 
-// ByUploadFiles orders the results by upload_files terms.
-func ByUploadFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByLessonPlanUploadFiles orders the results by lesson_plan_upload_files terms.
+func ByLessonPlanUploadFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUploadFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanUploadFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLessonPlanSubjectsCount orders the results by lesson_plan_subjects count.
+func ByLessonPlanSubjectsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanSubjectsStep(), opts...)
+	}
+}
+
+// ByLessonPlanSubjects orders the results by lesson_plan_subjects terms.
+func ByLessonPlanSubjects(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanSubjectsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLessonPlanGradesCount orders the results by lesson_plan_grades count.
+func ByLessonPlanGradesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanGradesStep(), opts...)
+	}
+}
+
+// ByLessonPlanGrades orders the results by lesson_plan_grades terms.
+func ByLessonPlanGrades(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanGradesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByLessonPlanEducationCategoriesCount orders the results by lesson_plan_education_categories count.
+func ByLessonPlanEducationCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newLessonPlanEducationCategoriesStep(), opts...)
+	}
+}
+
+// ByLessonPlanEducationCategories orders the results by lesson_plan_education_categories terms.
+func ByLessonPlanEducationCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newLessonPlanEducationCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
 func newCompanyStep() *sqlgraph.Step {
@@ -355,11 +450,11 @@ func newSchedulesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.O2M, false, SchedulesTable, SchedulesColumn),
 	)
 }
-func newGradesStep() *sqlgraph.Step {
+func newUploadFilesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(GradesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, GradesTable, GradesPrimaryKey...),
+		sqlgraph.To(UploadFilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, UploadFilesTable, UploadFilesPrimaryKey...),
 	)
 }
 func newSubjectsStep() *sqlgraph.Step {
@@ -369,6 +464,13 @@ func newSubjectsStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, SubjectsTable, SubjectsPrimaryKey...),
 	)
 }
+func newGradesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(GradesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, GradesTable, GradesPrimaryKey...),
+	)
+}
 func newEducationCategoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -376,10 +478,31 @@ func newEducationCategoriesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, EducationCategoriesTable, EducationCategoriesPrimaryKey...),
 	)
 }
-func newUploadFilesStep() *sqlgraph.Step {
+func newLessonPlanUploadFilesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UploadFilesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, UploadFilesTable, UploadFilesColumn),
+		sqlgraph.To(LessonPlanUploadFilesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanUploadFilesTable, LessonPlanUploadFilesColumn),
+	)
+}
+func newLessonPlanSubjectsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanSubjectsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanSubjectsTable, LessonPlanSubjectsColumn),
+	)
+}
+func newLessonPlanGradesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanGradesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanGradesTable, LessonPlanGradesColumn),
+	)
+}
+func newLessonPlanEducationCategoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(LessonPlanEducationCategoriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanEducationCategoriesTable, LessonPlanEducationCategoriesColumn),
 	)
 }

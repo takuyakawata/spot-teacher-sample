@@ -108,15 +108,21 @@ func (cc *CompanyCreate) SetNillableURL(s *string) *CompanyCreate {
 	return cc
 }
 
+// SetID sets the "id" field.
+func (cc *CompanyCreate) SetID(i int64) *CompanyCreate {
+	cc.mutation.SetID(i)
+	return cc
+}
+
 // AddLessonPlanIDs adds the "lesson_plans" edge to the LessonPlan entity by IDs.
-func (cc *CompanyCreate) AddLessonPlanIDs(ids ...int) *CompanyCreate {
+func (cc *CompanyCreate) AddLessonPlanIDs(ids ...int64) *CompanyCreate {
 	cc.mutation.AddLessonPlanIDs(ids...)
 	return cc
 }
 
 // AddLessonPlans adds the "lesson_plans" edges to the LessonPlan entity.
 func (cc *CompanyCreate) AddLessonPlans(l ...*LessonPlan) *CompanyCreate {
-	ids := make([]int, len(l))
+	ids := make([]int64, len(l))
 	for i := range l {
 		ids[i] = l[i].ID
 	}
@@ -124,14 +130,14 @@ func (cc *CompanyCreate) AddLessonPlans(l ...*LessonPlan) *CompanyCreate {
 }
 
 // AddMemberIDs adds the "members" edge to the User entity by IDs.
-func (cc *CompanyCreate) AddMemberIDs(ids ...int) *CompanyCreate {
+func (cc *CompanyCreate) AddMemberIDs(ids ...int64) *CompanyCreate {
 	cc.mutation.AddMemberIDs(ids...)
 	return cc
 }
 
 // AddMembers adds the "members" edges to the User entity.
 func (cc *CompanyCreate) AddMembers(u ...*User) *CompanyCreate {
-	ids := make([]int, len(u))
+	ids := make([]int64, len(u))
 	for i := range u {
 		ids[i] = u[i].ID
 	}
@@ -231,6 +237,11 @@ func (cc *CompanyCreate) check() error {
 			return &ValidationError{Name: "phone_number", err: fmt.Errorf(`ent: validator failed for field "Company.phone_number": %w`, err)}
 		}
 	}
+	if v, ok := cc.mutation.ID(); ok {
+		if err := company.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Company.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -245,8 +256,10 @@ func (cc *CompanyCreate) sqlSave(ctx context.Context) (*Company, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != _node.ID {
+		id := _spec.ID.Value.(int64)
+		_node.ID = int64(id)
+	}
 	cc.mutation.id = &_node.ID
 	cc.mutation.done = true
 	return _node, nil
@@ -255,8 +268,12 @@ func (cc *CompanyCreate) sqlSave(ctx context.Context) (*Company, error) {
 func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Company{config: cc.config}
-		_spec = sqlgraph.NewCreateSpec(company.Table, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(company.Table, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt64))
 	)
+	if id, ok := cc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
 	if value, ok := cc.mutation.CreatedAt(); ok {
 		_spec.SetField(company.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -301,7 +318,7 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Columns: []string{company.LessonPlansColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(lessonplan.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -317,7 +334,7 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 			Columns: []string{company.MembersColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
+				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt64),
 			},
 		}
 		for _, k := range nodes {
@@ -373,9 +390,9 @@ func (ccb *CompanyCreateBulk) Save(ctx context.Context) ([]*Company, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
+				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
 					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
+					nodes[i].ID = int64(id)
 				}
 				mutation.done = true
 				return nodes[i], nil

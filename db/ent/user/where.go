@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.User {
+func ID(id int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.User {
+func IDEQ(id int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.User {
+func IDNEQ(id int64) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.User {
+func IDIn(ids ...int64) predicate.User {
 	return predicate.User(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.User {
+func IDNotIn(ids ...int64) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.User {
+func IDGT(id int64) predicate.User {
 	return predicate.User(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.User {
+func IDGTE(id int64) predicate.User {
 	return predicate.User(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.User {
+func IDLT(id int64) predicate.User {
 	return predicate.User(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.User {
+func IDLTE(id int64) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldID, id))
 }
 
@@ -66,12 +66,12 @@ func UpdatedAt(v time.Time) predicate.User {
 }
 
 // SchoolID applies equality check predicate on the "school_id" field. It's identical to SchoolIDEQ.
-func SchoolID(v int) predicate.User {
+func SchoolID(v int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // CompanyID applies equality check predicate on the "company_id" field. It's identical to CompanyIDEQ.
-func CompanyID(v int) predicate.User {
+func CompanyID(v int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCompanyID, v))
 }
 
@@ -201,22 +201,22 @@ func UserTypeNotIn(vs ...UserType) predicate.User {
 }
 
 // SchoolIDEQ applies the EQ predicate on the "school_id" field.
-func SchoolIDEQ(v int) predicate.User {
+func SchoolIDEQ(v int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // SchoolIDNEQ applies the NEQ predicate on the "school_id" field.
-func SchoolIDNEQ(v int) predicate.User {
+func SchoolIDNEQ(v int64) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldSchoolID, v))
 }
 
 // SchoolIDIn applies the In predicate on the "school_id" field.
-func SchoolIDIn(vs ...int) predicate.User {
+func SchoolIDIn(vs ...int64) predicate.User {
 	return predicate.User(sql.FieldIn(FieldSchoolID, vs...))
 }
 
 // SchoolIDNotIn applies the NotIn predicate on the "school_id" field.
-func SchoolIDNotIn(vs ...int) predicate.User {
+func SchoolIDNotIn(vs ...int64) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldSchoolID, vs...))
 }
 
@@ -231,22 +231,22 @@ func SchoolIDNotNil() predicate.User {
 }
 
 // CompanyIDEQ applies the EQ predicate on the "company_id" field.
-func CompanyIDEQ(v int) predicate.User {
+func CompanyIDEQ(v int64) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCompanyID, v))
 }
 
 // CompanyIDNEQ applies the NEQ predicate on the "company_id" field.
-func CompanyIDNEQ(v int) predicate.User {
+func CompanyIDNEQ(v int64) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldCompanyID, v))
 }
 
 // CompanyIDIn applies the In predicate on the "company_id" field.
-func CompanyIDIn(vs ...int) predicate.User {
+func CompanyIDIn(vs ...int64) predicate.User {
 	return predicate.User(sql.FieldIn(FieldCompanyID, vs...))
 }
 
 // CompanyIDNotIn applies the NotIn predicate on the "company_id" field.
-func CompanyIDNotIn(vs ...int) predicate.User {
+func CompanyIDNotIn(vs ...int64) predicate.User {
 	return predicate.User(sql.FieldNotIn(FieldCompanyID, vs...))
 }
 

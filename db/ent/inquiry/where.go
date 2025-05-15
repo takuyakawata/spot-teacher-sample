@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Inquiry {
+func ID(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Inquiry {
+func IDEQ(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Inquiry {
+func IDNEQ(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Inquiry {
+func IDIn(ids ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Inquiry {
+func IDNotIn(ids ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Inquiry {
+func IDGT(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Inquiry {
+func IDGTE(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Inquiry {
+func IDLT(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Inquiry {
+func IDLTE(id int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldLTE(FieldID, id))
 }
 
@@ -66,17 +66,17 @@ func UpdatedAt(v time.Time) predicate.Inquiry {
 }
 
 // LessonScheduleID applies equality check predicate on the "lesson_schedule_id" field. It's identical to LessonScheduleIDEQ.
-func LessonScheduleID(v int) predicate.Inquiry {
+func LessonScheduleID(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldLessonScheduleID, v))
 }
 
 // SchoolID applies equality check predicate on the "school_id" field. It's identical to SchoolIDEQ.
-func SchoolID(v int) predicate.Inquiry {
+func SchoolID(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.Inquiry {
+func UserID(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -166,62 +166,62 @@ func UpdatedAtLTE(v time.Time) predicate.Inquiry {
 }
 
 // LessonScheduleIDEQ applies the EQ predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDEQ(v int) predicate.Inquiry {
+func LessonScheduleIDEQ(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldLessonScheduleID, v))
 }
 
 // LessonScheduleIDNEQ applies the NEQ predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDNEQ(v int) predicate.Inquiry {
+func LessonScheduleIDNEQ(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldLessonScheduleID, v))
 }
 
 // LessonScheduleIDIn applies the In predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDIn(vs ...int) predicate.Inquiry {
+func LessonScheduleIDIn(vs ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldLessonScheduleID, vs...))
 }
 
 // LessonScheduleIDNotIn applies the NotIn predicate on the "lesson_schedule_id" field.
-func LessonScheduleIDNotIn(vs ...int) predicate.Inquiry {
+func LessonScheduleIDNotIn(vs ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldLessonScheduleID, vs...))
 }
 
 // SchoolIDEQ applies the EQ predicate on the "school_id" field.
-func SchoolIDEQ(v int) predicate.Inquiry {
+func SchoolIDEQ(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldSchoolID, v))
 }
 
 // SchoolIDNEQ applies the NEQ predicate on the "school_id" field.
-func SchoolIDNEQ(v int) predicate.Inquiry {
+func SchoolIDNEQ(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldSchoolID, v))
 }
 
 // SchoolIDIn applies the In predicate on the "school_id" field.
-func SchoolIDIn(vs ...int) predicate.Inquiry {
+func SchoolIDIn(vs ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldSchoolID, vs...))
 }
 
 // SchoolIDNotIn applies the NotIn predicate on the "school_id" field.
-func SchoolIDNotIn(vs ...int) predicate.Inquiry {
+func SchoolIDNotIn(vs ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldSchoolID, vs...))
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int) predicate.Inquiry {
+func UserIDEQ(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int) predicate.Inquiry {
+func UserIDNEQ(v int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int) predicate.Inquiry {
+func UserIDIn(vs ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int) predicate.Inquiry {
+func UserIDNotIn(vs ...int64) predicate.Inquiry {
 	return predicate.Inquiry(sql.FieldNotIn(FieldUserID, vs...))
 }
 

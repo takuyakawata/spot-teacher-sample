@@ -30,40 +30,20 @@ func TestGradeRepository_Create(t *testing.T) {
 	entClient := setupTestDB(t)
 	repo := infra.NewGradeRepository(entClient)
 
-	// Create a valid grade
 	grade, err := domain.NewGrade(domain.ElementaryOne)
 	require.NoError(t, err)
 	require.NotNil(t, grade)
 
-	// Execute Create
-	createdGrade, err := repo.Create(context.Background(), &grade)
+	err = repo.Create(context.Background(), &grade)
 	require.NoError(t, err)
-	assert.NotNil(t, createdGrade)
-	assert.Equal(t, domain.ElementaryOne, domain.GradeEnum(*createdGrade))
 
-	// Test creating the same grade again (should return existing)
-	duplicateGrade, err := repo.Create(context.Background(), &grade)
-	require.NoError(t, err)
-	assert.NotNil(t, duplicateGrade)
-	assert.Equal(t, domain.ElementaryOne, domain.GradeEnum(*duplicateGrade))
-
-	// Create another grade
-	anotherGrade, err := domain.NewGrade(domain.JuniorHighTwo)
-	require.NoError(t, err)
-	require.NotNil(t, anotherGrade)
-
-	// Execute Create for another grade
-	createdAnotherGrade, err := repo.Create(context.Background(), &anotherGrade)
-	require.NoError(t, err)
-	assert.NotNil(t, createdAnotherGrade)
-	assert.Equal(t, domain.JuniorHighTwo, domain.GradeEnum(*createdAnotherGrade))
+	err = repo.Create(context.Background(), &grade)
+	require.Error(t, err)
 }
 
 func TestGradeRepository_RetrieveAll(t *testing.T) {
 	entClient := setupTestDB(t)
 	repo := infra.NewGradeRepository(entClient)
-
-	// Initially, there should be no grades
 	grades, err := repo.RetrieveAll(context.Background())
 	require.NoError(t, err)
 	assert.Empty(t, grades)
@@ -73,7 +53,7 @@ func TestGradeRepository_RetrieveAll(t *testing.T) {
 	for _, ge := range gradeEnums {
 		grade, err := domain.NewGrade(ge)
 		require.NoError(t, err)
-		_, err = repo.Create(context.Background(), &grade)
+		err = repo.Create(context.Background(), &grade)
 		require.NoError(t, err)
 	}
 

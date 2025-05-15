@@ -17,9 +17,13 @@ import (
 type LessonConfirmation struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// LessonReservationID holds the value of the "lesson_reservation_id" field.
-	LessonReservationID int `json:"lesson_reservation_id,omitempty"`
+	LessonReservationID int64 `json:"lesson_reservation_id,omitempty"`
 	// MatchingDate holds the value of the "matching_date" field.
 	MatchingDate time.Time `json:"matching_date,omitempty"`
 	// 確定した授業の開始時間
@@ -63,7 +67,7 @@ func (*LessonConfirmation) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case lessonconfirmation.FieldRemarks:
 			values[i] = new(sql.NullString)
-		case lessonconfirmation.FieldMatchingDate, lessonconfirmation.FieldStartTime, lessonconfirmation.FieldFinishTime:
+		case lessonconfirmation.FieldCreatedAt, lessonconfirmation.FieldUpdatedAt, lessonconfirmation.FieldMatchingDate, lessonconfirmation.FieldStartTime, lessonconfirmation.FieldFinishTime:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -85,12 +89,24 @@ func (lc *LessonConfirmation) assignValues(columns []string, values []any) error
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			lc.ID = int(value.Int64)
+			lc.ID = int64(value.Int64)
+		case lessonconfirmation.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				lc.CreatedAt = value.Time
+			}
+		case lessonconfirmation.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				lc.UpdatedAt = value.Time
+			}
 		case lessonconfirmation.FieldLessonReservationID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_reservation_id", values[i])
 			} else if value.Valid {
-				lc.LessonReservationID = int(value.Int64)
+				lc.LessonReservationID = value.Int64
 			}
 		case lessonconfirmation.FieldMatchingDate:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -157,6 +173,12 @@ func (lc *LessonConfirmation) String() string {
 	var builder strings.Builder
 	builder.WriteString("LessonConfirmation(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", lc.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(lc.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(lc.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("lesson_reservation_id=")
 	builder.WriteString(fmt.Sprintf("%v", lc.LessonReservationID))
 	builder.WriteString(", ")

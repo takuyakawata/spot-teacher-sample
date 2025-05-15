@@ -20,6 +20,7 @@ func NewTeacherRepositoryImpl(client *ent.Client) domain.TeacherRepository {
 
 func (r *TeacherRepositoryImpl) Create(ctx context.Context, t *domain.Teacher) error {
 	createCmd := r.client.User.Create()
+	createCmd.SetSchoolID(t.SchoolID.Value())
 	createCmd.SetFamilyName(t.FamilyName.Value())
 	createCmd.SetFirstName(t.FirstName.Value())
 	createCmd.SetEmail(t.Email.Value())

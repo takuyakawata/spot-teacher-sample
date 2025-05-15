@@ -26,6 +26,7 @@ func (Subject) Fields() []ent.Field {
 
 func (Subject) Mixin() []ent.Mixin {
 	return []ent.Mixin{
+		Mixin{},
 		TimeMixin{},
 	}
 }
@@ -34,7 +35,8 @@ func (Subject) Mixin() []ent.Mixin {
 func (Subject) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("lesson_plans", LessonPlan.Type).
-			Ref("subjects"),
+			Ref("subjects").
+			Through("lesson_plan_subjects", LessonPlanSubject.Type),
 	}
 }
 

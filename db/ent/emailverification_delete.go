@@ -40,7 +40,7 @@ func (evd *EmailVerificationDelete) ExecX(ctx context.Context) int {
 }
 
 func (evd *EmailVerificationDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(emailverification.Table, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewDeleteSpec(emailverification.Table, sqlgraph.NewFieldSpec(emailverification.FieldID, field.TypeInt64))
 	if ps := evd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

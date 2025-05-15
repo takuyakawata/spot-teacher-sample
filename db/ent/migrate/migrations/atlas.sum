@@ -1,2 +1,5 @@
-h1:ckiNgSXirdGRRBNhd/59C8agfTCq+iXUA1soct8urH4=
+h1:+LIs93OXKuwfPXeBlHotyJ1MBJpdbQZHNhH+thuLhyM=
 20250513045032_create_init_table.sql h1:ngGi4WdvLCjJcRCOL6eblgi9mYdPKiyrCQpRl51sXb4=
+20250514082140_add_colunm_subjects_table.sql h1:l9s6Ewmimy4OuJzEzqJ41lxgTpiGe8v6SVQIx8xdqn0=
+20250515010111_add_realation_tables.sql h1:VvVV/tFFAo4cxAe71966EF3zJCbklcHAwDlVU7fyeIo=
+20250515063631_update_id_type.sql h1:PljMddhzk6X0tqZdNwmTQ7mfuQF+u5NB2xRptY8s61c=

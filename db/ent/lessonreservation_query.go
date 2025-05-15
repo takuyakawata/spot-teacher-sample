@@ -203,8 +203,8 @@ func (lrq *LessonReservationQuery) FirstX(ctx context.Context) *LessonReservatio
 
 // FirstID returns the first LessonReservation ID from the query.
 // Returns a *NotFoundError when no LessonReservation ID was found.
-func (lrq *LessonReservationQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (lrq *LessonReservationQuery) FirstID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = lrq.Limit(1).IDs(setContextOp(ctx, lrq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
@@ -216,7 +216,7 @@ func (lrq *LessonReservationQuery) FirstID(ctx context.Context) (id int, err err
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (lrq *LessonReservationQuery) FirstIDX(ctx context.Context) int {
+func (lrq *LessonReservationQuery) FirstIDX(ctx context.Context) int64 {
 	id, err := lrq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -254,8 +254,8 @@ func (lrq *LessonReservationQuery) OnlyX(ctx context.Context) *LessonReservation
 // OnlyID is like Only, but returns the only LessonReservation ID in the query.
 // Returns a *NotSingularError when more than one LessonReservation ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (lrq *LessonReservationQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (lrq *LessonReservationQuery) OnlyID(ctx context.Context) (id int64, err error) {
+	var ids []int64
 	if ids, err = lrq.Limit(2).IDs(setContextOp(ctx, lrq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
@@ -271,7 +271,7 @@ func (lrq *LessonReservationQuery) OnlyID(ctx context.Context) (id int, err erro
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (lrq *LessonReservationQuery) OnlyIDX(ctx context.Context) int {
+func (lrq *LessonReservationQuery) OnlyIDX(ctx context.Context) int64 {
 	id, err := lrq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -299,7 +299,7 @@ func (lrq *LessonReservationQuery) AllX(ctx context.Context) []*LessonReservatio
 }
 
 // IDs executes the query and returns a list of LessonReservation IDs.
-func (lrq *LessonReservationQuery) IDs(ctx context.Context) (ids []int, err error) {
+func (lrq *LessonReservationQuery) IDs(ctx context.Context) (ids []int64, err error) {
 	if lrq.ctx.Unique == nil && lrq.path != nil {
 		lrq.Unique(true)
 	}
@@ -311,7 +311,7 @@ func (lrq *LessonReservationQuery) IDs(ctx context.Context) (ids []int, err erro
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (lrq *LessonReservationQuery) IDsX(ctx context.Context) []int {
+func (lrq *LessonReservationQuery) IDsX(ctx context.Context) []int64 {
 	ids, err := lrq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -443,12 +443,12 @@ func (lrq *LessonReservationQuery) WithLessonConfirmation(opts ...func(*LessonCo
 // Example:
 //
 //	var v []struct {
-//		LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.LessonReservation.Query().
-//		GroupBy(lessonreservation.FieldLessonScheduleID).
+//		GroupBy(lessonreservation.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (lrq *LessonReservationQuery) GroupBy(field string, fields ...string) *LessonReservationGroupBy {
@@ -466,11 +466,11 @@ func (lrq *LessonReservationQuery) GroupBy(field string, fields ...string) *Less
 // Example:
 //
 //	var v []struct {
-//		LessonScheduleID int `json:"lesson_schedule_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.LessonReservation.Query().
-//		Select(lessonreservation.FieldLessonScheduleID).
+//		Select(lessonreservation.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (lrq *LessonReservationQuery) Select(fields ...string) *LessonReservationSelect {
 	lrq.ctx.Fields = append(lrq.ctx.Fields, fields...)
@@ -583,8 +583,8 @@ func (lrq *LessonReservationQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 }
 
 func (lrq *LessonReservationQuery) loadLessonSchedule(ctx context.Context, query *LessonScheduleQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *LessonSchedule)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LessonReservation)
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*LessonReservation)
 	for i := range nodes {
 		fk := nodes[i].LessonScheduleID
 		if _, ok := nodeids[fk]; !ok {
@@ -612,8 +612,8 @@ func (lrq *LessonReservationQuery) loadLessonSchedule(ctx context.Context, query
 	return nil
 }
 func (lrq *LessonReservationQuery) loadSchool(ctx context.Context, query *SchoolQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *School)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LessonReservation)
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*LessonReservation)
 	for i := range nodes {
 		fk := nodes[i].SchoolID
 		if _, ok := nodeids[fk]; !ok {
@@ -641,8 +641,8 @@ func (lrq *LessonReservationQuery) loadSchool(ctx context.Context, query *School
 	return nil
 }
 func (lrq *LessonReservationQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*LessonReservation)
+	ids := make([]int64, 0, len(nodes))
+	nodeids := make(map[int64][]*LessonReservation)
 	for i := range nodes {
 		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
@@ -671,7 +671,7 @@ func (lrq *LessonReservationQuery) loadUser(ctx context.Context, query *UserQuer
 }
 func (lrq *LessonReservationQuery) loadLessonReservationPreferredDates(ctx context.Context, query *LessonReservationPreferredDateQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *LessonReservationPreferredDate)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*LessonReservation)
+	nodeids := make(map[int64]*LessonReservation)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -701,7 +701,7 @@ func (lrq *LessonReservationQuery) loadLessonReservationPreferredDates(ctx conte
 }
 func (lrq *LessonReservationQuery) loadLessonConfirmation(ctx context.Context, query *LessonConfirmationQuery, nodes []*LessonReservation, init func(*LessonReservation), assign func(*LessonReservation, *LessonConfirmation)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[int]*LessonReservation)
+	nodeids := make(map[int64]*LessonReservation)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -740,7 +740,7 @@ func (lrq *LessonReservationQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (lrq *LessonReservationQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewQuerySpec(lessonreservation.Table, lessonreservation.Columns, sqlgraph.NewFieldSpec(lessonreservation.FieldID, field.TypeInt64))
 	_spec.From = lrq.sql
 	if unique := lrq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique

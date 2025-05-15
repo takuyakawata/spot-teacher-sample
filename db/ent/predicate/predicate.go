@@ -27,6 +27,18 @@ type LessonConfirmation func(*sql.Selector)
 // LessonPlan is the predicate function for lessonplan builders.
 type LessonPlan func(*sql.Selector)
 
+// LessonPlanEducationCategory is the predicate function for lessonplaneducationcategory builders.
+type LessonPlanEducationCategory func(*sql.Selector)
+
+// LessonPlanGrade is the predicate function for lessonplangrade builders.
+type LessonPlanGrade func(*sql.Selector)
+
+// LessonPlanSubject is the predicate function for lessonplansubject builders.
+type LessonPlanSubject func(*sql.Selector)
+
+// LessonPlanUploadFile is the predicate function for lessonplanuploadfile builders.
+type LessonPlanUploadFile func(*sql.Selector)
+
 // LessonReservation is the predicate function for lessonreservation builders.
 type LessonReservation func(*sql.Selector)
 

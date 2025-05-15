@@ -17,13 +17,13 @@ import (
 type LessonReservationPreferredDate struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// LessonReservationID holds the value of the "lesson_reservation_id" field.
-	LessonReservationID int `json:"lesson_reservation_id,omitempty"`
+	LessonReservationID int64 `json:"lesson_reservation_id,omitempty"`
 	// 希望日時の優先順位
 	Priority lessonreservationpreferreddate.Priority `json:"priority,omitempty"`
 	// 希望日
@@ -89,7 +89,7 @@ func (lrpd *LessonReservationPreferredDate) assignValues(columns []string, value
 			if !ok {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
-			lrpd.ID = int(value.Int64)
+			lrpd.ID = int64(value.Int64)
 		case lessonreservationpreferreddate.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -106,7 +106,7 @@ func (lrpd *LessonReservationPreferredDate) assignValues(columns []string, value
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field lesson_reservation_id", values[i])
 			} else if value.Valid {
-				lrpd.LessonReservationID = int(value.Int64)
+				lrpd.LessonReservationID = value.Int64
 			}
 		case lessonreservationpreferreddate.FieldPriority:
 			if value, ok := values[i].(*sql.NullString); !ok {

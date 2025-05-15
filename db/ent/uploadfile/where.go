@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.UploadFile {
+func ID(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.UploadFile {
+func IDEQ(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.UploadFile {
+func IDNEQ(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.UploadFile {
+func IDIn(ids ...int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.UploadFile {
+func IDNotIn(ids ...int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.UploadFile {
+func IDGT(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.UploadFile {
+func IDGTE(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.UploadFile {
+func IDLT(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.UploadFile {
+func IDLTE(id int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldLTE(FieldID, id))
 }
 
@@ -71,7 +71,7 @@ func PhotoKey(v string) predicate.UploadFile {
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.UploadFile {
+func UserID(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -221,42 +221,42 @@ func PhotoKeyContainsFold(v string) predicate.UploadFile {
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int) predicate.UploadFile {
+func UserIDEQ(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int) predicate.UploadFile {
+func UserIDNEQ(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int) predicate.UploadFile {
+func UserIDIn(vs ...int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int) predicate.UploadFile {
+func UserIDNotIn(vs ...int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldNotIn(FieldUserID, vs...))
 }
 
 // UserIDGT applies the GT predicate on the "user_id" field.
-func UserIDGT(v int) predicate.UploadFile {
+func UserIDGT(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldGT(FieldUserID, v))
 }
 
 // UserIDGTE applies the GTE predicate on the "user_id" field.
-func UserIDGTE(v int) predicate.UploadFile {
+func UserIDGTE(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldGTE(FieldUserID, v))
 }
 
 // UserIDLT applies the LT predicate on the "user_id" field.
-func UserIDLT(v int) predicate.UploadFile {
+func UserIDLT(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldLT(FieldUserID, v))
 }
 
 // UserIDLTE applies the LTE predicate on the "user_id" field.
-func UserIDLTE(v int) predicate.UploadFile {
+func UserIDLTE(v int64) predicate.UploadFile {
 	return predicate.UploadFile(sql.FieldLTE(FieldUserID, v))
 }
 
@@ -265,7 +265,7 @@ func HasLessonPlan() predicate.UploadFile {
 	return predicate.UploadFile(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, LessonPlanTable, LessonPlanColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, LessonPlanTable, LessonPlanPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -275,6 +275,29 @@ func HasLessonPlan() predicate.UploadFile {
 func HasLessonPlanWith(preds ...predicate.LessonPlan) predicate.UploadFile {
 	return predicate.UploadFile(func(s *sql.Selector) {
 		step := newLessonPlanStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasLessonPlanUploadFiles applies the HasEdge predicate on the "lesson_plan_upload_files" edge.
+func HasLessonPlanUploadFiles() predicate.UploadFile {
+	return predicate.UploadFile(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, LessonPlanUploadFilesTable, LessonPlanUploadFilesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasLessonPlanUploadFilesWith applies the HasEdge predicate on the "lesson_plan_upload_files" edge with a given conditions (other predicates).
+func HasLessonPlanUploadFilesWith(preds ...predicate.LessonPlanUploadFile) predicate.UploadFile {
+	return predicate.UploadFile(func(s *sql.Selector) {
+		step := newLessonPlanUploadFilesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
