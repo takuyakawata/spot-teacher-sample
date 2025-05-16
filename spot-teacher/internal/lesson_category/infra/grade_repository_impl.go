@@ -15,12 +15,21 @@ func NewGradeRepository(client *ent.Client) domain.GradeRepository {
 }
 
 func (r *gradeRepository) Create(ctx context.Context, grade *domain.Grade) error {
-	_, err := r.client.Grade.Query().Where(entgrade.CodeNumber(grade.Value().Value())).First(ctx)
+	codeNumberValue := grade.Value().Value()
+	_, err := r.client.Grade.Query().Where(entgrade.CodeNumber(codeNumberValue)).First(ctx)
+	// 検索結果のエラーをハンドリング
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return fmt.Errorf("infra.ent: failed to query for existing grade with CodeNumber %d: %w", codeNumberValue, err)
+		}
+	} else {
+		fmt.Printf("infra.ent: Grade with CodeNumber %d already exists, skipping creation.\n", codeNumberValue) // デバッグ用出力
+		return nil
+	}
 
 	_, err = r.client.Grade.Create().
-		SetName(grade.Value().Name()).
 		SetCode(grade.Value().Name()). //　TODO いらんかも
-		SetCodeNumber(grade.Value().Value()).
+		SetCodeNumber(codeNumberValue).
 		Save(ctx)
 
 	if err != nil {

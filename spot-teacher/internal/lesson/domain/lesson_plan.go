@@ -5,6 +5,7 @@ import (
 	compnay "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/company/domain"
 	lessonCategory "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
 	shared "github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/domain"
+	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/shared/util"
 	"time"
 )
 
@@ -19,7 +20,7 @@ type LessonPlan struct {
 	StartDate          LessonPlanDate
 	EndDate            LessonPlanDate
 	LessonType         LessonType
-	AnnualMaxExecution int
+	AnnualMaxExecution int64
 	StartTime          time.Time
 	EndTime            time.Time
 }
@@ -32,16 +33,15 @@ const (
 	LessonTypeOnlineAndOffline LessonType = "online_and_offline"
 )
 
-type LessonPlanID int64
-
-func NewPlanID(value int64) (LessonPlanID, error) {
-	if value <= 0 {
-		return 0, errors.New("product ID must be positive")
-	}
-	return LessonPlanID(value), nil
+type LessonPlanID struct {
+	Value util.ValueObject[int64]
 }
-func (p LessonPlanID) Value() int64 {
-	return int64(p)
+
+func NewLessonPlanID(value int64) (LessonPlanID, error) {
+	if value <= 0 {
+		return LessonPlanID{}, errors.New("LessonPlanID must be positive")
+	}
+	return LessonPlanID{util.NewValueObject[int64](value)}, nil
 }
 
 type LessonPlanDate struct {

@@ -15,7 +15,7 @@ type Address struct {
 	PostCode   PostCode
 }
 
-type Prefecture int
+type Prefecture int64
 
 const (
 	PrefectureHokkaido Prefecture = iota
@@ -118,11 +118,16 @@ var prefectureNames = [...]string{
 	"沖縄県",
 }
 
+// 　TODO enum にもできるか検討　value objectのメソッドをあてる？
 func (p Prefecture) String() string {
 	if int(p) >= 0 && int(p) < len(prefectureNames) {
 		return prefectureNames[p]
 	}
 	return fmt.Sprintf("Prefecture(%d)", p)
+}
+
+func (p Prefecture) Value() int64 {
+	return int64(p)
 }
 
 type PostCode string

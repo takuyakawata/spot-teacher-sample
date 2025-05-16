@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/takuyakawta/spot-teacher-sample/db/ent"
+	"github.com/takuyakawta/spot-teacher-sample/db/ent/grade"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/domain"
 	"github.com/takuyakawta/spot-teacher-sample/spot-teacher/internal/lesson_category/infra"
 	"testing"
@@ -30,15 +31,22 @@ func TestGradeRepository_Create(t *testing.T) {
 	entClient := setupTestDB(t)
 	repo := infra.NewGradeRepository(entClient)
 
-	grade, err := domain.NewGrade(domain.ElementaryOne)
+	g, err := domain.NewGrade(domain.ElementaryOne)
 	require.NoError(t, err)
-	require.NotNil(t, grade)
+	require.NotNil(t, g)
 
-	err = repo.Create(context.Background(), &grade)
+	err = repo.Create(context.Background(), &g)
 	require.NoError(t, err)
+	//データの確認
+	stored, err := entClient.Grade.
+		Query().
+		Where(grade.CodeNumberEQ(g.Value().Value())).
+		Only(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, g.Value().Value(), stored.CodeNumber)
 
-	err = repo.Create(context.Background(), &grade)
-	require.Error(t, err)
+	err = repo.Create(context.Background(), &g)
+	require.NoError(t, err)
 }
 
 func TestGradeRepository_RetrieveAll(t *testing.T) {
@@ -51,9 +59,9 @@ func TestGradeRepository_RetrieveAll(t *testing.T) {
 	// Create some grades
 	gradeEnums := []domain.GradeEnum{domain.ElementaryOne, domain.JuniorHighTwo, domain.HighSchoolThree}
 	for _, ge := range gradeEnums {
-		grade, err := domain.NewGrade(ge)
+		g, err := domain.NewGrade(ge)
 		require.NoError(t, err)
-		err = repo.Create(context.Background(), &grade)
+		err = repo.Create(context.Background(), &g)
 		require.NoError(t, err)
 	}
 

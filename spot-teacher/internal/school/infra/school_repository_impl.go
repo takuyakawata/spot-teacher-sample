@@ -45,7 +45,7 @@ func (r *SchoolRepositoryImpl) Create(ctx context.Context, s *domain.School) (*d
 	createCmd.SetPhoneNumber(s.PhoneNumber.Value())
 
 	// Set address fields
-	createCmd.SetPrefecture(int(s.Address.Prefecture))
+	createCmd.SetPrefecture(s.Address.Prefecture.Value())
 	createCmd.SetCity(s.Address.City)
 
 	if s.Address.Street != nil {
@@ -100,7 +100,7 @@ func (r *SchoolRepositoryImpl) Update(ctx context.Context, s *domain.School) (*d
 	}()
 
 	// Update the school
-	updateCmd := tx.School.UpdateOneID(int(s.ID.Value()))
+	updateCmd := tx.School.UpdateOneID(s.ID.Value())
 	updateCmd.SetSchoolType(entSchool.SchoolType(string(s.SchoolType)))
 	updateCmd.SetName(s.Name.Value())
 
@@ -113,7 +113,7 @@ func (r *SchoolRepositoryImpl) Update(ctx context.Context, s *domain.School) (*d
 	updateCmd.SetPhoneNumber(s.PhoneNumber.Value())
 
 	// Update address fields
-	updateCmd.SetPrefecture(int(s.Address.Prefecture))
+	updateCmd.SetPrefecture(s.Address.Prefecture.Value())
 	updateCmd.SetCity(s.Address.City)
 
 	if s.Address.Street != nil {
@@ -156,12 +156,12 @@ func (r *SchoolRepositoryImpl) Update(ctx context.Context, s *domain.School) (*d
 
 // Delete deletes a school by ID
 func (r *SchoolRepositoryImpl) Delete(ctx context.Context, id domain.SchoolID) error {
-	return r.client.School.DeleteOneID(int(id.Value())).Exec(ctx)
+	return r.client.School.DeleteOneID(id.Value()).Exec(ctx)
 }
 
 // FindByID finds a school by ID
 func (r *SchoolRepositoryImpl) FindByID(ctx context.Context, id domain.SchoolID) (*domain.School, error) {
-	schoolEnt, err := r.client.School.Get(ctx, int(id.Value()))
+	schoolEnt, err := r.client.School.Get(ctx, id.Value())
 	if err != nil {
 		return nil, err
 	}

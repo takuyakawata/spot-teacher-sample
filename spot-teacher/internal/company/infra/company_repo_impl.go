@@ -47,7 +47,7 @@ func (r *companyRepository) Create(ctx context.Context, company *domain.Company)
 }
 
 func (r *companyRepository) Update(ctx context.Context, company *domain.Company) (*domain.Company, error) {
-	primitiveID := int(company.ID.Value())
+	primitiveID := company.ID.Value()
 	updateCmd := r.client.Company.UpdateOneID(primitiveID)
 	updateCmd.SetName(company.Name.Value())
 
@@ -77,7 +77,7 @@ func (r *companyRepository) Update(ctx context.Context, company *domain.Company)
 }
 
 func (r *companyRepository) Delete(ctx context.Context, id domain.CompanyID) error {
-	err := r.client.Company.DeleteOneID(int(id.Value())).Exec(ctx)
+	err := r.client.Company.DeleteOneID(id.Value()).Exec(ctx)
 
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -90,7 +90,7 @@ func (r *companyRepository) Delete(ctx context.Context, id domain.CompanyID) err
 }
 
 func (r *companyRepository) FindByID(ctx context.Context, id domain.CompanyID) (*domain.Company, error) {
-	entCompany, err := r.client.Company.Get(ctx, int(id.Value()))
+	entCompany, err := r.client.Company.Get(ctx, id.Value())
 	if err != nil {
 		return nil, fmt.Errorf("infra.ent: failed to find company by id %d: %w", id, err)
 	}

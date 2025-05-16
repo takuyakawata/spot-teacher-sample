@@ -18,7 +18,7 @@ func NewGrade(value GradeEnum) (Grade, error) {
 
 func (g Grade) Value() GradeEnum { return GradeEnum(g) }
 
-type GradeEnum int
+type GradeEnum int64
 
 const (
 	ElementaryOne GradeEnum = iota
@@ -54,15 +54,15 @@ var gradeNames = [...]string{
 var gradeEnums = [...]GradeEnum{}
 
 func AllGradeEnums() []GradeEnum {
-	enums := make([]GradeEnum, 0, len(gradeNames))
-	for i := range enums {
+	enums := make([]GradeEnum, len(gradeNames))
+	for i := range gradeNames {
 		enums[i] = GradeEnum(i)
 	}
 	return enums
 }
 
-func (g GradeEnum) Value() int {
-	return int(g)
+func (g GradeEnum) Value() int64 {
+	return int64(g)
 }
 
 func (g GradeEnum) Name() string {
