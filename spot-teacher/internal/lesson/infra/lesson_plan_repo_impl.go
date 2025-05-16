@@ -23,23 +23,7 @@ func NewLessonPlanRepository(client *ent.Client) domain.LessonPlanRepository {
 }
 
 func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.LessonPlan) (*domain.LessonPlan, error) {
-	createCmd := r.client.LessonPlan.Create()
-	createCmd.SetCompanyID(lessonPlan.CompanyID.Value())
-	createCmd.SetTitle(lessonPlan.Title)
-	if lessonPlan.Description != nil {
-		createCmd.SetDescription(*lessonPlan.Description)
-	}
-	createCmd.SetStartMonth(int64(lessonPlan.StartDate.Month()))
-	createCmd.SetStartDay(int64(lessonPlan.StartDate.Day()))
-	createCmd.SetEndMonth(int64(lessonPlan.EndDate.Month()))
-	createCmd.SetEndDay(int64(lessonPlan.EndDate.Day().Value()))
-	createCmd.SetLessonType(lessonplan.LessonType(lessonPlan.LessonType))
-	createCmd.SetAnnualMaxExecutions(lessonPlan.AnnualMaxExecution)
-	createCmd.SetStartTime(lessonPlan.StartTime)
-	createCmd.SetEndTime(lessonPlan.EndTime)
-
-	// Save the lesson plan first
-	createdEntLessonPlan, err := createCmd.Save(ctx)
+	createdEntLessonPlan, err := insertLessonPlan(ctx, r.client, lessonPlan)
 	if err != nil {
 		return nil, fmt.Errorf("infra.ent: failed to create lesson plan: %w", err)
 	}
@@ -95,27 +79,6 @@ func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.Le
 		return nil, fmt.Errorf("infra.ent: link grades/subjects/categories: %w", err)
 	}
 
-	//for _, subjectValue := range lessonPlan.Subject {
-	//	entSubject, err := r.client.Subject.Query().Where(subject.Name(string(subjectValue))).First(ctx)
-	//	if err == nil {
-	//		return nil, fmt.Errorf("infra.ent: failed to create subject: %w", err)
-	//	}
-	//
-	//	_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).AddSubjects(entSubject).Save(ctx)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("infra.ent: failed to add subject to lesson plan: %w", err)
-	//	}
-	//}
-	//
-	//for _ = range lessonPlan.EducationCategory {
-	//	_, err = r.client.LessonPlan.UpdateOneID(createdEntLessonPlan.ID).
-	//		AddEducationCategories().
-	//		Save(ctx)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("infra.ent: failed to add education category to lesson plan: %w", err)
-	//	}
-	//}
-
 	updatedEntLessonPlan, err := r.client.LessonPlan.Query().
 		Where(lessonplan.ID(createdEntLessonPlan.ID)).
 		WithGrades().
@@ -127,6 +90,30 @@ func (r *lessonPlanRepository) Create(ctx context.Context, lessonPlan *domain.Le
 	}
 
 	return mapEntLessonPlanToDomain(ctx, r.client, updatedEntLessonPlan)
+}
+
+func insertLessonPlan(ctx context.Context, r *ent.Client, lessonPlan *domain.LessonPlan) (*ent.LessonPlan, error) {
+	createCmd := r.LessonPlan.Create()
+	createCmd.SetCompanyID(lessonPlan.CompanyID.Value())
+	createCmd.SetTitle(lessonPlan.Title)
+	if lessonPlan.Description != nil {
+		createCmd.SetDescription(*lessonPlan.Description)
+	}
+	createCmd.SetStartMonth(int64(lessonPlan.StartDate.Month()))
+	createCmd.SetStartDay(int64(lessonPlan.StartDate.Day()))
+	createCmd.SetEndMonth(int64(lessonPlan.EndDate.Month()))
+	createCmd.SetEndDay(int64(lessonPlan.EndDate.Day().Value()))
+	createCmd.SetLessonType(lessonplan.LessonType(lessonPlan.LessonType))
+	createCmd.SetAnnualMaxExecutions(lessonPlan.AnnualMaxExecution)
+	createCmd.SetStartTime(lessonPlan.StartTime)
+	createCmd.SetEndTime(lessonPlan.EndTime)
+
+	// Save the lesson plan first
+	createdEntLessonPlan, err := createCmd.Save(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("infra.ent: failed to create lesson plan: %w", err)
+	}
+	return createdEntLessonPlan, nil
 }
 
 func (r *lessonPlanRepository) Update(ctx context.Context, lessonPlan *domain.LessonPlan) (*domain.LessonPlan, error) {

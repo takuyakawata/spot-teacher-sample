@@ -39,7 +39,7 @@ func (r *TeacherRepositoryImpl) Create(ctx context.Context, t *domain.Teacher) e
 }
 
 func (r *TeacherRepositoryImpl) FindByID(ctx context.Context, id domain.TeacherID) (*domain.Teacher, error) {
-	t, err := r.client.User.Get(ctx, int(id.Value()))
+	t, err := r.client.User.Get(ctx, id.Value())
 	if err != nil {
 		return nil, err
 	}
@@ -53,13 +53,13 @@ func (r *TeacherRepositoryImpl) FindByID(ctx context.Context, id domain.TeacherI
 }
 
 func (r *TeacherRepositoryImpl) FindByEmail(ctx context.Context, email sharedDomain.EmailAddress) (*domain.Teacher, error) {
-	user, err := r.client.User.Query().Where(user.Email(email.Value())).Only(ctx)
+	getUser, err := r.client.User.Query().Where(user.Email(email.Value())).Only(ctx)
 	if err != nil {
 		// Handle the case where no matching records are found or a general query error occurs
 		return nil, err
 	}
 
-	teacher, err := ToEntity(user)
+	teacher, err := ToEntity(getUser)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (r *TeacherRepositoryImpl) FindByEmail(ctx context.Context, email sharedDom
 }
 
 func (r *TeacherRepositoryImpl) FindBySchoolID(ctx context.Context, schoolID schoolDomain.SchoolID) ([]*domain.Teacher, error) {
-	users, err := r.client.User.Query().Where(user.SchoolIDEQ(int(schoolID.Value()))).All(ctx)
+	users, err := r.client.User.Query().Where(user.SchoolIDEQ(schoolID.Value())).All(ctx)
 	if err != nil {
 		return nil, err
 	}
