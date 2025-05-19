@@ -12,7 +12,7 @@ type LessonPlanRepository interface {
 	FindByID(ctx context.Context, id LessonPlanID) (*LessonPlan, error)
 }
 
-type lessonScheduleRepository interface {
+type LessonScheduleRepository interface {
 	Create(ctx context.Context, lessonSchedule LessonSchedule) error
 	Update(ctx context.Context, lessonSchedule LessonSchedule) error
 	FilterByLessonPlanID(ctx context.Context, lessonPlanID LessonPlanID) []LessonSchedule
